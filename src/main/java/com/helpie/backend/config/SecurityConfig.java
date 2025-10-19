@@ -1,11 +1,27 @@
 package com.helpie.backend.config;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.helpie.backend.dto.global.Response;
+import com.helpie.backend.exception.BusinessException;
+import com.helpie.backend.exception.ErrorCode;
+import com.helpie.backend.service.auth.JwtTokenProvider;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
+import org.springframework.security.web.AuthenticationEntryPoint;
 import org.springframework.security.web.SecurityFilterChain;
+import org.springframework.security.web.access.AccessDeniedHandler;
+import org.springframework.web.cors.CorsConfiguration;
+import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
+
+import java.io.PrintWriter;
+import java.util.List;
+import java.util.Map;
 
 /**
  * Spring Security 설정 클래스
@@ -27,6 +43,58 @@ import org.springframework.security.web.SecurityFilterChain;
 @EnableWebSecurity
 public class SecurityConfig {
 
+    private final JwtTokenProvider jwtTokenProvider;
+    private final List<String> allowOriginHosts;
+
+    private final AuthenticationEntryPoint unauthorizedEntryPoint =
+            (request, response, authException) -> {
+                BusinessException fail = new BusinessException(ErrorCode.UNAUTHORIZED) {
+                };
+                response.setStatus(HttpStatus.UNAUTHORIZED.value());
+                String json = new ObjectMapper().writeValueAsString(Response.error(
+                        fail.getErrorCode().getHttpStatus().value(),
+                        fail.getMessage(),
+                        Map.of(
+                                "errorCode", fail.getErrorCode().name()
+                        )));
+                response.setContentType(MediaType.APPLICATION_JSON_VALUE);
+                PrintWriter writer = response.getWriter();
+                writer.write(json);
+                writer.flush();
+            };
+
+    private final AccessDeniedHandler accessDeniedHandler =
+            (request, response, accessDeniedException) -> {
+                BusinessException fail = new BusinessException(ErrorCode.FORBIDDEN) {
+                };
+                response.setStatus(HttpStatus.FORBIDDEN.value());
+                String json = new ObjectMapper().writeValueAsString(Response.error(
+                        fail.getErrorCode().getHttpStatus().value(),
+                        fail.getMessage(),
+                        Map.of(
+                                "errorCode", fail.getErrorCode().name()
+                        )));
+                response.setContentType(MediaType.APPLICATION_JSON_VALUE);
+                PrintWriter writer = response.getWriter();
+                writer.write(json);
+                writer.flush();
+            };
+
+    private static final String[] SWAGGER_URIS = {
+            "/api-docs/**",
+            "/v3/api-docs/**",
+            "/swagger-ui/**"
+    };
+
+    public SecurityConfig(
+            JwtTokenProvider jwtTokenProvider,
+            @Value("${cors.allow-origin-hosts}")
+            List<String> allowOriginHosts
+    ) {
+        this.jwtTokenProvider = jwtTokenProvider;
+        this.allowOriginHosts = allowOriginHosts;
+    }
+
     /**
      * Spring Security 필터 체인 설정
      * 
@@ -39,17 +107,31 @@ public class SecurityConfig {
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
         http
-            // CSRF 보호 비활성화 (개발 환경용)
-            // TODO: 소셜 로그인 구현 시 CSRF 보호 활성화 필요
-            .csrf(AbstractHttpConfigurer::disable)
-            
-            // 모든 HTTP 요청에 대한 인증/인가 설정
-            .authorizeHttpRequests(auth -> auth
-                // 모든 요청을 인증 없이 허용 (개발 환경용)
-                // TODO: API별 세분화된 권한 설정 필요
-                .anyRequest().permitAll()
-            );
-        
+                // CSRF 보호 비활성화 (개발 환경용)
+                // TODO: 소셜 로그인 구현 시 CSRF 보호 활성화 필요
+                .csrf(AbstractHttpConfigurer::disable)
+
+                // 모든 HTTP 요청에 대한 인증/인가 설정
+                .authorizeHttpRequests(auth -> auth
+                        // 모든 요청을 인증 없이 허용 (개발 환경용)
+                        // TODO: API별 세분화된 권한 설정 필요
+                        .anyRequest().permitAll()
+                )
+                .cors((cors) -> {
+                    CorsConfiguration configuration = new CorsConfiguration();
+                    configuration.setAllowedOrigins(this.allowOriginHosts);
+                    configuration.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "PATCH"));
+                    configuration.setAllowedHeaders(List.of("Authorization", "Content-Type", "set-cookie"));
+                    configuration.setAllowCredentials(true);
+
+                    UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
+                    source.registerCorsConfiguration("/**", configuration);
+
+                    cors.configurationSource(source);
+                })
+                .csrf(AbstractHttpConfigurer::disable)
+                .formLogin(AbstractHttpConfigurer::disable)
+                .sessionManagement(AbstractHttpConfigurer::disable);
         return http.build();
     }
 }
