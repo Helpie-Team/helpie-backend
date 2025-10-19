@@ -1,5 +1,5 @@
 ---
-name: 작업
+name: 작업 등록
 about: 개발 작업이나 할 일을 등록해주세요
 title: "[작업] "
 labels: task
