@@ -1,5 +1,6 @@
 package com.helpie.backend.exception;
 
+import lombok.Getter;
 import org.springframework.http.HttpStatus;
 
 /**
@@ -9,7 +10,19 @@ import org.springframework.http.HttpStatus;
  * @author 전우선
  * @since 2025-10-19(일)
  */
+@Getter
 public enum ErrorCode {
+
+    // === Token 에러 ===
+    TOKEN_NOT_EXIST(HttpStatus.UNAUTHORIZED, "TOKEN_001","토큰이 존재하지 않습니다."),
+    TOKEN_SIGNATURE_ERROR(HttpStatus.UNAUTHORIZED, "TOKEN_002","유효하지 않은 토큰 입니다."),
+    TOKEN_EXPIRED_ERROR(HttpStatus.UNAUTHORIZED, "TOKEN_003","토큰이 만료 되었습니다."),
+    NOT_FOUND_REFRESH_TOKEN(HttpStatus.UNAUTHORIZED, "TOKEN_004","찾을 수 없는 refresh token입니다."),
+
+    // === Social Login 에러 ===
+    NOT_MATCH_SOCIAL_MEMBER(HttpStatus.UNAUTHORIZED, "SOCIAL_001", ""),
+    NOT_MATCH_OAUTH_CODE(HttpStatus.UNAUTHORIZED, "SOCIAL_002", "인증 code가 존재하지 않습니다."),
+    NOT_ALLOW_OAUTH_REDIRECT_URI(HttpStatus.BAD_REQUEST, "SOCIAL_003","승인되지 않은 redirectURI입니다."),
     
     // === Survey 도메인 에러 ===
     SURVEY_BASIC_INFO_ALREADY_EXISTS(HttpStatus.CONFLICT, "SURVEY_001", "이미 등록된 설문조사 기본정보입니다"),
@@ -17,7 +30,9 @@ public enum ErrorCode {
     
     // === 공통 에러 ===
     VALIDATION_FAILED(HttpStatus.BAD_REQUEST, "COMMON_001", "입력값 검증에 실패했습니다"),
-    INTERNAL_SERVER_ERROR(HttpStatus.INTERNAL_SERVER_ERROR, "COMMON_002", "서버 내부 오류가 발생했습니다");
+    INTERNAL_SERVER_ERROR(HttpStatus.INTERNAL_SERVER_ERROR, "COMMON_002", "서버 내부 오류가 발생했습니다"),
+    UNAUTHORIZED(HttpStatus.UNAUTHORIZED, "COMMON_003", "인증되지 않은 사용자입니다."),
+    FORBIDDEN(HttpStatus.FORBIDDEN, "COMMON_004", "접근 권한이 없습니다.");
     
     private final HttpStatus httpStatus;
     private final String code;
