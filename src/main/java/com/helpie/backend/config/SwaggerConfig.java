@@ -61,6 +61,9 @@ public class SwaggerConfig {
                                 .email("jeonwooseon@naver.com")))
                 .servers(List.of(
                         new Server()
+                                .url("http://49.50.133.140:8080")  // ← 실제 배포된 서버 주소
+                                .description("배포 서버"),
+                        new Server()
                                 .url("http://localhost:8080")
                                 .description("로컬 개발 서버")
                 ))
