@@ -54,7 +54,28 @@ public class SwaggerConfig {
                         .title("Helpie Backend API")
                         .description("헬피 백엔드 서비스 API 문서\n\n" +
                                 "개발팀: 배준오, 임지우, 전우선\n\n" +
-                                "JWT 토큰이 필요한 API는 우측 상단 'Authorize' 버튼을 클릭하여 토큰을 입력하세요.")
+                                "JWT 토큰이 필요한 API는 우측 상단 'Authorize' 버튼을 클릭하여 토큰을 입력하세요.\n\n" +
+                                "## 최적화된 실시간 채팅 시스템\n\n" +
+                                "### WebSocket 연결 (JWT 인증 필요)\n" +
+                                "- **연결 URL**: `/ws/chat` (SockJS 지원)\n" +
+                                "- **인증**: `Authorization: Bearer {JWT_TOKEN}` 헤더 필수\n" +
+                                "- **메시지 전송**: `/app/chat/{chatRoomId}`\n" +
+                                "- **입장 알림**: `/app/chat/{chatRoomId}/join`\n" +
+                                "- **퇴장 알림**: `/app/chat/{chatRoomId}/leave`\n" +
+                                "- **메시지 수신**: `/topic/chatroom/{chatRoomId}` 구독\n\n" +
+                                "### 성능 최적화 기능\n" +
+                                "- **메시지 배치 처리**: 최대 10개 메시지 배치 전송 (100ms 간격)\n" +
+                                "- **메시지 압축**: 500바이트 이상 메시지 GZIP 압축\n" +
+                                "- **비동기 처리**: 전용 스레드 풀로 응답성 향상\n" +
+                                "- **세션 관리**: 중복 연결 방지 및 자동 정리\n\n" +
+                                "### 보안 기능\n" +
+                                "- **JWT 기반 인증**: WebSocket 연결 시 토큰 검증\n" +
+                                "- **소모임 권한 검증**: 멤버만 채팅방 접근 가능\n" +
+                                "- **실시간 권한 확인**: 모든 메시지 전송 시 권한 재검증\n\n" +
+                                "### 모바일 최적화\n" +
+                                "- 메시지 페이징 조회 (무한 스크롤 지원)\n" +
+                                "- 온라인 사용자 수 기반 전송 최적화\n" +
+                                "- 자동 입장/퇴장 시스템 메시지")
                         .version("v1.0.0")
                         .contact(new Contact()
                                 .name("Helpie Backend Team")
