@@ -1,0 +1,137 @@
+package com.helpie.backend.controller.chatroom;
+
+import com.helpie.backend.dto.chatroom.ChatRoomResponse;
+import com.helpie.backend.dto.chatroom.ChatMessageResponse;
+import com.helpie.backend.dto.chatroom.SendMessageRequest;
+import com.helpie.backend.service.chatroom.ChatRoomService;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
+import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.validation.Valid;
+import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
+import org.springframework.data.web.PageableDefault;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.*;
+
+import java.util.List;
+
+/**
+ * 채팅방 관리 컨트롤러
+ * 소모임 내 채팅방 입장, 퇴장, 메시지 전송 기능을 제공합니다.
+ * 
+ * @author 전우선
+ * @since 2025-10-25(토)
+ */
+@Tag(name = "ChatRoom", description = "최적화된 채팅방 관리 API - 소모임 기반 실시간 채팅\n\n" +
+        "**성능 최적화 기능:**\n" +
+        "- 메시지 배치 처리 (최대 10개, 100ms 간격)\n" +
+        "- GZIP 압축 (500바이트 이상 메시지)\n" +
+        "- 비동기 처리 및 전용 스레드 풀\n" +
+        "- JWT 기반 보안 인증\n\n" +
+        "**실시간 기능은 WebSocket `/ws/chat` 사용**")
+@RestController
+@RequestMapping("/api/v1/chatrooms")
+@RequiredArgsConstructor
+public class ChatRoomController {
+    
+    private final ChatRoomService chatRoomService;
+    
+    @PostMapping("/{chatRoomId}/enter")
+    @Operation(
+        summary = "채팅방 입장", 
+        description = "소모임 멤버가 채팅방에 입장합니다.\n\n" +
+                     "**주요 기능:**\n" +
+                     "- 소모임 멤버 권한 확인\n" +
+                     "- 입장 시 시스템 메시지 자동 전송\n" +
+                     "- 실시간 WebSocket을 통한 알림\n\n" +
+                     "**참고:** 실제 실시간 채팅은 WebSocket `/ws/chat` 연결이 필요합니다."
+    )
+    public ResponseEntity<ChatRoomResponse> enterChatRoom(
+        @Parameter(description = "채팅방 ID") @PathVariable Long chatRoomId,
+        @Parameter(description = "사용자 ID") @RequestParam Long userId,
+        @Parameter(description = "사용자 이름") @RequestParam String userName
+    ) {
+        ChatRoomResponse response = chatRoomService.enterChatRoom(chatRoomId, userId, userName);
+        return ResponseEntity.ok(response);
+    }
+    
+    @PostMapping("/{chatRoomId}/leave")
+    @Operation(summary = "채팅방 퇴장", description = "채팅방에서 퇴장합니다. 퇴장 시 시스템 메시지가 자동 전송됩니다.")
+    public ResponseEntity<Void> leaveChatRoom(
+        @Parameter(description = "채팅방 ID") @PathVariable Long chatRoomId,
+        @Parameter(description = "사용자 ID") @RequestParam Long userId,
+        @Parameter(description = "사용자 이름") @RequestParam String userName
+    ) {
+        chatRoomService.leaveChatRoom(chatRoomId, userId, userName);
+        return ResponseEntity.ok().build();
+    }
+    
+    @GetMapping("/accessible")
+    @Operation(
+        summary = "접근 가능한 채팅방 목록", 
+        description = "사용자가 접근 가능한 채팅방 목록을 조회합니다.\n\n" +
+                     "**조회 기준:**\n" +
+                     "- 사용자가 소모임 멤버인 채팅방만 조회\n" +
+                     "- 현재 참여자 수 / 총 소모임 멤버 수 표시\n" +
+                     "- 활성 상태인 채팅방만 포함"
+    )
+    public ResponseEntity<List<ChatRoomResponse>> getAccessibleChatRooms(
+        @Parameter(description = "사용자 ID") @RequestParam Long userId
+    ) {
+        List<ChatRoomResponse> response = chatRoomService.getAccessibleChatRooms(userId);
+        return ResponseEntity.ok(response);
+    }
+    
+    @GetMapping("/{chatRoomId}")
+    @Operation(summary = "채팅방 상세 조회", description = "채팅방의 상세 정보를 조회합니다.")
+    public ResponseEntity<ChatRoomResponse> getChatRoomDetail(
+        @Parameter(description = "채팅방 ID") @PathVariable Long chatRoomId,
+        @Parameter(description = "사용자 ID") @RequestParam Long userId
+    ) {
+        ChatRoomResponse response = chatRoomService.getChatRoomDetail(chatRoomId, userId);
+        return ResponseEntity.ok(response);
+    }
+    
+    @GetMapping("/{chatRoomId}/messages")
+    @Operation(
+        summary = "채팅방 메시지 조회 (페이징 최적화)",
+        description = "채팅방의 메시지 목록을 페이징하여 조회합니다.\n\n" +
+                     "**모바일 최적화 기능:**\n" +
+                     "- 기본 50개씩 페이징 (무한 스크롤 지원)\n" +
+                     "- 최신순 정렬 (sentAt DESC)\n" +
+                     "- 삭제된 메시지 자동 제외\n" +
+                     "- 소모임 멤버 권한 자동 검증\n\n" +
+                     "**사용 예시:**\n" +
+                     "- 최신 메시지: `?page=0&size=20`\n" +
+                     "- 이전 메시지: `?page=1&size=20`"
+    )
+    public ResponseEntity<Page<ChatMessageResponse>> getChatMessages(
+        @Parameter(description = "채팅방 ID") @PathVariable Long chatRoomId,
+        @Parameter(description = "사용자 ID") @RequestParam Long userId,
+        @Parameter(description = "페이징 정보 (기본: 50개, 최신순)") 
+        @PageableDefault(size = 50, sort = "sentAt", direction = Sort.Direction.DESC) Pageable pageable
+    ) {
+        Page<ChatMessageResponse> response = chatRoomService.getChatMessages(chatRoomId, userId, pageable);
+        return ResponseEntity.ok(response);
+    }
+    
+    @PostMapping("/{chatRoomId}/messages")
+    @Operation(
+        summary = "메시지 전송 (REST API)", 
+        description = "REST API를 통해 채팅방에 메시지를 전송합니다.\n\n" +
+                     "**참고:**\n" +
+                     "- 이 API는 DB 저장용이며, 실시간 전송은 되지 않습니다\n" +
+                     "- 실시간 채팅은 WebSocket `/app/chat/{chatRoomId}` 사용\n" +
+                     "- 소모임 멤버이고 채팅방에 입장한 상태여야 합니다"
+    )
+    public ResponseEntity<ChatMessageResponse> sendMessage(
+        @Parameter(description = "채팅방 ID") @PathVariable Long chatRoomId,
+        @Valid @RequestBody SendMessageRequest request
+    ) {
+        ChatMessageResponse response = chatRoomService.sendMessage(chatRoomId, request);
+        return ResponseEntity.ok(response);
+    }
+}

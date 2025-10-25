@@ -86,6 +86,16 @@ public class SecurityConfig {
             "/swagger-ui/**"
     };
 
+    private static final String[] WEBSOCKET_URIS = {
+            "/ws/**",
+            "/ws/chat/**"
+    };
+
+    private static final String[] CHATROOM_API_URIS = {
+            "/api/v1/chatrooms/**"
+    };
+
+
     public SecurityConfig(
             JwtTokenProvider jwtTokenProvider,
             @Value("${cors.allow-origin-hosts}")
@@ -113,6 +123,12 @@ public class SecurityConfig {
 
                 // 모든 HTTP 요청에 대한 인증/인가 설정
                 .authorizeHttpRequests(auth -> auth
+                        // Swagger 문서 접근 허용
+                        .requestMatchers(SWAGGER_URIS).permitAll()
+                        // WebSocket 엔드포인트 허용
+                        .requestMatchers(WEBSOCKET_URIS).permitAll()
+                        // 채팅방 API 허용
+                        .requestMatchers(CHATROOM_API_URIS).permitAll()
                         // 모든 요청을 인증 없이 허용 (개발 환경용)
                         // TODO: API별 세분화된 권한 설정 필요
                         .anyRequest().permitAll()
@@ -120,9 +136,10 @@ public class SecurityConfig {
                 .cors((cors) -> {
                     CorsConfiguration configuration = new CorsConfiguration();
                     configuration.setAllowedOrigins(this.allowOriginHosts);
-                    configuration.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "PATCH"));
-                    configuration.setAllowedHeaders(List.of("Authorization", "Content-Type", "set-cookie"));
+                    configuration.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"));
+                    configuration.setAllowedHeaders(List.of("Authorization", "Content-Type", "set-cookie", "X-Requested-With"));
                     configuration.setAllowCredentials(true);
+                    configuration.setMaxAge(3600L); // WebSocket을 위한 preflight 캐시 시간 설정
 
                     UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
                     source.registerCorsConfiguration("/**", configuration);
