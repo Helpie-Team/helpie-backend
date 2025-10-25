@@ -4,6 +4,8 @@ import com.helpie.backend.domain.sociallogin.SocialLogin;
 import com.helpie.backend.domain.sociallogin.SocialType;
 import com.helpie.backend.domain.user.UserVo;
 import com.helpie.backend.dto.sociallogin.OAuthProfile;
+import com.helpie.backend.exception.BusinessException;
+import com.helpie.backend.exception.ErrorCode;
 import com.helpie.backend.repository.sociallogin.SocialLoginRepository;
 import com.helpie.backend.service.sociallogin.impl.GoogleOAuth2Provider;
 import com.helpie.backend.service.sociallogin.impl.KakaoOAuth2Provider;
@@ -12,6 +14,8 @@ import com.helpie.backend.service.user.UserService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+
+import java.util.Map;
 
 @Service
 @RequiredArgsConstructor
@@ -47,22 +51,20 @@ public class SocialLoginService {
                 socialType
         );
 
+        //                        )
         final var socialLogin = this.socialLoginRepository.findByCodeAndSocialType(
                 profile.getCode(),
                 profile.getSocialType()
         ).orElseThrow(() ->
-                new RuntimeException(
-                        "소셜 로그인 정보를 찾을 수 없습니다."
-                        /**
-                         * TODO: 커스텀 exception 구현 후 추가 예정
-                         */
-//                        Map.of(
-//                                "socialType", socialType.name(),
-//                                "socialAccessToken", socialAccessToken
-//                        )
-                )
-        );
-
+                new BusinessException(
+                        ErrorCode.UNAUTHORIZED,
+                        Map.of(
+                                "socialType", socialType.name(),
+                                "socialAccessToken", socialAccessToken,
+                                "profile", profile
+                        )
+                ) {
+                });
         return this.userService.findUserVo(socialLogin.getUser().getId());
     }
 

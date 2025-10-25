@@ -49,7 +49,7 @@ public class SocialLogin {
             String code,
             SocialType socialType,
             Map<String, Object> rawData,
-            User member
+            User user
     ) {
         this.code = code;
         this.socialType = socialType;

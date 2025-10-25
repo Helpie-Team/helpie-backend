@@ -3,6 +3,8 @@ package com.helpie.backend.service.user;
 import com.helpie.backend.domain.user.User;
 import com.helpie.backend.domain.user.UserRole;
 import com.helpie.backend.domain.user.UserVo;
+import com.helpie.backend.exception.BusinessException;
+import com.helpie.backend.exception.ErrorCode;
 import com.helpie.backend.repository.user.UserRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -30,7 +32,9 @@ public class UserService {
             String username
     ) {
         if (this.existsByUsername(username)) {
-            throw new IllegalArgumentException("이미 존재하는 유저입니다.");
+            throw new BusinessException(ErrorCode.ALREADY_EXIST_MEMBER, "이미 존재하는 유저입니다.") {
+            };
+
         }
 
         final var user = new User(username);
