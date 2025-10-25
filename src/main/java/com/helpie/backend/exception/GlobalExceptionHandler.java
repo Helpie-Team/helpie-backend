@@ -40,6 +40,15 @@ public class GlobalExceptionHandler {
                 .body(new ErrorResponse(errorCode.getCode(), errorCode.getMessage(), fieldErrors));
     }
 
+    @ExceptionHandler(BusinessException.class)
+    public ResponseEntity<ErrorResponse> handleBusinessException(BusinessException e) {
+        log.error("Unexpected error occurred", e);
+        ErrorCode errorCode = e.getErrorCode();
+        Map<String, Object> data = e.getData();
+        return ResponseEntity.status(errorCode.getHttpStatus())
+                .body(new ErrorResponse(errorCode.getCode(), errorCode.getMessage(), data));
+    }
+
     /**
      * 처리되지 않은 모든 예외에 대한 기본 처리
      */
@@ -59,9 +68,14 @@ public class GlobalExceptionHandler {
         private final String message;
         private final LocalDateTime timestamp;
         private final Map<String, String> fieldErrors;
+        private final Object data;
 
         public ErrorResponse(String code, String message) {
-            this(code, message, null);
+            this.code = code;
+            this.message = message;
+            this.timestamp = LocalDateTime.now();
+            this.fieldErrors = null;
+            this.data = null;
         }
 
         public ErrorResponse(String code, String message, Map<String, String> fieldErrors) {
@@ -69,11 +83,22 @@ public class GlobalExceptionHandler {
             this.message = message;
             this.timestamp = LocalDateTime.now();
             this.fieldErrors = fieldErrors;
+            this.data = null;
         }
+
+        public ErrorResponse(String code, String message, Object data) {
+            this.code = code;
+            this.message = message;
+            this.timestamp = LocalDateTime.now();
+            this.fieldErrors = null;
+            this.data = data;
+        }
+
 
         public String getCode() { return code; }
         public String getMessage() { return message; }
         public LocalDateTime getTimestamp() { return timestamp; }
         public Map<String, String> getFieldErrors() { return fieldErrors; }
+        public Object getData() { return data; }
     }
 }

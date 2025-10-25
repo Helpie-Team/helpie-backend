@@ -19,6 +19,9 @@ public enum ErrorCode {
     TOKEN_EXPIRED_ERROR(HttpStatus.UNAUTHORIZED, "TOKEN_003","토큰이 만료 되었습니다."),
     NOT_FOUND_REFRESH_TOKEN(HttpStatus.UNAUTHORIZED, "TOKEN_004","찾을 수 없는 refresh token입니다."),
 
+
+    ALREADY_EXIST_MEMBER(HttpStatus.CONFLICT, "USER_001","이미 존재하는 사용자입니다."),
+
     // === Social Login 에러 ===
     NOT_MATCH_SOCIAL_MEMBER(HttpStatus.UNAUTHORIZED, "SOCIAL_001", ""),
     NOT_MATCH_OAUTH_CODE(HttpStatus.UNAUTHORIZED, "SOCIAL_002", "인증 code가 존재하지 않습니다."),
