@@ -2,6 +2,8 @@ package com.helpie.backend.domain.chatroom;
 
 import jakarta.persistence.*;
 import lombok.AccessLevel;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
@@ -19,6 +21,8 @@ import java.time.LocalDateTime;
        uniqueConstraints = @UniqueConstraint(columnNames = {"chatroom_id", "user_id"}))
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
+@AllArgsConstructor
+@Builder
 public class ChatRoomParticipant {
 
     @Id

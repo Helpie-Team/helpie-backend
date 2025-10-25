@@ -3,6 +3,8 @@ package com.helpie.backend.domain.chatroom;
 import com.helpie.backend.domain.group.Group;
 import jakarta.persistence.*;
 import lombok.AccessLevel;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
@@ -21,6 +23,8 @@ import java.util.Set;
 @Table(name = "chat_rooms")
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
+@AllArgsConstructor
+@Builder
 public class ChatRoom {
 
     @Id
@@ -35,6 +39,7 @@ public class ChatRoom {
     private String title;
 
     @OneToMany(mappedBy = "chatRoom", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+    @Builder.Default
     private Set<ChatRoomParticipant> participants = new HashSet<>();
 
     @Column(name = "current_participants", nullable = false)
