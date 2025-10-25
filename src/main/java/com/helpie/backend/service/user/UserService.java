@@ -34,6 +34,7 @@ public class UserService {
         if (this.existsByUsername(username)) {
             throw new BusinessException(ErrorCode.ALREADY_EXIST_MEMBER, "이미 존재하는 유저입니다.") {
             };
+
         }
 
         final var user = new User(username);
