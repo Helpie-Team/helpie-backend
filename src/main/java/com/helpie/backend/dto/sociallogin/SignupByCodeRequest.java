@@ -13,13 +13,20 @@ public record SignupByCodeRequest(
         @NotNull
         @Schema(
                 requiredMode = Schema.RequiredMode.REQUIRED,
-                description = "유저id",
+                description = "유저 별명",
                 minLength = 4,
                 maxLength = 15,
                 pattern = UserRegexp.USERNAME_REGEXP
         )
         @Pattern(regexp = UserRegexp.USERNAME_REGEXP)
         @Length(min = 4, max = 15)
-        String username
+        String username,
+
+        @NotNull
+        @Schema(
+                requiredMode = Schema.RequiredMode.REQUIRED,
+                description = "유저 이메일"
+        )
+                String email
 ) {
 }

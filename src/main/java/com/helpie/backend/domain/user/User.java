@@ -28,8 +28,21 @@ public class User {
     @Column(name = "username", nullable = false)
     private String username;
 
+    @Column(name = "email", nullable = false)
+    private String email;
 
-    public User(String username) {
+    @Column(length = 255)
+    private String password;
+
+
+    public User(String username, String email) {
         this.username = username;
+        this.email = email;
+    }
+
+    public User(String username, String email, String password) {
+        this.username = username;
+        this.email = email;
+        this.password = password;
     }
 }
