@@ -2,14 +2,22 @@ package com.helpie.backend.service.auth;
 
 import com.helpie.backend.domain.sociallogin.SocialType;
 import com.helpie.backend.domain.user.RefreshToken;
+import com.helpie.backend.domain.user.User;
 import com.helpie.backend.domain.user.UserJwtClaim;
+import com.helpie.backend.dto.auth.HttpSigninInResponse;
+import com.helpie.backend.dto.auth.SignInRequest;
+import com.helpie.backend.dto.auth.SignUpRequest;
 import com.helpie.backend.dto.sociallogin.SigninResponse;
 import com.helpie.backend.dto.sociallogin.SignupByCodeRequest;
+import com.helpie.backend.exception.BusinessException;
+import com.helpie.backend.exception.ErrorCode;
 import com.helpie.backend.repository.user.RefreshTokenRepository;
+import com.helpie.backend.repository.user.UserRepository;
 import com.helpie.backend.service.sociallogin.SocialLoginService;
 import com.helpie.backend.service.user.UserCommonService;
 import com.helpie.backend.service.user.UserService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.DigestUtils;
@@ -28,12 +36,14 @@ public class AuthService {
     private final UserService userService;
     private final UserCommonService userCommonService;
     private final SocialLoginService socialLoginService;
+    private final UserRepository userRepository;
+    private final BCryptPasswordEncoder encoder;
 
     @Transactional
-    public SigninResponse signin(Long memberId) {
+    public SigninResponse signin(Long userId) {
         return new SigninResponse(
-                this.generateAccessToken(memberId),
-                this.generateRefreshToken(memberId)
+                this.generateAccessToken(userId),
+                this.generateRefreshToken(userId)
         );
     }
     @Transactional
@@ -42,12 +52,36 @@ public class AuthService {
             SignupByCodeRequest signupByCodeRequest
     ) {
         final Long memberId = this.userService.createUser(
-                signupByCodeRequest.username()
+                signupByCodeRequest.username(),
+                signupByCodeRequest.email()
         );
         this.socialLoginService.create(
                 memberId,
                 socialType,
                 signupByCodeRequest.socialAccessToken()
+        );
+
+        return this.signin(memberId);
+    }
+
+    public SigninResponse signin(SignInRequest signinRequest) {
+        final var user = userRepository.findByEmail(signinRequest.email())
+                .orElseThrow(() -> new BusinessException(ErrorCode.USER_NOT_FOUND) {
+                });
+        validatePassword(signinRequest.password(), user.getPassword());
+        final var userId = this.userCommonService.findById(user.getId()).getId();
+
+        return new SigninResponse(
+                this.generateAccessToken(userId),
+                this.generateRefreshToken(userId)
+        );
+    }
+
+    public SigninResponse signup(SignUpRequest signUpRequest) {
+        final Long memberId = this.userService.createUser(
+                signUpRequest.username(),
+                signUpRequest.email(),
+                encoder.encode(signUpRequest.password())
         );
 
         return this.signin(memberId);
@@ -116,6 +150,14 @@ public class AuthService {
             throw new RuntimeException("리프레쉬 토큰이 만료되었습니다.");
         }
     }
+
+    private void validatePassword(String requestPassword, String encodedPassword) {
+        if (!encoder.matches(requestPassword, encodedPassword)) {
+            throw new BusinessException(ErrorCode.INVALID_PASSWORD) {
+            };
+        }
+    }
+
 
     @Transactional
     public void removeRefreshToken(String refreshToken) {

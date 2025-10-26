@@ -19,8 +19,14 @@ public enum ErrorCode {
     TOKEN_EXPIRED_ERROR(HttpStatus.UNAUTHORIZED, "TOKEN_003","토큰이 만료 되었습니다."),
     NOT_FOUND_REFRESH_TOKEN(HttpStatus.UNAUTHORIZED, "TOKEN_004","찾을 수 없는 refresh token입니다."),
 
-
+    // == 유저 도메인 에러 ==
     ALREADY_EXIST_MEMBER(HttpStatus.CONFLICT, "USER_001","이미 존재하는 사용자입니다."),
+    ALREADY_EXIST_EMAIL(HttpStatus.CONFLICT, "USER_002", "이미 사용중인 이메일입니다."),
+    USER_NOT_FOUND(HttpStatus.NOT_FOUND, "USER_003", "존재하지 않는 사용자입니다."),
+    INVALID_PASSWORD(HttpStatus.BAD_REQUEST, "USER_004", "비밀번호가 일치하지 않습니다"),
+
+    // == Email 인증 에러 ===
+    EMAIL_AUTH_INVALID(HttpStatus.UNAUTHORIZED, "EMAIL_001", "유효하지 않은 이메일 인증 요청입니다."),
 
     // === Social Login 에러 ===
     NOT_MATCH_SOCIAL_MEMBER(HttpStatus.UNAUTHORIZED, "SOCIAL_001", ""),

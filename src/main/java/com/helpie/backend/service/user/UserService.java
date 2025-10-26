@@ -29,7 +29,8 @@ public class UserService {
 
     @Transactional
     public Long createUser(
-            String username
+            String username,
+            String email
     ) {
         if (this.existsByUsername(username)) {
             throw new BusinessException(ErrorCode.ALREADY_EXIST_MEMBER, "이미 존재하는 유저입니다.") {
@@ -37,7 +38,26 @@ public class UserService {
 
         }
 
-        final var user = new User(username);
+        final var user = new User(username, email);
+
+        this.userRepository.save(user);
+
+        return user.getId();
+    }
+
+    @Transactional
+    public Long createUser(
+            String username,
+            String email,
+            String password
+    ) {
+        if (this.existsByUsername(username)) {
+            throw new BusinessException(ErrorCode.ALREADY_EXIST_MEMBER, "이미 존재하는 유저입니다.") {
+            };
+
+        }
+
+        final var user = new User(username, email, password);
 
         this.userRepository.save(user);
 

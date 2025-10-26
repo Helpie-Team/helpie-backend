@@ -2,16 +2,16 @@ package com.helpie.backend.controller.auth;
 
 
 import com.helpie.backend.domain.sociallogin.SocialType;
-import com.helpie.backend.dto.auth.HttpSigninInResponse;
-import com.helpie.backend.dto.auth.ResponseCookie;
-import com.helpie.backend.dto.auth.TokenRenewRequest;
+import com.helpie.backend.dto.auth.*;
 import com.helpie.backend.dto.global.Response;
 import com.helpie.backend.dto.sociallogin.SigninByCodeRequest;
 import com.helpie.backend.dto.sociallogin.SignupByCodeRequest;
 import com.helpie.backend.exception.BusinessException;
 import com.helpie.backend.exception.ErrorCode;
 import com.helpie.backend.service.auth.AuthService;
+import com.helpie.backend.service.auth.EmailService;
 import com.helpie.backend.service.sociallogin.SocialLoginService;
+import com.helpie.backend.service.user.UserService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Schema;
@@ -21,6 +21,7 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
 @RestController()
@@ -30,6 +31,8 @@ import org.springframework.web.bind.annotation.*;
 public class AuthController {
     private final SocialLoginService socialLoginService;
     private final AuthService authService;
+    private final EmailService emailService;
+    private final UserService userService;
 
     @PostMapping("/social-login/{socialType}/signin")
     @ApiResponses({
@@ -78,6 +81,35 @@ public class AuthController {
         );
         this.setRefreshTokenCookie(response, token.refreshToken());
 
+        return new HttpSigninInResponse(token.accessToken(), token.refreshToken());
+    }
+
+    @PostMapping("/signin")
+    @ApiResponses({
+            @ApiResponse(responseCode = "200", content = @Content(
+                    schema = @Schema(implementation = HttpSigninInResponse.class)
+            ))
+    })
+    @Operation(
+            summary = "일반 로그인"
+    )
+    public HttpSigninInResponse signIn(@RequestBody @Valid SignInRequest signInRequest) {
+        final var token = this.authService.signin(signInRequest);
+        return new HttpSigninInResponse(token.accessToken(), token.refreshToken());
+    }
+
+
+    @PostMapping("/signup")
+    @ApiResponses({
+            @ApiResponse(responseCode = "200", content = @Content(
+                    schema = @Schema(implementation = HttpSigninInResponse.class)
+            ))
+    })
+    @Operation(
+            summary = "일반 회원가입"
+    )
+    public HttpSigninInResponse signUp(@RequestBody @Valid SignUpRequest signUpRequest) {
+        final var token = this.authService.signup(signUpRequest);
         return new HttpSigninInResponse(token.accessToken(), token.refreshToken());
     }
 
@@ -149,6 +181,48 @@ public class AuthController {
         return Response.success();
     }
 
+    @PostMapping("/mail")
+    @ApiResponses({
+            @ApiResponse(responseCode = "200", content = @Content(
+                    schema = @Schema(implementation = Response.class)
+            ))
+    })
+    @Operation(
+            summary = "이메일 인증 번호를 발송합니다."
+    )
+    public Response<String> mailSend(String mail) {
+        return Response.success("" + emailService.sendAuthMail(mail));
+    }
+
+    @ApiResponses({
+            @ApiResponse(responseCode = "200", content = @Content(
+                    schema = @Schema(implementation = Response.class)
+            ))
+    })
+
+     @Operation(
+            summary = "이메일 인증에 대한 유효성을 검증합니다.",
+            description = "인증번호, 만료여부를 확인합니다. 이메일 인증 성공 후 인증번호는 만료처리 됩니다."
+    )
+    @GetMapping("/mail-check")
+    public Response<String> mailCheck(@RequestParam String mail, Integer authNumber) {
+        return Response.success(emailService.checkValidAuthByEmail(mail, authNumber));
+    }
+
+    @GetMapping("/username-check")
+    @ApiResponses({
+            @ApiResponse(responseCode = "200", content = @Content(
+                    schema = @Schema(implementation = Response.class)
+            ))
+    })
+
+    @Operation(
+            summary = "중복 닉네임 체크"
+    )
+    public Response<Boolean> usernameCheck(@RequestParam String username) {
+        return Response.success(userService.existsByUsername(username));
+    }
+
     private void setRefreshTokenCookie(HttpServletResponse response, String refreshToken) {
         ResponseCookie cookie = ResponseCookie.builder()
                 .refreshToken(refreshToken)
@@ -191,3 +265,5 @@ public class AuthController {
         response.addHeader("Set-Cookie", cookieHeader);
     }
 }
+
+
