@@ -2,6 +2,8 @@ package com.helpie.backend.domain.survey;
 
 import jakarta.persistence.*;
 import lombok.AccessLevel;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
@@ -19,6 +21,8 @@ import java.util.Set;
 @Table(name = "survey_basic_infos")
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
+@AllArgsConstructor
+@Builder
 public class SurveyBasicInfo {
 
     @Id

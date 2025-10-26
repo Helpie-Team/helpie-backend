@@ -3,6 +3,8 @@ package com.helpie.backend.domain.sociallogin;
 import com.helpie.backend.domain.user.User;
 import jakarta.persistence.*;
 import lombok.AccessLevel;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import org.hibernate.annotations.JdbcTypeCode;
@@ -25,6 +27,8 @@ import java.util.Map;
 @Entity
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
+@AllArgsConstructor
+@Builder
 public class SocialLogin {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -39,6 +43,7 @@ public class SocialLogin {
 
     @Column(name = "raw_data", nullable = false)
     @JdbcTypeCode(SqlTypes.JSON)
+    @Builder.Default
     private Map<String, Object> rawData = new HashMap<>();
 
     @ManyToOne(optional = false)
