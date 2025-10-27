@@ -3,6 +3,8 @@ package com.helpie.backend.domain.group;
 import com.helpie.backend.domain.survey.Country;
 import com.helpie.backend.domain.survey.Interest;
 import jakarta.persistence.*;
+import java.util.ArrayList;
+import java.util.List;
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -52,6 +54,10 @@ public class Group {
     @Enumerated(EnumType.STRING)
     @Column(name = "category", nullable = false)
     private Category category;
+
+    @OneToMany(mappedBy = "group", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+    @Builder.Default
+    private List<GroupImage> images = new ArrayList<>();
 
     @OneToMany(mappedBy = "group", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
     @Builder.Default
