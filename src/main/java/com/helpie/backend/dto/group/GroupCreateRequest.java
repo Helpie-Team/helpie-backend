@@ -5,9 +5,8 @@ import com.helpie.backend.domain.survey.Country;
 import com.helpie.backend.domain.survey.Interest;
 import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.media.Schema.RequiredMode;
-import java.util.List;
+
 import java.util.Set;
-import org.springframework.web.multipart.MultipartFile;
 
 public record GroupCreateRequest(
     @Schema(requiredMode = Schema.RequiredMode.REQUIRED)
@@ -20,8 +19,8 @@ public record GroupCreateRequest(
     Set<Interest> interests,
     @Schema(requiredMode = Schema.RequiredMode.REQUIRED)
     Category category,
-    @Schema(requiredMode = RequiredMode.NOT_REQUIRED)
-    List<MultipartFile> images
+    @Schema(requiredMode = RequiredMode.REQUIRED)
+    Integer maxMember
 ) {
 
 }

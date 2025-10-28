@@ -98,8 +98,8 @@ public class Group {
         this.updatedAt = LocalDateTime.now();
     }
 
-    public Group(String title, String description, Country country, Category category, Set<Interest> interests) {
-        this(title, description, country, interests, category, 5, 0, GroupStatus.ACTIVE, null);
+    public Group(String title, String description, Country country, Category category, Set<Interest> interests,Integer maxMember) {
+        this(title, description, country, interests, category, maxMember, 0, GroupStatus.ACTIVE, null);
     }
 
     @PreUpdate
