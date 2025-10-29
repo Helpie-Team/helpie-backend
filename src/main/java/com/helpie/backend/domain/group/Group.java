@@ -3,6 +3,8 @@ package com.helpie.backend.domain.group;
 import com.helpie.backend.domain.survey.Country;
 import com.helpie.backend.domain.survey.Interest;
 import jakarta.persistence.*;
+import java.util.ArrayList;
+import java.util.List;
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -16,7 +18,7 @@ import java.util.Set;
 /**
  * 소모임 엔티티
  * 나라와 관심사를 기반으로 매칭된 소모임 (정원 5명)
- * 
+ *
  * @author 전우선
  * @since 2025-10-25(토)
  */
@@ -49,6 +51,14 @@ public class Group {
     @Builder.Default
     private Set<Interest> interests = new HashSet<>();
 
+    @Enumerated(EnumType.STRING)
+    @Column(name = "category", nullable = false)
+    private Category category;
+
+    @OneToMany(mappedBy = "group", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+    @Builder.Default
+    private List<GroupImage> images = new ArrayList<>();
+
     @OneToMany(mappedBy = "group", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
     @Builder.Default
     private Set<GroupMember> members = new HashSet<>();
@@ -72,11 +82,14 @@ public class Group {
     @Column(name = "created_by")
     private Long createdBy;
 
-    public Group(String title, String description, Country country, Set<Interest> interests, Integer maxMembers, Integer currentMembers, GroupStatus status, Long createdBy) {
+    public Group(String title, String description, Country country, Set<Interest> interests,
+        Category category, Integer maxMembers, Integer currentMembers, GroupStatus status,
+        Long createdBy) {
         this.title = title;
         this.description = description;
         this.country = country;
         this.interests = interests != null ? new HashSet<>(interests) : new HashSet<>();
+        this.category = category;
         this.status = status != null ? status : GroupStatus.ACTIVE;
         this.maxMembers = maxMembers != null ? maxMembers : 5;
         this.currentMembers = currentMembers != null ? currentMembers : 0;
@@ -85,8 +98,8 @@ public class Group {
         this.updatedAt = LocalDateTime.now();
     }
 
-    public Group(String title, String description, Country country, Set<Interest> interests) {
-        this(title, description, country, interests, 5, 0, GroupStatus.ACTIVE, null);
+    public Group(String title, String description, Country country, Category category, Set<Interest> interests,Integer maxMember) {
+        this(title, description, country, interests, category, maxMember, 0, GroupStatus.ACTIVE, null);
     }
 
     @PreUpdate
@@ -101,7 +114,7 @@ public class Group {
         if (this.currentMembers >= this.maxMembers) {
             return false;
         }
-        
+
         this.currentMembers++;
         if (this.currentMembers >= this.maxMembers) {
             this.status = GroupStatus.FULL;
