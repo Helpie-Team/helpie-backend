@@ -64,6 +64,7 @@ public class AuthService {
         return this.signin(memberId);
     }
 
+    @Transactional
     public SigninResponse signin(SignInRequest signinRequest) {
         final var user = userRepository.findByEmail(signinRequest.email())
                 .orElseThrow(() -> new BusinessException(ErrorCode.USER_NOT_FOUND) {
@@ -77,6 +78,7 @@ public class AuthService {
         );
     }
 
+    @Transactional
     public SigninResponse signup(SignUpRequest signUpRequest) {
         final Long memberId = this.userService.createUser(
                 signUpRequest.username(),
