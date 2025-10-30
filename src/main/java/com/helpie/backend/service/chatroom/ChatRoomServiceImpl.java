@@ -4,6 +4,7 @@ import com.helpie.backend.domain.chatroom.ChatRoom;
 import com.helpie.backend.domain.chatroom.ChatRoomParticipant;
 import com.helpie.backend.domain.chatroom.ChatMessage;
 import com.helpie.backend.domain.chatroom.MessageType;
+import com.helpie.backend.domain.group.Group;
 import com.helpie.backend.domain.group.GroupMember;
 import com.helpie.backend.dto.chatroom.ChatRoomResponse;
 import com.helpie.backend.dto.chatroom.ChatMessageResponse;
@@ -32,7 +33,7 @@ import java.util.stream.Collectors;
  * 소모임 멤버만 접근 가능한 채팅방 관리를 담당합니다.
  * 
  * @author 전우선
- * @since 2025-10-25(토)
+ * @since 2025-10-30(토)
  */
 @Slf4j
 @Service
@@ -176,6 +177,49 @@ public class ChatRoomServiceImpl implements ChatRoomService {
         return ChatMessageResponse.from(savedMessage);
     }
     
+    @Override
+    @Transactional
+    public Long createChatRoomAndJoin(Group group, Long userId, String userName, String welcomeMessage) {
+        log.debug("소모임 채팅방 생성 및 자동 입장 - groupId: {}, userId: {}", group.getId(), userId);
+        
+        // 1. 채팅방 생성
+        ChatRoom chatRoom = new ChatRoom(group);
+        ChatRoom savedChatRoom = chatRoomRepository.save(chatRoom);
+        log.info("채팅방 자동 생성 완료 - chatRoomId: {}, groupId: {}", savedChatRoom.getId(), group.getId());
+        
+        // 2. 사용자 자동 입장
+        ChatRoomParticipant participant = new ChatRoomParticipant(savedChatRoom, userId);
+        participantRepository.save(participant);
+        log.info("채팅방 자동 입장 완료 - chatRoomId: {}, userId: {}", savedChatRoom.getId(), userId);
+        
+        // 3. 환영 메시지 전송
+        if (welcomeMessage != null && !welcomeMessage.isEmpty()) {
+            webSocketService.sendSystemMessage(savedChatRoom.getId(), welcomeMessage);
+        }
+        
+        return savedChatRoom.getId();
+    }
+    
+    @Override
+    @Transactional
+    public void autoJoinGroupChatRoom(Long groupId, Long userId, String userName, String joinMessage) {
+        log.debug("소모임 채팅방 자동 입장 - groupId: {}, userId: {}", groupId, userId);
+        
+        // 1. 채팅방 찾기
+        ChatRoom chatRoom = chatRoomRepository.findByGroupId(groupId)
+                .orElseThrow(() -> new IllegalStateException("채팅방이 존재하지 않습니다: " + groupId));
+        
+        // 2. 사용자 자동 입장
+        ChatRoomParticipant participant = new ChatRoomParticipant(chatRoom, userId);
+        participantRepository.save(participant);
+        log.info("채팅방 자동 입장 완료 - chatRoomId: {}, userId: {}", chatRoom.getId(), userId);
+        
+        // 3. 가입 메시지 전송
+        if (joinMessage != null && !joinMessage.isEmpty()) {
+            webSocketService.sendSystemMessage(chatRoom.getId(), joinMessage);
+        }
+    }
+
     /**
      * 소모임 멤버인지 확인합니다.
      */

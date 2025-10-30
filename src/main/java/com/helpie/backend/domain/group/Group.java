@@ -20,7 +20,7 @@ import java.util.Set;
  * 나라와 관심사를 기반으로 매칭된 소모임 (정원 5명)
  *
  * @author 전우선
- * @since 2025-10-25(토)
+ * @since 2025-10-30(목)
  */
 @Entity
 @Table(name = "user_groups")
@@ -111,14 +111,7 @@ public class Group {
      * 소모임에 멤버를 추가합니다.
      */
     public boolean addMember(Long userId) {
-        if (this.currentMembers >= this.maxMembers) {
-            return false;
-        }
-
         this.currentMembers++;
-        if (this.currentMembers >= this.maxMembers) {
-            this.status = GroupStatus.FULL;
-        }
         this.updatedAt = LocalDateTime.now();
         return true;
     }
@@ -128,17 +121,14 @@ public class Group {
      */
     public void removeMember(Long userId) {
         this.currentMembers--;
-        if (this.currentMembers < this.maxMembers && this.status == GroupStatus.FULL) {
-            this.status = GroupStatus.ACTIVE;
-        }
         this.updatedAt = LocalDateTime.now();
     }
 
     /**
-     * 소모임이 가득 찼는지 확인합니다.
+     * 소모임이 가득 찼는지 확인합니다. (현재는 무제한이므로 항상 false)
      */
     public boolean isFull() {
-        return this.currentMembers >= this.maxMembers;
+        return false;
     }
 
     /**
