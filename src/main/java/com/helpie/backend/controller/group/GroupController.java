@@ -55,4 +55,19 @@ public class GroupController {
         return ResponseEntity.ok(response);
     }
 
+
+    @GetMapping("/interest")
+    public ResponseEntity<Page<GroupResponse>> getGroupsByInterest(
+        @Parameter(description = "사용자 ID") @RequestParam Long userId,
+        @RequestParam(defaultValue ="0") int page,
+        @PageableDefault(size = 20, sort = "createdAt", direction = Sort.Direction.DESC) Pageable pageable
+    ){
+        Page<GroupResponse> response=groupService.getGroupsByInterest(userId,pageable);
+        return ResponseEntity.ok(response);
+    }
+
+
+
+
+
 }

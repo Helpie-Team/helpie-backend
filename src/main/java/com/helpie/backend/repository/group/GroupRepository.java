@@ -4,6 +4,8 @@ import com.helpie.backend.domain.group.Category;
 import com.helpie.backend.domain.group.Group;
 import com.helpie.backend.domain.group.GroupStatus;
 import com.helpie.backend.domain.survey.Country;
+import com.helpie.backend.domain.survey.Interest;
+import java.util.Set;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -38,4 +40,17 @@ public interface GroupRepository extends JpaRepository<Group, Long> {
 """)
     Page<Group> findAllByFilters(@Param("country") Country country, @Param("category") Category category, @Param("statuses") List<GroupStatus> statuses, Pageable pageable);
 
+
+
+    @Query("""
+    SELECT g FROM Group g
+    WHERE g.country = :country
+      AND g.status IN :statuses
+       AND EXISTS (
+           SELECT i FROM g.interests i
+            WHERE i IN :interests
+          )
+      
+""")
+    Page<Group> findByInterestFilters(@Param("country") Country country, @Param("statuses") List<GroupStatus> statuses,@Param("interests") Set<Interest> interests, Pageable pageable);
 }
