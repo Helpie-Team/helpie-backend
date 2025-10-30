@@ -1,5 +1,6 @@
 package com.helpie.backend.service.chatroom;
 
+import com.helpie.backend.domain.group.Group;
 import com.helpie.backend.dto.chatroom.ChatRoomResponse;
 import com.helpie.backend.dto.chatroom.ChatMessageResponse;
 import com.helpie.backend.dto.chatroom.SendMessageRequest;
@@ -12,7 +13,7 @@ import java.util.List;
  * 채팅방 서비스 인터페이스
  * 
  * @author 전우선
- * @since 2025-10-25(토)
+ * @since 2025-10-30(목)
  */
 public interface ChatRoomService {
     
@@ -70,4 +71,25 @@ public interface ChatRoomService {
      * @return 전송된 메시지 정보
      */
     ChatMessageResponse sendMessage(Long chatRoomId, SendMessageRequest request);
+    
+    /**
+     * 소모임에 대한 채팅방을 생성하고 사용자를 자동 입장시킵니다.
+     * 
+     * @param group 소모임
+     * @param userId 사용자 ID
+     * @param userName 사용자 이름
+     * @param welcomeMessage 환영 메시지
+     * @return 생성된 채팅방 ID
+     */
+    Long createChatRoomAndJoin(Group group, Long userId, String userName, String welcomeMessage);
+    
+    /**
+     * 사용자를 소모임 채팅방에 자동 입장시킵니다.
+     * 
+     * @param groupId 소모임 ID
+     * @param userId 사용자 ID
+     * @param userName 사용자 이름
+     * @param joinMessage 가입 메시지
+     */
+    void autoJoinGroupChatRoom(Long groupId, Long userId, String userName, String joinMessage);
 }
