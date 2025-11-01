@@ -20,7 +20,7 @@ import java.util.Map;
                 columnNames = {"code", "social_type"}
             ),
             @UniqueConstraint(
-                columnNames = {"member_id", "social_type"}
+                columnNames = {"user_id", "social_type"}
             ),
         }
 )
@@ -47,7 +47,7 @@ public class SocialLogin {
     private Map<String, Object> rawData = new HashMap<>();
 
     @ManyToOne(optional = false)
-    @JoinColumn(name = "member_id", nullable = false)
+    @JoinColumn(name = "user_id", nullable = false)
     private User user;
 
     public SocialLogin(
