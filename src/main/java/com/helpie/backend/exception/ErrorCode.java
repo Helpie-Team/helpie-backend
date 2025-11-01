@@ -25,6 +25,9 @@ public enum ErrorCode {
     USER_NOT_FOUND(HttpStatus.NOT_FOUND, "USER_003", "존재하지 않는 사용자입니다."),
     INVALID_PASSWORD(HttpStatus.BAD_REQUEST, "USER_004", "비밀번호가 일치하지 않습니다"),
 
+    // == 일반 로그인 도메인 에러 ==
+    USER_LOCKED(HttpStatus.CONFLICT, "BASIC_LOGIN_001", "잠긴 계정입니다."),
+
     // == Email 인증 에러 ===
     EMAIL_AUTH_INVALID(HttpStatus.UNAUTHORIZED, "EMAIL_001", "유효하지 않은 이메일 인증 요청입니다."),
 

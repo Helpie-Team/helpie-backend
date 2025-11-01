@@ -1,10 +1,9 @@
 package com.helpie.backend.service.auth;
 
+import com.helpie.backend.domain.basiclogin.LockStatus;
 import com.helpie.backend.domain.sociallogin.SocialType;
 import com.helpie.backend.domain.user.RefreshToken;
-import com.helpie.backend.domain.user.User;
 import com.helpie.backend.domain.user.UserJwtClaim;
-import com.helpie.backend.dto.auth.HttpSigninInResponse;
 import com.helpie.backend.dto.auth.SignInRequest;
 import com.helpie.backend.dto.auth.SignUpRequest;
 import com.helpie.backend.dto.sociallogin.SigninResponse;
@@ -13,6 +12,7 @@ import com.helpie.backend.exception.BusinessException;
 import com.helpie.backend.exception.ErrorCode;
 import com.helpie.backend.repository.user.RefreshTokenRepository;
 import com.helpie.backend.repository.user.UserRepository;
+import com.helpie.backend.service.BasicLoginService;
 import com.helpie.backend.service.sociallogin.SocialLoginService;
 import com.helpie.backend.service.user.UserCommonService;
 import com.helpie.backend.service.user.UserService;
@@ -24,6 +24,7 @@ import org.springframework.util.DigestUtils;
 
 import java.time.Duration;
 import java.time.LocalDateTime;
+import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -36,6 +37,7 @@ public class AuthService {
     private final UserService userService;
     private final UserCommonService userCommonService;
     private final SocialLoginService socialLoginService;
+    private final BasicLoginService basicLoginService;
     private final UserRepository userRepository;
     private final BCryptPasswordEncoder encoder;
 
@@ -64,12 +66,56 @@ public class AuthService {
         return this.signin(memberId);
     }
 
-    @Transactional
+    @Transactional(noRollbackFor = BusinessException.class)
     public SigninResponse signin(SignInRequest signinRequest) {
         final var user = userRepository.findByEmail(signinRequest.email())
                 .orElseThrow(() -> new BusinessException(ErrorCode.USER_NOT_FOUND) {
                 });
-        validatePassword(signinRequest.password(), user.getPassword());
+        var basicLoginInfo = this.basicLoginService.findBasicLogin(user.getId());
+
+        if (basicLoginInfo.getLockedAt() != null) {
+            LocalDateTime lockedAt = basicLoginInfo.getLockedAt();
+
+            if (lockedAt.plusMinutes(1).isBefore(LocalDateTime.now())) {
+                this.basicLoginService.resetLoginFailInfo(user.getId());
+                basicLoginInfo = this.basicLoginService.findBasicLogin(user.getId());
+            }
+        }
+        try {
+            if (basicLoginInfo.getLockStatus().equals(LockStatus.LOCK)) {
+                throw new BusinessException(ErrorCode.USER_LOCKED, Map.of(
+                        "loginFailCount", 5,
+                        "lockStatus", LockStatus.LOCK
+                )) {
+
+                };
+            }
+            validatePassword(signinRequest.password(), user.getPassword());
+        } catch (BusinessException e) {
+            if (e.getErrorCode() == ErrorCode.INVALID_PASSWORD) {
+                if (basicLoginInfo.getLoginFailCount() == 5) {
+                    this.basicLoginService.lockUser(user.getId());
+                    throw new BusinessException(ErrorCode.USER_LOCKED, Map.of(
+                            "loginFailCount", 5,
+                            "lockStatus", LockStatus.LOCK
+                    )) {
+
+                    };
+                } else {
+                    this.basicLoginService.increaseLoginFailCount(user.getId());
+                    var updated = this.basicLoginService.findBasicLogin(user.getId());
+                    throw new BusinessException(ErrorCode.INVALID_PASSWORD, Map.of(
+                            "loginFailCount", updated.getLoginFailCount(),
+                            "lockStatus", LockStatus.UNLOCK
+                    )) {
+                    };
+                }
+            }
+            throw e;
+        }
+
+        this.basicLoginService.resetLoginFailInfo(user.getId());
+
         final var userId = this.userCommonService.findById(user.getId()).getId();
 
         return new SigninResponse(
@@ -80,13 +126,14 @@ public class AuthService {
 
     @Transactional
     public SigninResponse signup(SignUpRequest signUpRequest) {
-        final Long memberId = this.userService.createUser(
+        final Long userId = this.userService.createUser(
                 signUpRequest.username(),
                 signUpRequest.email(),
                 encoder.encode(signUpRequest.password())
         );
 
-        return this.signin(memberId);
+        this.basicLoginService.initialize(userId);
+        return this.signin(userId);
     }
 
     public String generateAccessToken(Long memberId) {
@@ -159,7 +206,6 @@ public class AuthService {
             };
         }
     }
-
 
     @Transactional
     public void removeRefreshToken(String refreshToken) {
