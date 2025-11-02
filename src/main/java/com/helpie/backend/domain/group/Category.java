@@ -1,6 +1,7 @@
 package com.helpie.backend.domain.group;
 
 public enum Category {
+    ALL("전체"),
     HOBBY("문화, 취미"),
     ART("예술, 클래스"),
     LIFE("액티비티, 라이프"),

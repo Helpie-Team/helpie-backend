@@ -1,17 +1,25 @@
 package com.helpie.backend.service.group;
 
+import com.helpie.backend.domain.group.Category;
 import com.helpie.backend.domain.group.Group;
 import com.helpie.backend.domain.group.GroupMember;
+import com.helpie.backend.domain.group.GroupStatus;
+import com.helpie.backend.domain.survey.Country;
+import com.helpie.backend.domain.survey.SurveyBasicInfo;
 import com.helpie.backend.dto.group.GroupCreateRequest;
 import com.helpie.backend.dto.group.GroupCreateResponse;
+import com.helpie.backend.dto.group.GroupResponse;
 import com.helpie.backend.repository.group.GroupMemberRepository;
 import com.helpie.backend.repository.group.GroupRepository;
+import com.helpie.backend.repository.survey.SurveyBasicInfoRepository;
 import com.helpie.backend.service.chatroom.ChatRoomService;
 import com.helpie.backend.utils.storage.ImageStorage;
 import java.util.List;
 import java.util.Optional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
@@ -23,6 +31,7 @@ public class GroupService {
 
     private final GroupRepository groupRepository;
     private final GroupMemberRepository groupMemberRepository;
+    private final SurveyBasicInfoRepository surveyBasicInfoRepository;
     private final ChatRoomService chatRoomService;
     private final ImageStorage imageStorage;
 
@@ -54,8 +63,8 @@ public class GroupService {
         // 4. 이미지 저장
         List<String> urls = imageStorage.storeAll(images, savedGroup);
 
-        log.info("소모임 생성 및 채팅방 자동 설정 완료 - groupId: {}, chatRoomId: {}", 
-                savedGroup.getId(), chatRoomId);
+        log.info("소모임 생성 및 채팅방 자동 설정 완료 - groupId: {}, chatRoomId: {}",
+            savedGroup.getId(), chatRoomId);
 
         return new GroupCreateResponse(
             savedGroup.getId(),
@@ -77,7 +86,7 @@ public class GroupService {
 
         // 1. 소모임 조회 및 검증
         Group group = groupRepository.findById(groupId)
-                .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 소모임입니다: " + groupId));
+            .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 소모임입니다: " + groupId));
 
         // 2. 중복 가입 검증
         Optional<GroupMember> existingMember = groupMemberRepository.findByGroupIdAndUserId(groupId, userId);
@@ -92,11 +101,25 @@ public class GroupService {
         log.info("소모임 가입 완료 - groupId: {}, userId: {}", groupId, userId);
 
         // 4. 채팅방에 자동 입장 (ChatRoomService에 위임)
-        String joinMessage = String.format("👋 %s님이 소모임에 참가하셨습니다! 환영해주세요!", 
-                userName != null ? userName : "새로운 멤버");
+        String joinMessage = String.format("👋 %s님이 소모임에 참가하셨습니다! 환영해주세요!",
+            userName != null ? userName : "새로운 멤버");
         chatRoomService.autoJoinGroupChatRoom(groupId, userId, userName, joinMessage);
 
         log.info("소모임 가입 및 채팅방 자동 입장 완료 - groupId: {}, userId: {}", groupId, userId);
     }
+
+    public Page<GroupResponse> getGroups(Long userId, Category category, Pageable pageable) {
+        Country country = surveyBasicInfoRepository.findByUserId(userId)
+            .map(SurveyBasicInfo::getCountry)
+            .orElse(Country.KOREA);
+
+        List<GroupStatus> visibleStatuses = List.of(GroupStatus.ACTIVE, GroupStatus.FULL);
+
+        return groupRepository
+            .findAllByFilters(country,category,visibleStatuses,pageable)
+            .map(GroupResponse::from);
+    }
+
+
 
 }

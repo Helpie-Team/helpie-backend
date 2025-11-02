@@ -16,8 +16,7 @@ import java.util.HashSet;
 import java.util.Set;
 
 /**
- * 소모임 엔티티
- * 나라와 관심사를 기반으로 매칭된 소모임 (정원 5명)
+ * 소모임 엔티티 나라와 관심사를 기반으로 매칭된 소모임 (정원 5명)
  *
  * @author 전우선
  * @since 2025-10-30(목)
@@ -98,8 +97,10 @@ public class Group {
         this.updatedAt = LocalDateTime.now();
     }
 
-    public Group(String title, String description, Country country, Category category, Set<Interest> interests,Integer maxMember) {
-        this(title, description, country, interests, category, maxMember, 0, GroupStatus.ACTIVE, null);
+    public Group(String title, String description, Country country, Category category,
+        Set<Interest> interests, Integer maxMember) {
+        this(title, description, country, interests, category, maxMember, 0, GroupStatus.ACTIVE,
+            null);
     }
 
     @PreUpdate
@@ -136,5 +137,9 @@ public class Group {
      */
     public boolean isActive() {
         return this.status == GroupStatus.ACTIVE;
+    }
+
+    public boolean isPopular() {
+        return maxMembers >= 6 || currentMembers >= maxMembers / 2;
     }
 }
