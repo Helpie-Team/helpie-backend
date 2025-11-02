@@ -13,8 +13,11 @@ public record GroupCreateRequest(
     String title,
     @Schema(requiredMode = Schema.RequiredMode.REQUIRED)
     String description,
-    @Schema(requiredMode = Schema.RequiredMode.REQUIRED)
-    Country country,
+    @Schema(description = "소모임 위치 도시 (즐겨찾는 도시나 기타 도시 선택)", 
+            example = "SEOUL", requiredMode = Schema.RequiredMode.REQUIRED,
+            allowableValues = {"SEOUL", "TOKYO", "SHANGHAI", "LOS_ANGELES", "LONDON", 
+                              "USA_NEW_YORK", "KOREA_BUSAN", "CHINA_BEIJING"})
+    Country city,
     @Schema(requiredMode = Schema.RequiredMode.REQUIRED)
     Set<Interest> interests,
     @Schema(requiredMode = Schema.RequiredMode.REQUIRED)

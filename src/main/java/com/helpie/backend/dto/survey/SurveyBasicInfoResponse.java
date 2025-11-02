@@ -26,7 +26,7 @@ public class SurveyBasicInfoResponse {
     
     private Long id;
     private Long userId;
-    private Country country;
+    private Country city;
     private Gender gender;
     private AgeGroup ageGroup;
     private Set<Language> languages;
@@ -38,7 +38,7 @@ public class SurveyBasicInfoResponse {
         return new SurveyBasicInfoResponse(
                 surveyBasicInfo.getId(),
                 surveyBasicInfo.getUserId(),
-                surveyBasicInfo.getCountry(),
+                surveyBasicInfo.getCity(),
                 surveyBasicInfo.getGender(),
                 surveyBasicInfo.getAgeGroup(),
                 surveyBasicInfo.getLanguages(),

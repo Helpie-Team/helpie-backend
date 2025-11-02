@@ -12,7 +12,7 @@ import java.util.Set;
 
 /**
  * 설문조사 기본정보 엔티티
- * 사용자의 기본 프로필 정보(나라, 성별, 나이대, 언어, 관심사)를 관리합니다.
+ * 사용자의 기본 프로필 정보(도시, 성별, 나이대, 언어, 관심사)를 관리합니다.
  * 
  * @author 전우선
  * @since 2025-10-19(일)
@@ -41,8 +41,8 @@ public class SurveyBasicInfo {
     private AgeGroup ageGroup;
 
     @Enumerated(EnumType.STRING)
-    @Column(name = "country", nullable = false)
-    private Country country;
+    @Column(name = "city", nullable = false)
+    private Country city;
 
     /** 복수 선택 가능한 사용 언어 목록 */
     @ElementCollection(targetClass = Language.class)
@@ -64,9 +64,9 @@ public class SurveyBasicInfo {
     @Column(name = "updated_at")
     private LocalDateTime updatedAt;
 
-    public SurveyBasicInfo(Long userId, Country country, Gender gender, AgeGroup ageGroup, Set<Language> languages, Set<Interest> interests) {
+    public SurveyBasicInfo(Long userId, Country city, Gender gender, AgeGroup ageGroup, Set<Language> languages, Set<Interest> interests) {
         this.userId = userId;
-        this.country = country;
+        this.city = city;
         this.gender = gender;
         this.ageGroup = ageGroup;
         this.languages = languages;
@@ -83,8 +83,8 @@ public class SurveyBasicInfo {
     /**
      * 기본정보를 새로운 값으로 업데이트합니다.
      */
-    public void updateBasicInfo(Country country, Gender gender, AgeGroup ageGroup, Set<Language> languages, Set<Interest> interests) {
-        this.country = country;
+    public void updateBasicInfo(Country city, Gender gender, AgeGroup ageGroup, Set<Language> languages, Set<Interest> interests) {
+        this.city = city;
         this.gender = gender;
         this.ageGroup = ageGroup;
         this.languages = languages;

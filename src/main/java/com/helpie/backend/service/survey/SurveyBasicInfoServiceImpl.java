@@ -58,7 +58,7 @@ public class SurveyBasicInfoServiceImpl implements SurveyBasicInfoService {
     private SurveyBasicInfo createSurveyBasicInfo(Long userId, SurveyBasicInfoRequest request) {
         return new SurveyBasicInfo(
                 userId,
-                request.getCountry(),
+                request.getCity(),
                 request.getGender(),
                 request.getAgeGroup(),
                 request.getLanguages(),
@@ -76,7 +76,7 @@ public class SurveyBasicInfoServiceImpl implements SurveyBasicInfoService {
 
     private void updateSurveyBasicInfoData(SurveyBasicInfo surveyBasicInfo, SurveyBasicInfoRequest request) {
         surveyBasicInfo.updateBasicInfo(
-                request.getCountry(),
+                request.getCity(),
                 request.getGender(),
                 request.getAgeGroup(),
                 request.getLanguages(),
