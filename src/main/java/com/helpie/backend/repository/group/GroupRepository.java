@@ -25,7 +25,7 @@ public interface GroupRepository extends JpaRepository<Group, Long> {
     /**
      * 나라별, 상태별 소모임 목록을 조회합니다.
      */
-    List<Group> findByCountryAndStatus(Country country, GroupStatus status);
+    List<Group> findByCityAndStatus(Country city, GroupStatus status);
     
     /**
      * 활성 상태인 소모임 목록을 조회합니다.
@@ -34,17 +34,17 @@ public interface GroupRepository extends JpaRepository<Group, Long> {
 
     @Query("""
     SELECT g FROM Group g
-    WHERE g.country = :country
+    WHERE g.city = :city
       AND (:category = 'ALL' OR g.category = :category)
       AND g.status IN :statuses
 """)
-    Page<Group> findAllByFilters(@Param("country") Country country, @Param("category") Category category, @Param("statuses") List<GroupStatus> statuses, Pageable pageable);
+    Page<Group> findAllByFilters(@Param("city") Country city, @Param("category") Category category, @Param("statuses") List<GroupStatus> statuses, Pageable pageable);
 
 
 
     @Query("""
     SELECT g FROM Group g
-    WHERE g.country = :country
+    WHERE g.city = :city
       AND g.status IN :statuses
        AND EXISTS (
            SELECT i FROM g.interests i
@@ -52,5 +52,5 @@ public interface GroupRepository extends JpaRepository<Group, Long> {
           )
 
 """)
-    Page<Group> findByInterestFilters(@Param("country") Country country, @Param("statuses") List<GroupStatus> statuses,@Param("interests") Set<Interest> interests, Pageable pageable);
+    Page<Group> findByInterestFilters(@Param("city") Country city, @Param("statuses") List<GroupStatus> statuses,@Param("interests") Set<Interest> interests, Pageable pageable);
 }

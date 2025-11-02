@@ -28,9 +28,12 @@ import java.util.Set;
 @AllArgsConstructor
 public class SurveyBasicInfoRequest {
 
-    @Schema(description = "국가", example = "KOREA", required = true)
-    @NotNull(message = "나라는 필수입니다.")
-    private Country country;
+    @Schema(description = "도시 (즐겨찾는 도시: SEOUL, TOKYO, SHANGHAI, LOS_ANGELES, LONDON 또는 기타 도시들)", 
+            example = "SEOUL", required = true, 
+            allowableValues = {"SEOUL", "TOKYO", "SHANGHAI", "LOS_ANGELES", "LONDON", 
+                              "USA_NEW_YORK", "KOREA_BUSAN", "CHINA_BEIJING", "JAPAN_OSAKA", "UK_MANCHESTER"})
+    @NotNull(message = "도시는 필수입니다.")
+    private Country city;
 
     @Schema(description = "성별", example = "MALE", required = true)
     @NotNull(message = "성별은 필수입니다.")

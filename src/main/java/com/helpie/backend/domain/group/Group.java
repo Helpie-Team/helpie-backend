@@ -16,7 +16,7 @@ import java.util.HashSet;
 import java.util.Set;
 
 /**
- * 소모임 엔티티 나라와 관심사를 기반으로 매칭된 소모임 (정원 5명)
+ * 소모임 엔티티 도시와 관심사를 기반으로 매칭된 소모임 (정원 5명)
  *
  * @author 전우선
  * @since 2025-10-30(목)
@@ -40,8 +40,8 @@ public class Group {
     private String description;
 
     @Enumerated(EnumType.STRING)
-    @Column(name = "country", nullable = false)
-    private Country country;
+    @Column(name = "city", nullable = false)
+    private Country city;
 
     @ElementCollection(targetClass = Interest.class)
     @Enumerated(EnumType.STRING)
@@ -81,12 +81,12 @@ public class Group {
     @Column(name = "created_by")
     private Long createdBy;
 
-    public Group(String title, String description, Country country, Set<Interest> interests,
+    public Group(String title, String description, Country city, Set<Interest> interests,
         Category category, Integer maxMembers, Integer currentMembers, GroupStatus status,
         Long createdBy) {
         this.title = title;
         this.description = description;
-        this.country = country;
+        this.city = city;
         this.interests = interests != null ? new HashSet<>(interests) : new HashSet<>();
         this.category = category;
         this.status = status != null ? status : GroupStatus.ACTIVE;
@@ -97,9 +97,9 @@ public class Group {
         this.updatedAt = LocalDateTime.now();
     }
 
-    public Group(String title, String description, Country country, Category category,
+    public Group(String title, String description, Country city, Category category,
         Set<Interest> interests, Integer maxMember) {
-        this(title, description, country, interests, category, maxMember, 0, GroupStatus.ACTIVE,
+        this(title, description, city, interests, category, maxMember, 0, GroupStatus.ACTIVE,
             null);
     }
 

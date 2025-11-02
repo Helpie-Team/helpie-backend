@@ -7,7 +7,7 @@ import com.helpie.backend.domain.survey.Country;
 public record GroupResponse(
     String title,
     String description,
-    Country country,
+    Country city,
     Category category,
     Integer maxMember,
     String thumbnail,
@@ -17,7 +17,7 @@ public record GroupResponse(
         return new GroupResponse(
             group.getTitle(),
             group.getDescription(),
-            group.getCountry(),
+            group.getCity(),
             group.getCategory(),
             group.getMaxMembers(),
             null,

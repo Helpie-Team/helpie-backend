@@ -45,7 +45,7 @@ public class GroupService {
         Group group = new Group(
             req.title(),
             req.description(),
-            req.country(),
+            req.city(),
             req.category(),
             req.interests(),
             req.maxMember()
@@ -73,7 +73,7 @@ public class GroupService {
             savedGroup.getTitle(),
             savedGroup.getDescription(),
             savedGroup.getMaxMembers(),
-            savedGroup.getCountry().name(),
+            savedGroup.getCity().name(),
             savedGroup.getInterests(),
             urls
         );
@@ -112,8 +112,8 @@ public class GroupService {
 
     public Page<GroupResponse> getGroups(Long userId, Category category, Pageable pageable) {
         Country country = surveyBasicInfoRepository.findByUserId(userId)
-            .map(SurveyBasicInfo::getCountry)
-            .orElse(Country.KOREA);
+            .map(SurveyBasicInfo::getCity)
+            .orElseThrow(() -> new IllegalStateException("설문조사 기본정보를 먼저 작성해주세요."));
 
         List<GroupStatus> visibleStatuses = List.of(GroupStatus.ACTIVE, GroupStatus.FULL);
 
@@ -125,8 +125,8 @@ public class GroupService {
 
     public Page<GroupResponse> getGroupsByInterest(Long userId, Pageable pageable) {
         Country country = surveyBasicInfoRepository.findByUserId(userId)
-            .map(SurveyBasicInfo::getCountry)
-            .orElse(Country.KOREA);
+            .map(SurveyBasicInfo::getCity)
+            .orElseThrow(() -> new IllegalStateException("설문조사 기본정보를 먼저 작성해주세요."));
 
         Set<Interest> interests=surveyBasicInfoRepository.findByUserId(userId).map(SurveyBasicInfo::getInterests).orElse(null);
 
