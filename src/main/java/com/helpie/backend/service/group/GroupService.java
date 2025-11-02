@@ -5,6 +5,7 @@ import com.helpie.backend.domain.group.Group;
 import com.helpie.backend.domain.group.GroupMember;
 import com.helpie.backend.domain.group.GroupStatus;
 import com.helpie.backend.domain.survey.Country;
+import com.helpie.backend.domain.survey.Interest;
 import com.helpie.backend.domain.survey.SurveyBasicInfo;
 import com.helpie.backend.dto.group.GroupCreateRequest;
 import com.helpie.backend.dto.group.GroupCreateResponse;
@@ -16,6 +17,7 @@ import com.helpie.backend.service.chatroom.ChatRoomService;
 import com.helpie.backend.utils.storage.ImageStorage;
 import java.util.List;
 import java.util.Optional;
+import java.util.Set;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
@@ -121,5 +123,19 @@ public class GroupService {
     }
 
 
+    public Page<GroupResponse> getGroupsByInterest(Long userId, Pageable pageable) {
+        Country country = surveyBasicInfoRepository.findByUserId(userId)
+            .map(SurveyBasicInfo::getCountry)
+            .orElse(Country.KOREA);
+
+        Set<Interest> interests=surveyBasicInfoRepository.findByUserId(userId).map(SurveyBasicInfo::getInterests).orElse(null);
+
+        List<GroupStatus> statuses = List.of(GroupStatus.ACTIVE, GroupStatus.FULL);
+
+        return groupRepository
+            .findByInterestFilters(country,statuses,interests,pageable)
+            .map(GroupResponse::from);
+
+    }
 
 }

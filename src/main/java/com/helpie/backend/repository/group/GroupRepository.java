@@ -50,7 +50,7 @@ public interface GroupRepository extends JpaRepository<Group, Long> {
            SELECT i FROM g.interests i
             WHERE i IN :interests
           )
-      
+
 """)
     Page<Group> findByInterestFilters(@Param("country") Country country, @Param("statuses") List<GroupStatus> statuses,@Param("interests") Set<Interest> interests, Pageable pageable);
 }
