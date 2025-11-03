@@ -104,7 +104,7 @@ public class SecurityConfig {
     };
 
     private static final String[] COUNTRY_URIS = {
-            "/api/v1/countries"
+            "/api/v1/countries/**"
     };
 
     private static final String[] CHATROOM_API_URIS = {
