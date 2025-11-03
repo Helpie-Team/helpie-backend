@@ -1,11 +1,14 @@
 package com.helpie.backend.controller.chatroom;
 
+import com.helpie.backend.domain.user.UserRole;
+import com.helpie.backend.domain.user.UserVo;
 import com.helpie.backend.dto.chatroom.ChatRoomResponse;
 import com.helpie.backend.dto.chatroom.ChatMessageResponse;
 import com.helpie.backend.dto.chatroom.SendMessageRequest;
 import com.helpie.backend.service.chatroom.ChatRoomService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
+import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -14,6 +17,8 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.web.PageableDefault;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.annotation.Secured;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -40,6 +45,8 @@ public class ChatRoomController {
     private final ChatRoomService chatRoomService;
     
     @PostMapping("/{chatRoomId}/enter")
+    @Secured(UserRole.USER_TYPE)
+    @SecurityRequirement(name = "JWT Authentication")
     @Operation(
         summary = "채팅방 입장", 
         description = "소모임 멤버가 채팅방에 입장합니다.\n\n" +
@@ -50,26 +57,30 @@ public class ChatRoomController {
                      "**참고:** 실제 실시간 채팅은 WebSocket `/ws/chat` 연결이 필요합니다."
     )
     public ResponseEntity<ChatRoomResponse> enterChatRoom(
+        @AuthenticationPrincipal UserVo userVo,
         @Parameter(description = "채팅방 ID") @PathVariable Long chatRoomId,
-        @Parameter(description = "사용자 ID") @RequestParam Long userId,
         @Parameter(description = "사용자 이름") @RequestParam String userName
     ) {
-        ChatRoomResponse response = chatRoomService.enterChatRoom(chatRoomId, userId, userName);
+        ChatRoomResponse response = chatRoomService.enterChatRoom(chatRoomId, userVo.getId(), userName);
         return ResponseEntity.ok(response);
     }
     
     @PostMapping("/{chatRoomId}/leave")
+    @Secured(UserRole.USER_TYPE)
+    @SecurityRequirement(name = "JWT Authentication")
     @Operation(summary = "채팅방 퇴장", description = "채팅방에서 퇴장합니다. 퇴장 시 시스템 메시지가 자동 전송됩니다.")
     public ResponseEntity<Void> leaveChatRoom(
+        @AuthenticationPrincipal UserVo userVo,
         @Parameter(description = "채팅방 ID") @PathVariable Long chatRoomId,
-        @Parameter(description = "사용자 ID") @RequestParam Long userId,
         @Parameter(description = "사용자 이름") @RequestParam String userName
     ) {
-        chatRoomService.leaveChatRoom(chatRoomId, userId, userName);
+        chatRoomService.leaveChatRoom(chatRoomId, userVo.getId(), userName);
         return ResponseEntity.ok().build();
     }
     
     @GetMapping("/accessible")
+    @Secured(UserRole.USER_TYPE)
+    @SecurityRequirement(name = "JWT Authentication")
     @Operation(
         summary = "접근 가능한 채팅방 목록", 
         description = "사용자가 접근 가능한 채팅방 목록을 조회합니다.\n\n" +
@@ -79,23 +90,27 @@ public class ChatRoomController {
                      "- 활성 상태인 채팅방만 포함"
     )
     public ResponseEntity<List<ChatRoomResponse>> getAccessibleChatRooms(
-        @Parameter(description = "사용자 ID") @RequestParam Long userId
+        @AuthenticationPrincipal UserVo userVo
     ) {
-        List<ChatRoomResponse> response = chatRoomService.getAccessibleChatRooms(userId);
+        List<ChatRoomResponse> response = chatRoomService.getAccessibleChatRooms(userVo.getId());
         return ResponseEntity.ok(response);
     }
     
     @GetMapping("/{chatRoomId}")
+    @Secured(UserRole.USER_TYPE)
+    @SecurityRequirement(name = "JWT Authentication")
     @Operation(summary = "채팅방 상세 조회", description = "채팅방의 상세 정보를 조회합니다.")
     public ResponseEntity<ChatRoomResponse> getChatRoomDetail(
-        @Parameter(description = "채팅방 ID") @PathVariable Long chatRoomId,
-        @Parameter(description = "사용자 ID") @RequestParam Long userId
+        @AuthenticationPrincipal UserVo userVo,
+        @Parameter(description = "채팅방 ID") @PathVariable Long chatRoomId
     ) {
-        ChatRoomResponse response = chatRoomService.getChatRoomDetail(chatRoomId, userId);
+        ChatRoomResponse response = chatRoomService.getChatRoomDetail(chatRoomId, userVo.getId());
         return ResponseEntity.ok(response);
     }
     
     @GetMapping("/{chatRoomId}/messages")
+    @Secured(UserRole.USER_TYPE)
+    @SecurityRequirement(name = "JWT Authentication")
     @Operation(
         summary = "채팅방 메시지 조회 (페이징 최적화)",
         description = "채팅방의 메시지 목록을 페이징하여 조회합니다.\n\n" +
@@ -109,12 +124,12 @@ public class ChatRoomController {
                      "- 이전 메시지: `?page=1&size=20`"
     )
     public ResponseEntity<Page<ChatMessageResponse>> getChatMessages(
+        @AuthenticationPrincipal UserVo userVo,
         @Parameter(description = "채팅방 ID") @PathVariable Long chatRoomId,
-        @Parameter(description = "사용자 ID") @RequestParam Long userId,
         @Parameter(description = "페이징 정보 (기본: 50개, 최신순)") 
         @PageableDefault(size = 50, sort = "sentAt", direction = Sort.Direction.DESC) Pageable pageable
     ) {
-        Page<ChatMessageResponse> response = chatRoomService.getChatMessages(chatRoomId, userId, pageable);
+        Page<ChatMessageResponse> response = chatRoomService.getChatMessages(chatRoomId, userVo.getId(), pageable);
         return ResponseEntity.ok(response);
     }
     

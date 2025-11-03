@@ -29,7 +29,7 @@ public class Country {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Column(name = "code", nullable = false, unique = true, length = 10)
+    @Column(name = "code", nullable = false, unique = true, length = 20)
     private String code; // USA, KOREA, CHINA, etc.
 
     @Column(name = "name", nullable = false, length = 50)
