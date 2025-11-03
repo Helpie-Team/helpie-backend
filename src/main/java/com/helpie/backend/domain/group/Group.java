@@ -72,6 +72,9 @@ public class Group {
     @Column(name = "current_members", nullable = false)
     private Integer currentMembers;
 
+    @Column(name="end_at",nullable = false)
+    private LocalDateTime endAt;
+
     @Column(name = "created_at", nullable = false)
     private LocalDateTime createdAt;
 
