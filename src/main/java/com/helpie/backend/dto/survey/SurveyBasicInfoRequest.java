@@ -1,7 +1,6 @@
 package com.helpie.backend.dto.survey;
 
 import com.helpie.backend.domain.survey.AgeGroup;
-import com.helpie.backend.domain.survey.Country;
 import com.helpie.backend.domain.survey.Gender;
 import com.helpie.backend.domain.survey.Interest;
 import com.helpie.backend.domain.survey.Language;
@@ -28,12 +27,15 @@ import java.util.Set;
 @AllArgsConstructor
 public class SurveyBasicInfoRequest {
 
-    @Schema(description = "도시 (즐겨찾는 도시: SEOUL, TOKYO, SHANGHAI, LOS_ANGELES, LONDON 또는 기타 도시들)", 
-            example = "SEOUL", required = true, 
-            allowableValues = {"SEOUL", "TOKYO", "SHANGHAI", "LOS_ANGELES", "LONDON", 
-                              "USA_NEW_YORK", "KOREA_BUSAN", "CHINA_BEIJING", "JAPAN_OSAKA", "UK_MANCHESTER"})
+    @Schema(description = "도시 ID (/api/v1/locations/cities/favorites 또는 /api/v1/locations/cities에서 조회)", 
+            example = "1", required = true)
     @NotNull(message = "도시는 필수입니다.")
-    private Country city;
+    private Long cityId;
+    
+    // Getter for backward compatibility
+    public Long getCity() {
+        return cityId;
+    }
 
     @Schema(description = "성별", example = "MALE", required = true)
     @NotNull(message = "성별은 필수입니다.")

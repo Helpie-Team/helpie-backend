@@ -4,7 +4,7 @@ import com.helpie.backend.domain.group.Category;
 import com.helpie.backend.domain.group.Group;
 import com.helpie.backend.domain.group.GroupMember;
 import com.helpie.backend.domain.group.GroupStatus;
-import com.helpie.backend.domain.survey.Country;
+import com.helpie.backend.domain.location.City;
 import com.helpie.backend.domain.survey.Interest;
 import com.helpie.backend.domain.survey.SurveyBasicInfo;
 import com.helpie.backend.dto.group.GroupCreateRequest;
@@ -12,6 +12,7 @@ import com.helpie.backend.dto.group.GroupCreateResponse;
 import com.helpie.backend.dto.group.GroupResponse;
 import com.helpie.backend.repository.group.GroupMemberRepository;
 import com.helpie.backend.repository.group.GroupRepository;
+import com.helpie.backend.repository.location.CityRepository;
 import com.helpie.backend.repository.survey.SurveyBasicInfoRepository;
 import com.helpie.backend.service.chatroom.ChatRoomService;
 import com.helpie.backend.utils.storage.ImageStorage;
@@ -34,6 +35,7 @@ public class GroupService {
     private final GroupRepository groupRepository;
     private final GroupMemberRepository groupMemberRepository;
     private final SurveyBasicInfoRepository surveyBasicInfoRepository;
+    private final CityRepository cityRepository;
     private final ChatRoomService chatRoomService;
     private final ImageStorage imageStorage;
 
@@ -41,11 +43,15 @@ public class GroupService {
     public GroupCreateResponse createGroup(Long userId, GroupCreateRequest req, List<MultipartFile> images) {
         log.debug("소모임 생성 시작 - userId: {}, title: {}", userId, req.title());
 
-        // 1. 소모임 생성
+        // 1. 도시 조회
+        City city = cityRepository.findById(req.cityId())
+            .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 도시입니다: " + req.cityId()));
+        
+        // 2. 소모임 생성
         Group group = new Group(
             req.title(),
             req.description(),
-            req.city(),
+            city,
             req.category(),
             req.interests(),
             req.maxMember()
@@ -73,7 +79,7 @@ public class GroupService {
             savedGroup.getTitle(),
             savedGroup.getDescription(),
             savedGroup.getMaxMembers(),
-            savedGroup.getCity().name(),
+            savedGroup.getCity().getName(),
             savedGroup.getInterests(),
             urls
         );
@@ -111,20 +117,20 @@ public class GroupService {
     }
 
     public Page<GroupResponse> getGroups(Long userId, Category category, Pageable pageable) {
-        Country country = surveyBasicInfoRepository.findByUserId(userId)
+        City city = surveyBasicInfoRepository.findByUserId(userId)
             .map(SurveyBasicInfo::getCity)
             .orElseThrow(() -> new IllegalStateException("설문조사 기본정보를 먼저 작성해주세요."));
 
         List<GroupStatus> visibleStatuses = List.of(GroupStatus.ACTIVE, GroupStatus.FULL);
 
         return groupRepository
-            .findAllByFilters(country,category,visibleStatuses,pageable)
+            .findAllByFilters(city,category,visibleStatuses,pageable)
             .map(GroupResponse::from);
     }
 
 
     public Page<GroupResponse> getGroupsByInterest(Long userId, Pageable pageable) {
-        Country country = surveyBasicInfoRepository.findByUserId(userId)
+        City city = surveyBasicInfoRepository.findByUserId(userId)
             .map(SurveyBasicInfo::getCity)
             .orElseThrow(() -> new IllegalStateException("설문조사 기본정보를 먼저 작성해주세요."));
 
@@ -133,7 +139,7 @@ public class GroupService {
         List<GroupStatus> statuses = List.of(GroupStatus.ACTIVE, GroupStatus.FULL);
 
         return groupRepository
-            .findByInterestFilters(country,statuses,interests,pageable)
+            .findByInterestFilters(city,statuses,interests,pageable)
             .map(GroupResponse::from);
 
     }

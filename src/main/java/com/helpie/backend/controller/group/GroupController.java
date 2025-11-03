@@ -35,7 +35,7 @@ public class GroupController {
     @PostMapping(consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public ResponseEntity<GroupCreateResponse> createGroup(
         @Parameter(description = "사용자 ID") @RequestParam Long userId,
-        @Parameter(description = "소모임 생성 정보") @RequestPart("payload") GroupCreateRequest request,
+        @Parameter(description = "소모임 생성 정보 (cityId는 도시 ID)") @RequestPart("payload") GroupCreateRequest request,
         @Parameter(description = "사진")@RequestPart(value = "images", required = false) List<MultipartFile> images
     ) {
 

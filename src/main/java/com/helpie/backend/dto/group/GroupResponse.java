@@ -2,12 +2,11 @@ package com.helpie.backend.dto.group;
 
 import com.helpie.backend.domain.group.Category;
 import com.helpie.backend.domain.group.Group;
-import com.helpie.backend.domain.survey.Country;
 
 public record GroupResponse(
     String title,
     String description,
-    Country city,
+    String cityName,
     Category category,
     Integer maxMember,
     String thumbnail,
@@ -17,7 +16,7 @@ public record GroupResponse(
         return new GroupResponse(
             group.getTitle(),
             group.getDescription(),
-            group.getCity(),
+            group.getCity().getName(),
             group.getCategory(),
             group.getMaxMembers(),
             null,

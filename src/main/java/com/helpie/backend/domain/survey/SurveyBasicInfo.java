@@ -1,5 +1,6 @@
 package com.helpie.backend.domain.survey;
 
+import com.helpie.backend.domain.location.City;
 import jakarta.persistence.*;
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
@@ -40,9 +41,9 @@ public class SurveyBasicInfo {
     @Column(name = "age_group", nullable = false)
     private AgeGroup ageGroup;
 
-    @Enumerated(EnumType.STRING)
-    @Column(name = "city", nullable = false)
-    private Country city;
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "city_id", nullable = false)
+    private City city;
 
     /** 복수 선택 가능한 사용 언어 목록 */
     @ElementCollection(targetClass = Language.class)
@@ -64,7 +65,7 @@ public class SurveyBasicInfo {
     @Column(name = "updated_at")
     private LocalDateTime updatedAt;
 
-    public SurveyBasicInfo(Long userId, Country city, Gender gender, AgeGroup ageGroup, Set<Language> languages, Set<Interest> interests) {
+    public SurveyBasicInfo(Long userId, City city, Gender gender, AgeGroup ageGroup, Set<Language> languages, Set<Interest> interests) {
         this.userId = userId;
         this.city = city;
         this.gender = gender;
@@ -83,7 +84,7 @@ public class SurveyBasicInfo {
     /**
      * 기본정보를 새로운 값으로 업데이트합니다.
      */
-    public void updateBasicInfo(Country city, Gender gender, AgeGroup ageGroup, Set<Language> languages, Set<Interest> interests) {
+    public void updateBasicInfo(City city, Gender gender, AgeGroup ageGroup, Set<Language> languages, Set<Interest> interests) {
         this.city = city;
         this.gender = gender;
         this.ageGroup = ageGroup;

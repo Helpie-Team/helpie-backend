@@ -9,7 +9,7 @@ public record GroupCreateResponse(
     String title,
     String description,
     Integer maxMember,
-    String country,
+    String city,
     Set<Interest> interest,
     List<String> imageUrls
 ) {
