@@ -1,6 +1,5 @@
 package com.helpie.backend.dto.survey;
 
-import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.helpie.backend.domain.survey.AgeGroup;
 import com.helpie.backend.domain.survey.Gender;
 import com.helpie.backend.domain.survey.Interest;
@@ -21,7 +20,16 @@ import java.util.Set;
  * @author 전우선
  * @since 2025-10-19(일)
  */
-@Schema(description = "설문조사 기본정보 요청")
+@Schema(description = "설문조사 기본정보 요청", 
+        example = """
+        {
+          "cityId": 1,
+          "gender": "MALE",
+          "ageGroup": "TWENTIES",
+          "languages": ["KOREAN", "ENGLISH"],
+          "interests": ["MOVIE_WATCHING", "EXERCISE", "TRAVEL"]
+        }
+        """)
 @Getter
 @Setter
 @NoArgsConstructor
@@ -33,11 +41,6 @@ public class SurveyBasicInfoRequest {
     @NotNull(message = "도시는 필수입니다.")
     private Long cityId;
     
-    // Getter for backward compatibility (not exposed in JSON)
-    @JsonIgnore
-    public Long getCity() {
-        return cityId;
-    }
 
     @Schema(description = "성별", example = "MALE", required = true)
     @NotNull(message = "성별은 필수입니다.")

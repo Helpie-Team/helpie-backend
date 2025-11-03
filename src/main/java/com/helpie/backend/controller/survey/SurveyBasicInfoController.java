@@ -41,9 +41,25 @@ public class SurveyBasicInfoController {
     @Secured(UserRole.USER_TYPE)
     @SecurityRequirement(name = "JWT Authentication")
     @Operation(summary = "설문조사 기본정보 저장", 
-               description = "사용자의 기본 프로필 정보를 저장합니다. " +
-                           "cityId는 /api/v1/locations/cities/favorites 또는 /api/v1/locations/cities에서 조회한 도시 ID를 사용합니다. " +
-                           "즐겨찾는 도시(서울, 도쿄, 상하이, 로스앵젤레스, 런던) 또는 기타 도시 중 선택 가능합니다.")
+               description = """
+                           사용자의 기본 프로필 정보를 저장합니다.
+                           
+                           **cityId 사용법:**
+                           1. GET /api/v1/locations/cities/favorites - 즐겨찾는 도시 5개 조회
+                           2. GET /api/v1/locations/cities - 전체 도시 조회 (국가별 그룹핑)
+                           3. 선택한 도시의 id 값을 cityId로 전송
+                           
+                           **예시:**
+                           ```json
+                           {
+                             "cityId": 1,
+                             "gender": "MALE", 
+                             "ageGroup": "TWENTIES",
+                             "languages": ["KOREAN", "ENGLISH"],
+                             "interests": ["MOVIE_WATCHING", "EXERCISE"]
+                           }
+                           ```
+                           """)
     @ApiResponses({
         @ApiResponse(responseCode = "200", description = "저장 성공"),
         @ApiResponse(responseCode = "400", description = "필수값 누락 또는 유효하지 않은 값"),
@@ -55,7 +71,7 @@ public class SurveyBasicInfoController {
             @Valid @RequestBody SurveyBasicInfoRequest request) {
         
         log.info("설문조사 기본정보 저장 요청 - userId: {}, cityId: {}, gender: {}", 
-                 userVo.getId(), request.getCity(), request.getGender());
+                 userVo.getId(), request.getCityId(), request.getGender());
         
         surveyBasicInfoService.saveSurveyBasicInfo(userVo.getId(), request);
         
@@ -71,8 +87,13 @@ public class SurveyBasicInfoController {
     @Secured(UserRole.USER_TYPE)
     @SecurityRequirement(name = "JWT Authentication")
     @Operation(summary = "설문조사 기본정보 수정", 
-               description = "기존에 등록된 설문조사 기본정보를 수정합니다. " +
-                           "cityId는 /api/v1/locations/cities/favorites 또는 /api/v1/locations/cities에서 조회한 도시 ID를 사용합니다.")
+               description = """
+                           기존에 등록된 설문조사 기본정보를 수정합니다.
+                           
+                           **cityId 사용법:**
+                           - GET /api/v1/locations/cities/favorites 또는 /api/v1/locations/cities에서 조회한 도시 ID 사용
+                           - 모든 필드를 포함하여 전체 업데이트 방식
+                           """)
     @ApiResponses({
         @ApiResponse(responseCode = "200", description = "수정 성공"),
         @ApiResponse(responseCode = "400", description = "필수값 누락 또는 유효하지 않은 값"),
@@ -84,7 +105,7 @@ public class SurveyBasicInfoController {
             @Valid @RequestBody SurveyBasicInfoRequest request) {
         
         log.info("설문조사 기본정보 수정 요청 - userId: {}, cityId: {}, gender: {}", 
-                 userVo.getId(), request.getCity(), request.getGender());
+                 userVo.getId(), request.getCityId(), request.getGender());
         
         surveyBasicInfoService.updateSurveyBasicInfo(userVo.getId(), request);
         
