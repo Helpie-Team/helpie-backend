@@ -3,6 +3,8 @@ package com.helpie.backend.domain.group;
 import com.helpie.backend.domain.location.City;
 import com.helpie.backend.domain.survey.Interest;
 import jakarta.persistence.*;
+import java.time.LocalDate;
+import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
 import java.util.List;
 import lombok.AccessLevel;
@@ -145,5 +147,16 @@ public class Group {
 
     public boolean isPopular() {
         return maxMembers >= 6 || currentMembers >= maxMembers / 2;
+    }
+
+    public int getDayBefore(){
+        LocalDate today = LocalDate.now();
+        LocalDate endDate = this.endAt.toLocalDate();
+
+        if (endDate.isBefore(today)) {
+            throw new RuntimeException("이미 완료된 소모임입니다.");
+        }
+
+        return (int) ChronoUnit.DAYS.between(today, endDate);
     }
 }
