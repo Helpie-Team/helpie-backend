@@ -86,7 +86,7 @@ public class Group {
 
     public Group(String title, String description, City city, Set<Interest> interests,
         Category category, Integer maxMembers, Integer currentMembers, GroupStatus status,
-        Long createdBy) {
+        Long createdBy,LocalDateTime endAt) {
         this.title = title;
         this.description = description;
         this.city = city;
@@ -96,14 +96,15 @@ public class Group {
         this.maxMembers = maxMembers != null ? maxMembers : 5;
         this.currentMembers = currentMembers != null ? currentMembers : 0;
         this.createdBy = createdBy;
+        this.endAt = endAt;
         this.createdAt = LocalDateTime.now();
         this.updatedAt = LocalDateTime.now();
     }
 
     public Group(String title, String description, City city, Category category,
-        Set<Interest> interests, Integer maxMember) {
+        Set<Interest> interests, Integer maxMember,LocalDateTime endAt) {
         this(title, description, city, interests, category, maxMember, 0, GroupStatus.ACTIVE,
-            null);
+            null,endAt);
     }
 
     @PreUpdate

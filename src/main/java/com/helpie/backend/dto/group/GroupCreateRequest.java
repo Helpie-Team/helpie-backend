@@ -5,6 +5,7 @@ import com.helpie.backend.domain.survey.Interest;
 import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.media.Schema.RequiredMode;
 
+import java.time.LocalDateTime;
 import java.util.Set;
 
 @Schema(description = "소모임 생성 요청",
@@ -15,6 +16,7 @@ import java.util.Set;
           "cityId": 1,
           "interests": ["MOVIE_WATCHING", "DISCUSSION"],
           "category": "CULTURAL",
+          "endAt": "2025-11-30T23:59:00+09:00"
           "maxMember": 10
         }
         """)
@@ -30,6 +32,8 @@ public record GroupCreateRequest(
     Set<Interest> interests,
     @Schema(requiredMode = Schema.RequiredMode.REQUIRED)
     Category category,
+    @Schema(requiredMode = RequiredMode.REQUIRED)
+    LocalDateTime endAt,
     @Schema(requiredMode = RequiredMode.REQUIRED)
     Integer maxMember
 ) {

@@ -7,6 +7,7 @@ import com.helpie.backend.dto.group.GroupCreateRequest;
 import com.helpie.backend.dto.group.GroupCreateResponse;
 import com.helpie.backend.dto.group.GroupResponse;
 import com.helpie.backend.service.group.GroupService;
+import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -37,9 +38,10 @@ public class GroupController {
 
     private final GroupService groupService;
 
-    @PostMapping(consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    @PostMapping(value = "/create",consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     @Secured(UserRole.USER_TYPE)
     @SecurityRequirement(name = "JWT Authentication")
+    @Operation(summary = "소모임 등록", description = "소모임을 등록합니다")
     public ResponseEntity<GroupCreateResponse> createGroup(
         @AuthenticationPrincipal UserVo userVo,
         @Parameter(description = "소모임 생성 정보 (cityId는 도시 ID)") @RequestPart("payload") GroupCreateRequest request,

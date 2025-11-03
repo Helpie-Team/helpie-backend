@@ -54,8 +54,9 @@ public class GroupService {
             city,
             req.category(),
             req.interests(),
-            req.maxMember()
-        );
+            req.maxMember(),
+            req.endAt()
+            );
         Group savedGroup = groupRepository.save(group);
         log.info("소모임 생성 완료 - groupId: {}", savedGroup.getId());
 
