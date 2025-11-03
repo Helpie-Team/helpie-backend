@@ -2,6 +2,9 @@ package com.helpie.backend.controller.auth;
 
 
 import com.helpie.backend.domain.sociallogin.SocialType;
+import com.helpie.backend.domain.user.User;
+import com.helpie.backend.domain.user.UserRole;
+import com.helpie.backend.domain.user.UserVo;
 import com.helpie.backend.dto.auth.*;
 import com.helpie.backend.dto.global.Response;
 import com.helpie.backend.dto.sociallogin.SigninByCodeRequest;
@@ -17,10 +20,13 @@ import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
+import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.security.access.annotation.Secured;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
@@ -263,6 +269,27 @@ public class AuthController {
                 cookie.sameSite());
 
         response.addHeader("Set-Cookie", cookieHeader);
+    }
+
+
+    @GetMapping("/authorization-guide")
+    @SecurityRequirement(name = "JWT Authentication")
+    @Secured(UserRole.USER_TYPE)
+    @ApiResponses(
+            @ApiResponse(
+                    responseCode = "200",
+                    description = "Authorization Guide - 로그인 or 회원가입 시 발급된 Access Token 으로 사용자 정보 조회"
+            )
+    )
+    @Operation(summary = "엑세스 토큰으로 사용자 정보 조회 가이드")
+    public Response<UserVo> authorizationGuide(
+            @AuthenticationPrincipal UserVo userVo) {
+        /**
+         * @AuthenticationPrincipal : 어노테이션을 사용하여 현재 인증된 사용자의 정보를 가져올 수 있습니다.
+         * @userVo.getId() : 현재 인증된 사용자의 고유 ID를 가져옵니다.
+         **/
+        final var user = this.userService.findUserVo(userVo.getId());
+        return Response.success(user);
     }
 }
 

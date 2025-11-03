@@ -4,10 +4,12 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.helpie.backend.dto.global.Response;
 import com.helpie.backend.exception.BusinessException;
 import com.helpie.backend.exception.ErrorCode;
+import com.helpie.backend.filter.JwtFilter;
 import com.helpie.backend.service.auth.JwtTokenProvider;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.http.HttpMethod;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
@@ -17,6 +19,7 @@ import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.web.AuthenticationEntryPoint;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.access.AccessDeniedHandler;
+import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 
@@ -81,6 +84,10 @@ public class SecurityConfig {
                 writer.flush();
             };
 
+    private static final String[] AUTH_URIS = {
+            "/api/v1/auth/**"
+    };
+
     private static final String[] SWAGGER_URIS = {
             "/api-docs/**",
             "/v3/api-docs/**",
@@ -90,6 +97,14 @@ public class SecurityConfig {
     private static final String[] WEBSOCKET_URIS = {
             "/ws/**",
             "/ws/chat/**"
+    };
+
+    private static final String[] LOCATION_URIS = {
+            "/api/v1/locations/**"
+    };
+
+    private static final String[] COUNTRY_URIS = {
+            "/api/v1/countries"
     };
 
     private static final String[] CHATROOM_API_URIS = {
@@ -124,16 +139,27 @@ public class SecurityConfig {
 
                 // 모든 HTTP 요청에 대한 인증/인가 설정
                 .authorizeHttpRequests(auth -> auth
+                        .requestMatchers(HttpMethod.POST, AUTH_URIS).permitAll()
                         // Swagger 문서 접근 허용
                         .requestMatchers(SWAGGER_URIS).permitAll()
                         // WebSocket 엔드포인트 허용
                         .requestMatchers(WEBSOCKET_URIS).permitAll()
                         // 채팅방 API 허용
                         .requestMatchers(CHATROOM_API_URIS).permitAll()
+                        .requestMatchers(LOCATION_URIS).permitAll()
+                        .requestMatchers(COUNTRY_URIS).permitAll()
                         // 모든 요청을 인증 없이 허용 (개발 환경용)
                         // TODO: API별 세분화된 권한 설정 필요
-                        .anyRequest().permitAll()
+                        .anyRequest()
+                        .authenticated()
                 )
+                .exceptionHandling((exceptionHandling) ->
+                        exceptionHandling.accessDeniedHandler(accessDeniedHandler)
+                                .authenticationEntryPoint(unauthorizedEntryPoint)
+                )
+                .addFilterBefore(new JwtFilter(this.jwtTokenProvider),
+                        UsernamePasswordAuthenticationFilter.class
+                        )
                 .cors((cors) -> {
                     CorsConfiguration configuration = new CorsConfiguration();
                     configuration.setAllowedOrigins(this.allowOriginHosts);
