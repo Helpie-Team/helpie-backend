@@ -16,6 +16,7 @@ import com.helpie.backend.service.BasicLoginService;
 import com.helpie.backend.service.sociallogin.SocialLoginService;
 import com.helpie.backend.service.user.UserCommonService;
 import com.helpie.backend.service.user.UserService;
+import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
