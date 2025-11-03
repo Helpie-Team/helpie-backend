@@ -1,5 +1,6 @@
 package com.helpie.backend.dto.survey;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.helpie.backend.domain.survey.AgeGroup;
 import com.helpie.backend.domain.survey.Gender;
 import com.helpie.backend.domain.survey.Interest;
@@ -32,7 +33,8 @@ public class SurveyBasicInfoRequest {
     @NotNull(message = "도시는 필수입니다.")
     private Long cityId;
     
-    // Getter for backward compatibility
+    // Getter for backward compatibility (not exposed in JSON)
+    @JsonIgnore
     public Long getCity() {
         return cityId;
     }
