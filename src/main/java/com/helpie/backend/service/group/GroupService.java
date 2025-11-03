@@ -13,6 +13,7 @@ import com.helpie.backend.dto.group.GroupResponse;
 import com.helpie.backend.repository.group.GroupMemberRepository;
 import com.helpie.backend.repository.group.GroupRepository;
 import com.helpie.backend.repository.location.CityRepository;
+import com.helpie.backend.repository.location.CountryRepository;
 import com.helpie.backend.repository.survey.SurveyBasicInfoRepository;
 import com.helpie.backend.service.chatroom.ChatRoomService;
 import com.helpie.backend.utils.storage.ImageStorage;
@@ -36,6 +37,7 @@ public class GroupService {
     private final GroupMemberRepository groupMemberRepository;
     private final SurveyBasicInfoRepository surveyBasicInfoRepository;
     private final CityRepository cityRepository;
+    private final CountryRepository countryRepository;
     private final ChatRoomService chatRoomService;
     private final ImageStorage imageStorage;
 
@@ -117,19 +119,26 @@ public class GroupService {
         log.info("소모임 가입 및 채팅방 자동 입장 완료 - groupId: {}, userId: {}", groupId, userId);
     }
 
-    public Page<GroupResponse> getGroups(Long userId, Category category, Pageable pageable) {
-        City city = surveyBasicInfoRepository.findByUserId(userId)
-            .map(SurveyBasicInfo::getCity)
-            .orElseThrow(() -> new IllegalStateException("설문조사 기본정보를 먼저 작성해주세요."));
+    /**
+     *
+     * 로그인, 비로그인 공통
+     나라와 카테고리별 소모임 조회
+     */
+    public Page<GroupResponse> getGroupByCountry(String code, Category category,Pageable pageable) {
+        List<City> cities=countryRepository.findByCode(code).get().getCities();
 
         List<GroupStatus> visibleStatuses = List.of(GroupStatus.ACTIVE, GroupStatus.FULL);
 
+        //소모임 중 city가 일치하는 리스트를 반환한다
         return groupRepository
-            .findAllByFilters(city,category,visibleStatuses,pageable)
+            .findAllByFilters(cities,category,visibleStatuses,pageable)
             .map(GroupResponse::from);
     }
 
 
+    /**
+     맞춤형: 도시, 흥미별 소모임 조회
+     */
     public Page<GroupResponse> getGroupsByInterest(Long userId, Pageable pageable) {
         City city = surveyBasicInfoRepository.findByUserId(userId)
             .map(SurveyBasicInfo::getCity)

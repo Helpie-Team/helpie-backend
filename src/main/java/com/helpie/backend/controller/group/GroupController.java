@@ -1,6 +1,7 @@
 package com.helpie.backend.controller.group;
 
 import com.helpie.backend.domain.group.Category;
+import com.helpie.backend.domain.location.Country;
 import com.helpie.backend.domain.user.UserRole;
 import com.helpie.backend.domain.user.UserVo;
 import com.helpie.backend.dto.group.GroupCreateRequest;
@@ -54,15 +55,13 @@ public class GroupController {
     }
 
     @GetMapping("/list")
-    @Secured(UserRole.USER_TYPE)
-    @SecurityRequirement(name = "JWT Authentication")
-    public ResponseEntity<Page<GroupResponse>> getGroups(
-        @AuthenticationPrincipal UserVo userVo,
+    public ResponseEntity<Page<GroupResponse>> getGroupByCountry(
+        @Parameter(description = "나라") @RequestParam String country,
         @Parameter(description = "소모임 카테고리") @RequestParam Category category,
         @RequestParam(defaultValue ="0") int page,
         @PageableDefault(size = 20, sort = "createdAt", direction = Sort.Direction.DESC) Pageable pageable
     ){
-        Page<GroupResponse> response=groupService.getGroups(userVo.getId(),category,pageable);
+        Page<GroupResponse> response=groupService.getGroupByCountry(country,category,pageable);
         return ResponseEntity.ok(response);
     }
 

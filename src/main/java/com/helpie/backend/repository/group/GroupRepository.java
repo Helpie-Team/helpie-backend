@@ -34,12 +34,11 @@ public interface GroupRepository extends JpaRepository<Group, Long> {
 
     @Query("""
     SELECT g FROM Group g
-    WHERE g.city = :city
+    WHERE g.city IN :cities
       AND (:category = 'ALL' OR g.category = :category)
       AND g.status IN :statuses
 """)
-    Page<Group> findAllByFilters(@Param("city") City city, @Param("category") Category category, @Param("statuses") List<GroupStatus> statuses, Pageable pageable);
-
+    Page<Group> findAllByFilters(@Param("cities") List<City> cities, @Param("category") Category category, @Param("statuses") List<GroupStatus> statuses, Pageable pageable);
 
 
     @Query("""
