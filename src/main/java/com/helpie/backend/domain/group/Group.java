@@ -1,6 +1,6 @@
 package com.helpie.backend.domain.group;
 
-import com.helpie.backend.domain.survey.Country;
+import com.helpie.backend.domain.location.City;
 import com.helpie.backend.domain.survey.Interest;
 import jakarta.persistence.*;
 import java.util.ArrayList;
@@ -39,9 +39,9 @@ public class Group {
     @Column(name = "description", length = 500)
     private String description;
 
-    @Enumerated(EnumType.STRING)
-    @Column(name = "city", nullable = false)
-    private Country city;
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "city_id", nullable = false)
+    private City city;
 
     @ElementCollection(targetClass = Interest.class)
     @Enumerated(EnumType.STRING)
@@ -81,7 +81,7 @@ public class Group {
     @Column(name = "created_by")
     private Long createdBy;
 
-    public Group(String title, String description, Country city, Set<Interest> interests,
+    public Group(String title, String description, City city, Set<Interest> interests,
         Category category, Integer maxMembers, Integer currentMembers, GroupStatus status,
         Long createdBy) {
         this.title = title;
@@ -97,7 +97,7 @@ public class Group {
         this.updatedAt = LocalDateTime.now();
     }
 
-    public Group(String title, String description, Country city, Category category,
+    public Group(String title, String description, City city, Category category,
         Set<Interest> interests, Integer maxMember) {
         this(title, description, city, interests, category, maxMember, 0, GroupStatus.ACTIVE,
             null);

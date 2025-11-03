@@ -35,8 +35,8 @@ public class SurveyBasicInfoController {
     @PostMapping("/basic-info")
     @Operation(summary = "설문조사 기본정보 저장", 
                description = "사용자의 기본 프로필 정보를 저장합니다. " +
-                           "도시는 즐겨찾는 도시(서울, 도쿄, 상하이, 로스앤젤레스, 런던) 또는 " +
-                           "기타 도시(미국-뉴욕, 한국-부산, 중국-베이징 등)에서 선택 가능합니다.")
+                           "cityId는 /api/v1/locations/cities/favorites 또는 /api/v1/locations/cities에서 조회한 도시 ID를 사용합니다. " +
+                           "즐겨찾는 도시(서울, 도쿄, 상하이, 로스앵젤레스, 런던) 또는 기타 도시 중 선택 가능합니다.")
     @ApiResponses({
         @ApiResponse(responseCode = "200", description = "저장 성공"),
         @ApiResponse(responseCode = "400", description = "필수값 누락 또는 유효하지 않은 값"),
@@ -48,7 +48,7 @@ public class SurveyBasicInfoController {
             @RequestParam Long userId,
             @Valid @RequestBody SurveyBasicInfoRequest request) {
         
-        log.info("설문조사 기본정보 저장 요청 - userId: {}, city: {}, gender: {}", 
+        log.info("설문조사 기본정보 저장 요청 - userId: {}, cityId: {}, gender: {}", 
                  userId, request.getCity(), request.getGender());
         
         surveyBasicInfoService.saveSurveyBasicInfo(userId, request);
@@ -64,7 +64,7 @@ public class SurveyBasicInfoController {
     @PutMapping("/basic-info")
     @Operation(summary = "설문조사 기본정보 수정", 
                description = "기존에 등록된 설문조사 기본정보를 수정합니다. " +
-                           "도시는 즐겨찾는 도시 또는 기타 도시에서 선택 가능합니다.")
+                           "cityId는 /api/v1/locations/cities/favorites 또는 /api/v1/locations/cities에서 조회한 도시 ID를 사용합니다.")
     @ApiResponses({
         @ApiResponse(responseCode = "200", description = "수정 성공"),
         @ApiResponse(responseCode = "400", description = "필수값 누락 또는 유효하지 않은 값"),
@@ -76,7 +76,7 @@ public class SurveyBasicInfoController {
             @RequestParam Long userId,
             @Valid @RequestBody SurveyBasicInfoRequest request) {
         
-        log.info("설문조사 기본정보 수정 요청 - userId: {}, city: {}, gender: {}", 
+        log.info("설문조사 기본정보 수정 요청 - userId: {}, cityId: {}, gender: {}", 
                  userId, request.getCity(), request.getGender());
         
         surveyBasicInfoService.updateSurveyBasicInfo(userId, request);

@@ -1,7 +1,7 @@
 package com.helpie.backend.dto.survey;
 
 import com.helpie.backend.domain.survey.AgeGroup;
-import com.helpie.backend.domain.survey.Country;
+import com.helpie.backend.domain.location.City;
 import com.helpie.backend.domain.survey.Gender;
 import com.helpie.backend.domain.survey.Interest;
 import com.helpie.backend.domain.survey.Language;
@@ -26,7 +26,8 @@ public class SurveyBasicInfoResponse {
     
     private Long id;
     private Long userId;
-    private Country city;
+    private String cityName;
+    private Long cityId;
     private Gender gender;
     private AgeGroup ageGroup;
     private Set<Language> languages;
@@ -38,7 +39,8 @@ public class SurveyBasicInfoResponse {
         return new SurveyBasicInfoResponse(
                 surveyBasicInfo.getId(),
                 surveyBasicInfo.getUserId(),
-                surveyBasicInfo.getCity(),
+                surveyBasicInfo.getCity().getName(),
+                surveyBasicInfo.getCity().getId(),
                 surveyBasicInfo.getGender(),
                 surveyBasicInfo.getAgeGroup(),
                 surveyBasicInfo.getLanguages(),

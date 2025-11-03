@@ -3,7 +3,7 @@ package com.helpie.backend.repository.group;
 import com.helpie.backend.domain.group.Category;
 import com.helpie.backend.domain.group.Group;
 import com.helpie.backend.domain.group.GroupStatus;
-import com.helpie.backend.domain.survey.Country;
+import com.helpie.backend.domain.location.City;
 import com.helpie.backend.domain.survey.Interest;
 import java.util.Set;
 import org.springframework.data.domain.Page;
@@ -25,7 +25,7 @@ public interface GroupRepository extends JpaRepository<Group, Long> {
     /**
      * 나라별, 상태별 소모임 목록을 조회합니다.
      */
-    List<Group> findByCityAndStatus(Country city, GroupStatus status);
+    List<Group> findByCityAndStatus(City city, GroupStatus status);
     
     /**
      * 활성 상태인 소모임 목록을 조회합니다.
@@ -38,7 +38,7 @@ public interface GroupRepository extends JpaRepository<Group, Long> {
       AND (:category = 'ALL' OR g.category = :category)
       AND g.status IN :statuses
 """)
-    Page<Group> findAllByFilters(@Param("city") Country city, @Param("category") Category category, @Param("statuses") List<GroupStatus> statuses, Pageable pageable);
+    Page<Group> findAllByFilters(@Param("city") City city, @Param("category") Category category, @Param("statuses") List<GroupStatus> statuses, Pageable pageable);
 
 
 
@@ -52,5 +52,5 @@ public interface GroupRepository extends JpaRepository<Group, Long> {
           )
 
 """)
-    Page<Group> findByInterestFilters(@Param("city") Country city, @Param("statuses") List<GroupStatus> statuses,@Param("interests") Set<Interest> interests, Pageable pageable);
+    Page<Group> findByInterestFilters(@Param("city") City city, @Param("statuses") List<GroupStatus> statuses,@Param("interests") Set<Interest> interests, Pageable pageable);
 }

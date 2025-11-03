@@ -1,9 +1,11 @@
 package com.helpie.backend.service.survey;
 
+import com.helpie.backend.domain.location.City;
 import com.helpie.backend.domain.survey.SurveyBasicInfo;
 import com.helpie.backend.dto.survey.SurveyBasicInfoRequest;
 import com.helpie.backend.exception.survey.SurveyBasicInfoAlreadyExistsException;
 import com.helpie.backend.exception.survey.SurveyBasicInfoNotFoundException;
+import com.helpie.backend.repository.location.CityRepository;
 import com.helpie.backend.repository.survey.SurveyBasicInfoRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -23,6 +25,7 @@ import org.springframework.transaction.annotation.Transactional;
 public class SurveyBasicInfoServiceImpl implements SurveyBasicInfoService {
 
     private final SurveyBasicInfoRepository surveyBasicInfoRepository;
+    private final CityRepository cityRepository;
 
     @Override
     public void saveSurveyBasicInfo(Long userId, SurveyBasicInfoRequest request) {
@@ -56,9 +59,12 @@ public class SurveyBasicInfoServiceImpl implements SurveyBasicInfoService {
     }
 
     private SurveyBasicInfo createSurveyBasicInfo(Long userId, SurveyBasicInfoRequest request) {
+        City city = cityRepository.findById(request.getCity())
+                .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 도시입니다: " + request.getCity()));
+        
         return new SurveyBasicInfo(
                 userId,
-                request.getCity(),
+                city,
                 request.getGender(),
                 request.getAgeGroup(),
                 request.getLanguages(),
@@ -75,8 +81,11 @@ public class SurveyBasicInfoServiceImpl implements SurveyBasicInfoService {
     }
 
     private void updateSurveyBasicInfoData(SurveyBasicInfo surveyBasicInfo, SurveyBasicInfoRequest request) {
+        City city = cityRepository.findById(request.getCity())
+                .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 도시입니다: " + request.getCity()));
+        
         surveyBasicInfo.updateBasicInfo(
-                request.getCity(),
+                city,
                 request.getGender(),
                 request.getAgeGroup(),
                 request.getLanguages(),
