@@ -129,7 +129,6 @@ public class GroupService {
 
         List<GroupStatus> visibleStatuses = List.of(GroupStatus.ACTIVE, GroupStatus.FULL);
 
-        //소모임 중 city가 일치하는 리스트를 반환한다
         return groupRepository
             .findAllByFilters(cities,category,visibleStatuses,pageable)
             .map(GroupResponse::from);
