@@ -7,6 +7,17 @@ import io.swagger.v3.oas.annotations.media.Schema.RequiredMode;
 
 import java.util.Set;
 
+@Schema(description = "소모임 생성 요청",
+        example = """
+        {
+          "title": "영화 감상 모임",
+          "description": "매주 영화를 보고 이야기 나누는 모임입니다",
+          "cityId": 1,
+          "interests": ["MOVIE_WATCHING", "DISCUSSION"],
+          "category": "CULTURAL",
+          "maxMember": 10
+        }
+        """)
 public record GroupCreateRequest(
     @Schema(requiredMode = Schema.RequiredMode.REQUIRED)
     String title,

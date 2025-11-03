@@ -59,8 +59,8 @@ public class SurveyBasicInfoServiceImpl implements SurveyBasicInfoService {
     }
 
     private SurveyBasicInfo createSurveyBasicInfo(Long userId, SurveyBasicInfoRequest request) {
-        City city = cityRepository.findById(request.getCity())
-                .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 도시입니다: " + request.getCity()));
+        City city = cityRepository.findById(request.getCityId())
+                .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 도시입니다: " + request.getCityId()));
         
         return new SurveyBasicInfo(
                 userId,
@@ -81,8 +81,8 @@ public class SurveyBasicInfoServiceImpl implements SurveyBasicInfoService {
     }
 
     private void updateSurveyBasicInfoData(SurveyBasicInfo surveyBasicInfo, SurveyBasicInfoRequest request) {
-        City city = cityRepository.findById(request.getCity())
-                .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 도시입니다: " + request.getCity()));
+        City city = cityRepository.findById(request.getCityId())
+                .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 도시입니다: " + request.getCityId()));
         
         surveyBasicInfo.updateBasicInfo(
                 city,
