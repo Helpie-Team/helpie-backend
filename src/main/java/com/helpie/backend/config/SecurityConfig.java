@@ -111,8 +111,12 @@ public class SecurityConfig {
             "/api/v1/surveys/**"
     };
 
-    private static final String[] GROUP_URIS = {
+    private static final String[] AUTHENTICATED_GROUP_URIS = {
             "/api/v1/group/**"
+    };
+
+    private static final String[] PUBLIC_GROUP_URIS = {
+        "/api/v1/public/group/**"
     };
 
     private static final String[] CHATROOM_API_URIS = {
@@ -152,6 +156,7 @@ public class SecurityConfig {
                         .requestMatchers(SWAGGER_URIS).permitAll()
                         // WebSocket 엔드포인트 허용
                         .requestMatchers(WEBSOCKET_URIS).permitAll()
+                    .requestMatchers(PUBLIC_GROUP_URIS).permitAll()
                         // 채팅방 API도 JWT 인증 필요로 변경
                         // .requestMatchers(CHATROOM_API_URIS).permitAll()
                         .requestMatchers(LOCATION_URIS).permitAll()

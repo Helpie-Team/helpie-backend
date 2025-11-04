@@ -10,7 +10,8 @@ public record GroupResponse(
     Category category,
     Integer maxMember,
     String thumbnail,
-    Boolean isPopular
+    Boolean isPopular,
+    Integer dayBefore
     ) {
     public static GroupResponse from(Group group) {
         return new GroupResponse(
@@ -20,7 +21,8 @@ public record GroupResponse(
             group.getCategory(),
             group.getMaxMembers(),
             null,
-            group.isPopular()
+            group.isPopular(),
+            group.getDayBefore()
         );
     }
 

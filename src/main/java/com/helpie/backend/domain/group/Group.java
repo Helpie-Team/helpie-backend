@@ -3,6 +3,8 @@ package com.helpie.backend.domain.group;
 import com.helpie.backend.domain.location.City;
 import com.helpie.backend.domain.survey.Interest;
 import jakarta.persistence.*;
+import java.time.LocalDate;
+import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
 import java.util.List;
 import lombok.AccessLevel;
@@ -72,6 +74,9 @@ public class Group {
     @Column(name = "current_members", nullable = false)
     private Integer currentMembers;
 
+    @Column(name="end_at",nullable = false)
+    private LocalDateTime endAt;
+
     @Column(name = "created_at", nullable = false)
     private LocalDateTime createdAt;
 
@@ -83,7 +88,7 @@ public class Group {
 
     public Group(String title, String description, City city, Set<Interest> interests,
         Category category, Integer maxMembers, Integer currentMembers, GroupStatus status,
-        Long createdBy) {
+        Long createdBy,LocalDateTime endAt) {
         this.title = title;
         this.description = description;
         this.city = city;
@@ -93,14 +98,15 @@ public class Group {
         this.maxMembers = maxMembers != null ? maxMembers : 5;
         this.currentMembers = currentMembers != null ? currentMembers : 0;
         this.createdBy = createdBy;
+        this.endAt = endAt;
         this.createdAt = LocalDateTime.now();
         this.updatedAt = LocalDateTime.now();
     }
 
     public Group(String title, String description, City city, Category category,
-        Set<Interest> interests, Integer maxMember) {
+        Set<Interest> interests, Integer maxMember,LocalDateTime endAt) {
         this(title, description, city, interests, category, maxMember, 0, GroupStatus.ACTIVE,
-            null);
+            null,endAt);
     }
 
     @PreUpdate
@@ -141,5 +147,16 @@ public class Group {
 
     public boolean isPopular() {
         return maxMembers >= 6 || currentMembers >= maxMembers / 2;
+    }
+
+    public int getDayBefore(){
+        LocalDate today = LocalDate.now();
+        LocalDate endDate = this.endAt.toLocalDate();
+
+        if (endDate.isBefore(today)) {
+            throw new RuntimeException("이미 완료된 소모임입니다.");
+        }
+
+        return (int) ChronoUnit.DAYS.between(today, endDate);
     }
 }

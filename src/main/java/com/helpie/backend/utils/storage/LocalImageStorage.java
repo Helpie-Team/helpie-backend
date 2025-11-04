@@ -4,8 +4,11 @@ import com.helpie.backend.domain.group.Group;
 import com.helpie.backend.domain.group.GroupImage;
 import com.helpie.backend.repository.group.GroupImageRepository;
 
+import java.util.Collections;
 import java.util.List;
+import java.util.Optional;
 import java.util.UUID;
+import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 import org.springframework.web.multipart.MultipartFile;
@@ -36,6 +39,11 @@ public class LocalImageStorage implements ImageStorage {
 
     @Override
     public List<String> storeAll(List<MultipartFile> files, Group group) {
-        return files.stream().map(file->store(file,group)).toList();
+        return Optional.ofNullable(files)
+            .orElse(Collections.emptyList())
+            .stream()
+            .map(file -> store(file, group))
+            .collect(Collectors.toList());
+
     }
 }

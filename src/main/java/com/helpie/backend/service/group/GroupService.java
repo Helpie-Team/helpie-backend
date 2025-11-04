@@ -5,20 +5,20 @@ import com.helpie.backend.domain.group.Group;
 import com.helpie.backend.domain.group.GroupMember;
 import com.helpie.backend.domain.group.GroupStatus;
 import com.helpie.backend.domain.location.City;
-import com.helpie.backend.domain.survey.Interest;
 import com.helpie.backend.domain.survey.SurveyBasicInfo;
 import com.helpie.backend.dto.group.GroupCreateRequest;
 import com.helpie.backend.dto.group.GroupCreateResponse;
 import com.helpie.backend.dto.group.GroupResponse;
+import com.helpie.backend.dto.group.RecommendedResponse;
 import com.helpie.backend.repository.group.GroupMemberRepository;
 import com.helpie.backend.repository.group.GroupRepository;
 import com.helpie.backend.repository.location.CityRepository;
+import com.helpie.backend.repository.location.CountryRepository;
 import com.helpie.backend.repository.survey.SurveyBasicInfoRepository;
 import com.helpie.backend.service.chatroom.ChatRoomService;
 import com.helpie.backend.utils.storage.ImageStorage;
 import java.util.List;
 import java.util.Optional;
-import java.util.Set;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
@@ -36,6 +36,7 @@ public class GroupService {
     private final GroupMemberRepository groupMemberRepository;
     private final SurveyBasicInfoRepository surveyBasicInfoRepository;
     private final CityRepository cityRepository;
+    private final CountryRepository countryRepository;
     private final ChatRoomService chatRoomService;
     private final ImageStorage imageStorage;
 
@@ -54,8 +55,9 @@ public class GroupService {
             city,
             req.category(),
             req.interests(),
-            req.maxMember()
-        );
+            req.maxMember(),
+            req.endAt()
+            );
         Group savedGroup = groupRepository.save(group);
         log.info("소모임 생성 완료 - groupId: {}", savedGroup.getId());
 
@@ -116,31 +118,40 @@ public class GroupService {
         log.info("소모임 가입 및 채팅방 자동 입장 완료 - groupId: {}, userId: {}", groupId, userId);
     }
 
-    public Page<GroupResponse> getGroups(Long userId, Category category, Pageable pageable) {
-        City city = surveyBasicInfoRepository.findByUserId(userId)
-            .map(SurveyBasicInfo::getCity)
-            .orElseThrow(() -> new IllegalStateException("설문조사 기본정보를 먼저 작성해주세요."));
+    /**
+     *
+     * 로그인, 비로그인 공통
+     나라와 카테고리별 소모임 조회
+     */
+    public Page<GroupResponse> getGroupByCountry(String code, Category category,Pageable pageable) {
+        List<City> cities=countryRepository.findByCode(code).get().getCities();
 
         List<GroupStatus> visibleStatuses = List.of(GroupStatus.ACTIVE, GroupStatus.FULL);
 
         return groupRepository
-            .findAllByFilters(city,category,visibleStatuses,pageable)
+            .findAllByFilters(cities,category,visibleStatuses,pageable)
             .map(GroupResponse::from);
     }
 
 
-    public Page<GroupResponse> getGroupsByInterest(Long userId, Pageable pageable) {
-        City city = surveyBasicInfoRepository.findByUserId(userId)
-            .map(SurveyBasicInfo::getCity)
-            .orElseThrow(() -> new IllegalStateException("설문조사 기본정보를 먼저 작성해주세요."));
+    /**
+     맞춤형: 도시, 흥미별 소모임 조회
+     */
+    public RecommendedResponse getGroupsByInterest(Long userId, Pageable pageable) {
+        Optional<SurveyBasicInfo> surveyInfo = surveyBasicInfoRepository.findByUserId(userId);
 
-        Set<Interest> interests=surveyBasicInfoRepository.findByUserId(userId).map(SurveyBasicInfo::getInterests).orElse(null);
+        if (surveyInfo.isEmpty()) {
+            return RecommendedResponse.locked("SURVEY_REQUIRED", pageable);
+        }
+        SurveyBasicInfo surveyBasicInfo = surveyInfo.get();
 
         List<GroupStatus> statuses = List.of(GroupStatus.ACTIVE, GroupStatus.FULL);
 
-        return groupRepository
-            .findByInterestFilters(city,statuses,interests,pageable)
+        Page<GroupResponse> page = groupRepository
+            .findByInterestFilters(surveyBasicInfo.getCity(), statuses, surveyBasicInfo.getInterests(), pageable)
             .map(GroupResponse::from);
+
+        return RecommendedResponse.ok(page);
 
     }
 
