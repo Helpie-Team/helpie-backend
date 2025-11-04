@@ -126,10 +126,8 @@ public class GroupService {
     public Page<GroupResponse> getGroupByCountry(String code, Category category,Pageable pageable) {
         List<City> cities=countryRepository.findByCode(code).get().getCities();
 
-        List<GroupStatus> visibleStatuses = List.of(GroupStatus.ACTIVE, GroupStatus.FULL);
-
         return groupRepository
-            .findAllByFilters(cities,category,visibleStatuses,pageable)
+            .findAllByFilters(cities,category,pageable)
             .map(GroupResponse::from);
     }
 
@@ -145,10 +143,8 @@ public class GroupService {
         }
         SurveyBasicInfo surveyBasicInfo = surveyInfo.get();
 
-        List<GroupStatus> statuses = List.of(GroupStatus.ACTIVE, GroupStatus.FULL);
-
         Page<GroupResponse> page = groupRepository
-            .findByInterestFilters(surveyBasicInfo.getCity(), statuses, surveyBasicInfo.getInterests(), pageable)
+            .findByInterestFilters(surveyBasicInfo.getCity(),surveyBasicInfo.getInterests(), pageable)
             .map(GroupResponse::from);
 
         return RecommendedResponse.ok(page);
