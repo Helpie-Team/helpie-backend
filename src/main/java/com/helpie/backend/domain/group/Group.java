@@ -87,14 +87,14 @@ public class Group {
     private Long createdBy;
 
     public Group(String title, String description, City city, Set<Interest> interests,
-        Category category, Integer maxMembers, Integer currentMembers, GroupStatus status,
+        Category category, Integer maxMembers, Integer currentMembers,
         Long createdBy,LocalDateTime endAt) {
         this.title = title;
         this.description = description;
         this.city = city;
         this.interests = interests != null ? new HashSet<>(interests) : new HashSet<>();
         this.category = category;
-        this.status = status != null ? status : GroupStatus.ACTIVE;
+        this.status = GroupStatus.RECRUITING;
         this.maxMembers = maxMembers != null ? maxMembers : 5;
         this.currentMembers = currentMembers != null ? currentMembers : 0;
         this.createdBy = createdBy;
@@ -105,7 +105,7 @@ public class Group {
 
     public Group(String title, String description, City city, Category category,
         Set<Interest> interests, Integer maxMember,LocalDateTime endAt) {
-        this(title, description, city, interests, category, maxMember, 0, GroupStatus.ACTIVE,
+        this(title, description, city, interests, category, maxMember, 0,
             null,endAt);
     }
 
@@ -138,12 +138,6 @@ public class Group {
         return false;
     }
 
-    /**
-     * 소모임이 활성 상태인지 확인합니다.
-     */
-    public boolean isActive() {
-        return this.status == GroupStatus.ACTIVE;
-    }
 
     public boolean isPopular() {
         return maxMembers >= 6 || currentMembers >= maxMembers / 2;
