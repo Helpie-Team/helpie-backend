@@ -1,12 +1,10 @@
 package com.helpie.backend.controller.group;
 
-import com.helpie.backend.domain.group.Category;
-import com.helpie.backend.domain.location.Country;
 import com.helpie.backend.domain.user.UserRole;
 import com.helpie.backend.domain.user.UserVo;
 import com.helpie.backend.dto.group.GroupCreateRequest;
 import com.helpie.backend.dto.group.GroupCreateResponse;
-import com.helpie.backend.dto.group.GroupResponse;
+import com.helpie.backend.dto.group.RecommendedResponse;
 import com.helpie.backend.service.group.GroupService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
@@ -15,7 +13,6 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
 
-import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.web.PageableDefault;
@@ -33,7 +30,7 @@ import org.springframework.web.multipart.MultipartFile;
 
 @RestController
 @RequiredArgsConstructor
-@Tag(name = "소모임", description = "소모임 관련 API")
+@Tag(name = "소모임-인증", description = "로그인한 사용자만 접근 가능한 API")
 @RequestMapping("/api/v1/group")
 public class GroupController {
 
@@ -55,16 +52,15 @@ public class GroupController {
     }
 
 
-    @GetMapping("/interest")
+    @GetMapping("/recommend")
     @Secured(UserRole.USER_TYPE)
     @SecurityRequirement(name = "JWT Authentication")
-    public ResponseEntity<Page<GroupResponse>> getGroupsByInterest(
+    public ResponseEntity<RecommendedResponse> getGroupsByInterest(
         @AuthenticationPrincipal UserVo userVo,
         @RequestParam(defaultValue ="0") int page,
-        @PageableDefault(size = 20, sort = "createdAt", direction = Sort.Direction.DESC) Pageable pageable
+        @PageableDefault(size = 5, sort = "createdAt", direction = Sort.Direction.DESC) Pageable pageable
     ){
-        Page<GroupResponse> response=groupService.getGroupsByInterest(userVo.getId(),pageable);
-        return ResponseEntity.ok(response);
+        return ResponseEntity.ok(groupService.getGroupsByInterest(userVo.getId(),pageable));
     }
 
 
