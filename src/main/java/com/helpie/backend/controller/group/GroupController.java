@@ -39,7 +39,20 @@ public class GroupController {
     @PostMapping(value = "/create",consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     @Secured(UserRole.USER_TYPE)
     @SecurityRequirement(name = "JWT Authentication")
-    @Operation(summary = "소모임 등록", description = "소모임을 등록합니다")
+    @Operation(summary = "소모임 등록", 
+               description = """
+                           새로운 소모임을 생성합니다.
+                           
+                           **주요 필드:**
+                           - cityId: 도시 ID (/api/v1/locations/cities에서 조회)
+                           - endAt: 모집 마감 날짜시간 (이후 RECRUITMENT_CLOSED 상태로 변경)
+                           - 생성 시 초기 상태: RECRUITING
+                           
+                           **상태 변화:**
+                           1. RECRUITING (모집중) - 생성 시 기본 상태
+                           2. RECRUITMENT_CLOSED (모집마감) - endAt 이후 또는 정원 달성 시
+                           3. COMPLETED (모임완료) - 방장이 수동으로 완료 처리
+                           """)
     public ResponseEntity<GroupCreateResponse> createGroup(
         @AuthenticationPrincipal UserVo userVo,
         @Parameter(description = "소모임 생성 정보 (cityId는 도시 ID)") @RequestPart("payload") GroupCreateRequest request,

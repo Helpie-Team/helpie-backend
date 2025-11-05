@@ -28,6 +28,15 @@ public interface ChatRoomService {
     ChatRoomResponse enterChatRoom(Long chatRoomId, Long userId, String userName);
     
     /**
+     * 채팅방이 활성화 상태인지 확인합니다.
+     * 소모임 상태가 RECRUITING 또는 RECRUITMENT_CLOSED일 때만 채팅 가능
+     * 
+     * @param chatRoomId 채팅방 ID
+     * @return 채팅 가능 여부
+     */
+    boolean isChatEnabled(Long chatRoomId);
+    
+    /**
      * 채팅방에서 퇴장합니다. (자동 퇴장)
      * 
      * @param chatRoomId 채팅방 ID

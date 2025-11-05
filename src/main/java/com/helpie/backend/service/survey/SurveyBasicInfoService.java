@@ -1,6 +1,7 @@
 package com.helpie.backend.service.survey;
 
 import com.helpie.backend.dto.survey.SurveyBasicInfoRequest;
+import com.helpie.backend.dto.survey.SurveyBasicInfoResponse;
 import com.helpie.backend.exception.survey.SurveyBasicInfoAlreadyExistsException;
 import com.helpie.backend.exception.survey.SurveyBasicInfoNotFoundException;
 
@@ -23,4 +24,10 @@ public interface SurveyBasicInfoService {
      * @throws SurveyBasicInfoNotFoundException 등록된 정보가 없는 경우
      */
     void updateSurveyBasicInfo(Long userId, SurveyBasicInfoRequest request);
+    
+    /**
+     * 설문조사 기본정보를 조회합니다.
+     * @throws SurveyBasicInfoNotFoundException 등록된 정보가 없는 경우
+     */
+    SurveyBasicInfoResponse getSurveyBasicInfo(Long userId);
 }
