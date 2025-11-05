@@ -35,8 +35,11 @@ jobs:
         id: artifact
         run: |
           set -e
+          git rev-parse HEAD
+          ls -l build/libs || true
           JAR=$(ls -1 build/libs/*SNAPSHOT*.jar | grep -v -- '-plain' | head -n1)
           echo "Picked JAR: $JAR"
+          sha256sum "$JAR"   
           echo "jar=$JAR" >> $GITHUB_OUTPUT
 
       # 5️⃣ JAR 파일 업로드 (Actions 내부 임시 저장)
@@ -66,7 +69,8 @@ jobs:
         id: pick
         run: |
           set -e
-          JAR=$(ls -1t ./dist/*.jar | head -n1)
+          ls -lt ./dist
+          JAR=$(ls -1t ./dist/*.jar | head -n1)                             
           echo "jar=$JAR" >> $GITHUB_OUTPUT
           echo "base=$(basename "$JAR")" >> $GITHUB_OUTPUT
 
@@ -77,22 +81,26 @@ jobs:
           host: ${{ secrets.SSH_HOST }}
           username: ${{ secrets.SSH_USER }}
           password: ${{ secrets.SSH_PASSWORD }}
-          source: ${{ steps.pick.outputs.jar }}
+          source: ./dist/${{ steps.pick.outputs.base }}
           target: ${{ secrets.APP_DIR }}/
+          strip_components: 1
           overwrite: true
 
       # 9️⃣ 서버에서 JAR 이름 고정 + 실행 스크립트 호출
-      - name: Rename and restart app
+      - name: Rename uploaded file and restart (with verify)
         uses: appleboy/ssh-action@v1.2.0
         with:
           host: ${{ secrets.SSH_HOST }}
           username: ${{ secrets.SSH_USER }}
           password: ${{ secrets.SSH_PASSWORD }}
           script: |
-            cd ${{ secrets.APP_DIR }}
-            # 새로 업로드된 jar가 기존 이름이 아니면 이름 변경
-            UPLOADED=$(ls -1 *.jar | grep -v "${{ secrets.JAR_NAME }}" | tail -n1 || true)
-            if [ -n "$UPLOADED" ]; then
-              mv "$UPLOADED" "${{ secrets.JAR_NAME }}"
-            fi
-            bash ${{ secrets.APP_DIR }}/start.sh
+            set -euo pipefail
+            cd "${{ secrets.APP_DIR }}"
+            echo "[DEBUG] before mv"; ls -l
+            echo "[DEBUG] uploaded sha256:"; sha256sum "${{ steps.pick.outputs.base }}"
+            mv -f "${{ steps.pick.outputs.base }}" "${{ secrets.JAR_NAME }}"
+            echo "[DEBUG] running sha256:"; sha256sum "${{ secrets.JAR_NAME }}"
+            find . -maxdepth 1 -name '*.jar' ! -name "${{ secrets.JAR_NAME }}" -delete  # 구버전 정리(선택)
+            [ -x "./start.sh" ] || chmod +x ./start.sh
+            bash ./start.sh
+            pgrep -af "java .*${PWD}/.*\.jar" || true
