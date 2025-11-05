@@ -3,6 +3,7 @@ package com.helpie.backend.service.survey;
 import com.helpie.backend.domain.location.City;
 import com.helpie.backend.domain.survey.SurveyBasicInfo;
 import com.helpie.backend.dto.survey.SurveyBasicInfoRequest;
+import com.helpie.backend.dto.survey.SurveyBasicInfoResponse;
 import com.helpie.backend.exception.survey.SurveyBasicInfoAlreadyExistsException;
 import com.helpie.backend.exception.survey.SurveyBasicInfoNotFoundException;
 import com.helpie.backend.repository.location.CityRepository;
@@ -46,6 +47,17 @@ public class SurveyBasicInfoServiceImpl implements SurveyBasicInfoService {
         updateSurveyBasicInfoData(surveyBasicInfo, request);
         
         log.info("설문조사 기본정보 수정 완료 - userId: {}", userId);
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public SurveyBasicInfoResponse getSurveyBasicInfo(Long userId) {
+        log.debug("설문조사 기본정보 조회 시작 - userId: {}", userId);
+        
+        SurveyBasicInfo surveyBasicInfo = findSurveyBasicInfoByUserId(userId);
+        
+        log.info("설문조사 기본정보 조회 완료 - userId: {}", userId);
+        return SurveyBasicInfoResponse.from(surveyBasicInfo);
     }
 
     /**

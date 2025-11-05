@@ -16,8 +16,8 @@ import java.util.Set;
           "cityId": 1,
           "interests": ["MOVIE_WATCHING", "DISCUSSION"],
           "category": "CULTURAL",
-          "endAt": "2025-11-30T23:59:00+09:00"
-          "maxMember": 10
+          "maxMember": 10,
+          "endAt": "2025-11-30T23:59:00"
         }
         """)
 public record GroupCreateRequest(
@@ -32,7 +32,8 @@ public record GroupCreateRequest(
     Set<Interest> interests,
     @Schema(requiredMode = Schema.RequiredMode.REQUIRED)
     Category category,
-    @Schema(requiredMode = RequiredMode.REQUIRED)
+    @Schema(description = "모집 마감 날짜 및 시간", 
+            example = "2025-11-30T23:59:00", requiredMode = RequiredMode.REQUIRED)
     LocalDateTime endAt,
     @Schema(requiredMode = RequiredMode.REQUIRED)
     Integer maxMember

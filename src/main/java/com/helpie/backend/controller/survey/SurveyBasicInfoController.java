@@ -3,6 +3,7 @@ package com.helpie.backend.controller.survey;
 import com.helpie.backend.domain.user.UserRole;
 import com.helpie.backend.domain.user.UserVo;
 import com.helpie.backend.dto.survey.SurveyBasicInfoRequest;
+import com.helpie.backend.dto.survey.SurveyBasicInfoResponse;
 import com.helpie.backend.service.survey.SurveyBasicInfoService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
@@ -111,5 +112,39 @@ public class SurveyBasicInfoController {
         
         log.info("설문조사 기본정보 수정 완료 - userId: {}", userVo.getId());
         return ResponseEntity.ok().build();
+    }
+
+    /**
+     * 설문조사 기본정보를 조회합니다.
+     */
+    @GetMapping("/basic-info")
+    @Secured(UserRole.USER_TYPE)
+    @SecurityRequirement(name = "JWT Authentication")
+    @Operation(summary = "설문조사 기본정보 조회", 
+               description = """
+                           인증된 사용자의 설문조사 기본정보를 조회합니다.
+                           
+                           **응답 필드:**
+                           - cityId: 도시 ID
+                           - cityName: 도시명 (한국어)
+                           - gender: 성별 (MALE/FEMALE)
+                           - ageGroup: 연령대 (TEENS/TWENTIES/THIRTIES/FORTIES/FIFTIES_AND_ABOVE)
+                           - languages: 사용 언어 목록
+                           - interests: 관심사 목록
+                           """)
+    @ApiResponses({
+        @ApiResponse(responseCode = "200", description = "조회 성공"),
+        @ApiResponse(responseCode = "404", description = "등록된 정보를 찾을 수 없음"),
+        @ApiResponse(responseCode = "500", description = "서버 오류")
+    })
+    public ResponseEntity<SurveyBasicInfoResponse> getSurveyBasicInfo(
+            @AuthenticationPrincipal UserVo userVo) {
+        
+        log.info("설문조사 기본정보 조회 요청 - userId: {}", userVo.getId());
+        
+        SurveyBasicInfoResponse response = surveyBasicInfoService.getSurveyBasicInfo(userVo.getId());
+        
+        log.info("설문조사 기본정보 조회 완료 - userId: {}", userVo.getId());
+        return ResponseEntity.ok(response);
     }
 }

@@ -6,6 +6,7 @@ import com.helpie.backend.domain.chatroom.ChatMessage;
 import com.helpie.backend.domain.chatroom.MessageType;
 import com.helpie.backend.domain.group.Group;
 import com.helpie.backend.domain.group.GroupMember;
+import com.helpie.backend.domain.group.GroupStatus;
 import com.helpie.backend.dto.chatroom.ChatRoomResponse;
 import com.helpie.backend.dto.chatroom.ChatMessageResponse;
 import com.helpie.backend.dto.chatroom.SendMessageRequest;
@@ -230,6 +231,19 @@ public class ChatRoomServiceImpl implements ChatRoomService {
         if (!groupMember.getIsActive()) {
             throw new ChatRoomAccessDeniedException();
         }
+    }
+    
+    @Override
+    public boolean isChatEnabled(Long chatRoomId) {
+        ChatRoom chatRoom = chatRoomRepository.findById(chatRoomId)
+            .orElseThrow(() -> new IllegalArgumentException("채팅방을 찾을 수 없습니다: " + chatRoomId));
+        
+        Group group = chatRoom.getGroup();
+        GroupStatus status = group.getStatus();
+        
+        // RECRUITING 또는 RECRUITMENT_CLOSED 상태일 때만 채팅 가능
+        // COMPLETED 상태가 되면 채팅 차단
+        return status == GroupStatus.RECRUITING || status == GroupStatus.RECRUITMENT_CLOSED;
     }
     
 }

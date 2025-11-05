@@ -36,7 +36,7 @@ public interface GroupRepository extends JpaRepository<Group, Long> {
     SELECT g FROM Group g
     WHERE g.city IN :cities
       AND (:category = 'ALL' OR g.category = :category)
-      AND g.status ='RECRUITING'
+      AND g.status IN ('RECRUITING', 'RECRUITMENT_CLOSED')
 """)
     Page<Group> findAllByFilters(@Param("cities") List<City> cities, @Param("category") Category category, Pageable pageable);
 
@@ -44,7 +44,7 @@ public interface GroupRepository extends JpaRepository<Group, Long> {
     @Query("""
     SELECT g FROM Group g
     WHERE g.city = :city
-      AND g.status ='RECRUITING'
+      AND g.status IN ('RECRUITING', 'RECRUITMENT_CLOSED')
        AND EXISTS (
            SELECT i FROM g.interests i
             WHERE i IN :interests
