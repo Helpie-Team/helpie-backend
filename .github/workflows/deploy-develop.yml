@@ -31,7 +31,7 @@ jobs:
           ./gradlew clean build -x test
 
       # 4️⃣ 빌드된 JAR 파일 경로 찾기
-      - name: Find built JAR
+      - name: Find built JAR (exclude plain)
         id: artifact
         run: |
           set -e
@@ -65,8 +65,11 @@ jobs:
       - name: Pick jar
         id: pick
         run: |
-          JAR=$(ls -1 ./dist/*.jar | head -n1)
+          set -e
+          JAR=$(ls -1 ./dist/*.jar | grep -v -- '-plain' | head -n1)
           echo "jar=$JAR" >> $GITHUB_OUTPUT
+          echo "base=$(basename "$JAR")" >> $GITHUB_OUTPUT
+          echo "Picked: $JAR"
 
       # 8️⃣ 서버에 JAR 복사 (비밀번호 방식)
       - name: Copy JAR to server
