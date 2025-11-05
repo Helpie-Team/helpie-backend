@@ -151,7 +151,10 @@ public class SecurityConfig {
 
                 // 모든 HTTP 요청에 대한 인증/인가 설정
                 .authorizeHttpRequests(auth -> auth
-                        .requestMatchers(HttpMethod.POST, AUTH_URIS).permitAll()
+                        .requestMatchers(HttpMethod.GET, "/api/v1/auth/authorization-guide").authenticated()
+
+                        // 👇 그 다음 나머지 auth API 전부 허용
+                        .requestMatchers("/api/v1/auth/**").permitAll()
                         // Swagger 문서 접근 허용
                         .requestMatchers(SWAGGER_URIS).permitAll()
                         // WebSocket 엔드포인트 허용
