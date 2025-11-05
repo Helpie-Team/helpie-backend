@@ -35,7 +35,8 @@ jobs:
         id: artifact
         run: |
           set -e
-          JAR=$(ls -1 build/libs/*.jar | head -n1)
+          JAR=$(ls -1 build/libs/*SNAPSHOT*.jar | grep -v -- '-plain' | head -n1)
+          echo "Picked JAR: $JAR"
           echo "jar=$JAR" >> $GITHUB_OUTPUT
 
       # 5) 아티팩트 업로드
