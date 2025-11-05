@@ -95,12 +95,17 @@ jobs:
           password: ${{ secrets.SSH_PASSWORD }}
           script: |
             set -euo pipefail
-            cd "${{ secrets.APP_DIR }}"
-            echo "[DEBUG] before mv"; ls -l
-            echo "[DEBUG] uploaded sha256:"; sha256sum "${{ steps.pick.outputs.base }}"
-            mv -f "${{ steps.pick.outputs.base }}" "${{ secrets.JAR_NAME }}"
-            echo "[DEBUG] running sha256:"; sha256sum "${{ secrets.JAR_NAME }}"
-            find . -maxdepth 1 -name '*.jar' ! -name "${{ secrets.JAR_NAME }}" -delete  # 구버전 정리(선택)
-            [ -x "./start.sh" ] || chmod +x ./start.sh
-            bash ./start.sh
-            pgrep -af "java .*${PWD}/.*\.jar" || true
+            cd "$APP_DIR"
+
+            # 업로드된 파일이 실제 존재하는지 확인
+            if [ ! -f "$UP_BASE" ]; then
+              echo "Uploaded file not found: $UP_BASE"
+              ls -l
+              exit 1
+            fi
+
+            # 정확히 그 파일만 표준 이름으로 교체
+            mv -f "$UP_BASE" "$JAR_NAME"
+
+            # 재시작 스크립트 호출 (start.sh는 서버에 미리 배치되어 있어야 함)
+            bash "$APP_DIR/start.sh"
