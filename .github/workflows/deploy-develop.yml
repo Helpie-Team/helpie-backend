@@ -98,7 +98,7 @@ jobs:
             echo "[INFO] mv ${{ steps.pick.outputs.base }} -> ${{ secrets.JAR_NAME }}"
             mv -f "${{ steps.pick.outputs.base }}" "${{ secrets.JAR_NAME }}"
             else
-            echo "[INFO] Uploaded name already equals target (${ { secrets.JAR_NAME } }), skip mv"
+            echo "[INFO] Uploaded name already equals target (${{ secrets.JAR_NAME }}), skip mv"
             fi
       
             [ -x "./start.sh" ] || chmod +x ./start.sh
