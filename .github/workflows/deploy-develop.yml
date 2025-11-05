@@ -86,25 +86,23 @@ jobs:
           password: ${{ secrets.SSH_PASSWORD }}
           script: |
             set -euo pipefail
-            echo "[DEBUG] APP_DIR=${{ secrets.APP_DIR }}"
-            echo "[DEBUG] JAR_NAME=${{ secrets.JAR_NAME }}"
-            echo "[DEBUG] UP_BASE=${{ steps.pick.outputs.base }}"
-            cd "${{ secrets.APP_DIR }}" || (echo "APP_DIR not found"; exit 1)
-
+            cd "${{ secrets.APP_DIR }}"
+      
             echo "[DEBUG] Current dir:"; ls -l
             if [ ! -f "${{ steps.pick.outputs.base }}" ]; then
-              echo "[ERROR] Uploaded file not found: ${{ steps.pick.outputs.base }}"
-              exit 1
+            echo "[ERROR] Uploaded file not found: ${{ steps.pick.outputs.base }}"
+            exit 1
             fi
-
+      
+            if [ "${{ steps.pick.outputs.base }}" != "${{ secrets.JAR_NAME }}" ]; then
             echo "[INFO] mv ${{ steps.pick.outputs.base }} -> ${{ secrets.JAR_NAME }}"
             mv -f "${{ steps.pick.outputs.base }}" "${{ secrets.JAR_NAME }}"
-
-            # 선택: 헷갈림 방지를 위해 구버전 JAR 삭제
-            find . -maxdepth 1 -name '*.jar' ! -name "${{ secrets.JAR_NAME }}" -delete || true
-
-            [ -x "${{ secrets.APP_DIR }}/start.sh" ] || chmod +x "${{ secrets.APP_DIR }}/start.sh"
-            bash "${{ secrets.APP_DIR }}/start.sh"
-
+            else
+            echo "[INFO] Uploaded name already equals target (${ { secrets.JAR_NAME } }), skip mv"
+            fi
+      
+            [ -x "./start.sh" ] || chmod +x ./start.sh
+            bash ./start.sh
+      
             echo "[INFO] Running process:"
             pgrep -af "java .*${PWD}/.*\.jar" || true
