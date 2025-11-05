@@ -65,8 +65,10 @@ jobs:
       - name: Pick jar
         id: pick
         run: |
-          JAR=$(ls -1 ./dist/*.jar | head -n1)
+          set -e
+          JAR=$(ls -1t ./dist/*.jar | head -n1)
           echo "jar=$JAR" >> $GITHUB_OUTPUT
+          echo "base=$(basename "$JAR")" >> $GITHUB_OUTPUT
 
       # 8️⃣ 서버에 JAR 복사 (비밀번호 방식)
       - name: Copy JAR to server
