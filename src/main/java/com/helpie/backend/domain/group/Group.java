@@ -77,6 +77,9 @@ public class Group {
     @Column(name="end_at",nullable = false)
     private LocalDateTime endAt;
 
+    @Column(name = "meeting_date", nullable = false)
+    private LocalDateTime meetingDate;
+
     @Column(name = "created_at", nullable = false)
     private LocalDateTime createdAt;
 
@@ -88,7 +91,7 @@ public class Group {
 
     public Group(String title, String description, City city, Set<Interest> interests,
         Category category, Integer maxMembers, Integer currentMembers,
-        Long createdBy,LocalDateTime endAt) {
+        Long createdBy, LocalDateTime endAt, LocalDateTime meetingDate) {
         this.title = title;
         this.description = description;
         this.city = city;
@@ -99,14 +102,15 @@ public class Group {
         this.currentMembers = currentMembers != null ? currentMembers : 0;
         this.createdBy = createdBy;
         this.endAt = endAt;
+        this.meetingDate = meetingDate;
         this.createdAt = LocalDateTime.now();
         this.updatedAt = LocalDateTime.now();
     }
 
     public Group(String title, String description, City city, Category category,
-        Set<Interest> interests, Integer maxMember,LocalDateTime endAt) {
+        Set<Interest> interests, Integer maxMember, LocalDateTime endAt, LocalDateTime meetingDate) {
         this(title, description, city, interests, category, maxMember, 0,
-            null,endAt);
+            null, endAt, meetingDate);
     }
 
     @PreUpdate
@@ -145,12 +149,12 @@ public class Group {
 
     public int getDayBefore(){
         LocalDate today = LocalDate.now();
-        LocalDate endDate = this.endAt.toLocalDate();
+        LocalDate meetingLocalDate = this.meetingDate.toLocalDate();
 
-        if (endDate.isBefore(today)) {
+        if (meetingLocalDate.isBefore(today)) {
             throw new RuntimeException("이미 완료된 소모임입니다.");
         }
 
-        return (int) ChronoUnit.DAYS.between(today, endDate);
+        return (int) ChronoUnit.DAYS.between(today, meetingLocalDate);
     }
 }
