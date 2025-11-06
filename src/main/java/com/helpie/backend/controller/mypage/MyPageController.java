@@ -49,4 +49,10 @@ public class MyPageController {
                 locationService.getCityById(surveyBasicInfo.getCityId())
         );
     }
+
+
+    @GetMapping("/group-info")
+    public String getGroupInfo(){
+        return "success";
+    }
 }
