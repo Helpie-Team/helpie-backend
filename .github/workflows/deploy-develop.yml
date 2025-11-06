@@ -80,6 +80,23 @@ jobs:
           target: ${{ secrets.APP_DIR }}
           overwrite: true
 
+      # 9️⃣ 서버에서 base64 시크릿으로 application.yml 생성
+      - name: Create application.yml from base64 secret
+        uses: appleboy/ssh-action@v1.2.0
+        with:
+          host: ${{ secrets.SSH_HOST }}
+          username: ${{ secrets.SSH_USER }}
+          password: ${{ secrets.SSH_PASSWORD }}
+          script: |
+             set -e
+             cd ${{ secrets.APP_DIR }}
+             mkdir -p config
+             # APP_YML_BASE64는 반드시 '한 줄'이어야 합니다.
+             # echo 대신 printf를 사용해 개행/해석 이슈 방지
+             printf '%s' "${{ secrets.APP_YML_BASE64 }}" | base64 --decode > config/application.yml
+             # 확인용(민감정보 노출 방지를 위해 해시만 출력)
+             sha1sum config/application.yml | awk '{print "application.yml sha1: "$1}'
+
       # 9️⃣ 서버에서 JAR 이름 고정 + 실행 스크립트 호출
       - name: Rename and restart app
         uses: appleboy/ssh-action@v1.2.0
@@ -88,5 +105,10 @@ jobs:
           username: ${{ secrets.SSH_USER }}
           password: ${{ secrets.SSH_PASSWORD }}
           script: |
-            cd ${{ secrets.APP_DIR }}
-            bash ${{ secrets.APP_DIR }}/start.sh
+              set -e
+              cd ${{ secrets.APP_DIR }}
+              # 최신 JAR를 고정 파일명으로 링크(또는 복사)
+              NEW_JAR=$(ls -1t *.jar | head -n1)
+              ln -sf "$NEW_JAR" ${{ secrets.JAR_NAME }}
+              # 애플리케이션 재시작 (start.sh 내부에서 ./config/application.yml 사용)
+              bash ${{ secrets.APP_DIR }}/start.sh
