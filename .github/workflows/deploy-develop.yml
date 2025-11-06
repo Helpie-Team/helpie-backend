@@ -59,13 +59,14 @@ jobs:
         uses: actions/download-artifact@v4
         with:
           name: app-jar
-          path: ./dist
+          path: .
 
       # 7️⃣ JAR 경로 설정
       - name: Pick jar
         id: pick
         run: |
-          JAR=$(ls -1 ./dist/*.jar | head -n1)
+          JAR=$(ls -1 *.jar | head -n1)
+          echo "Picked JAR: $JAR"
           echo "jar=$JAR" >> $GITHUB_OUTPUT
 
       # 8️⃣ 서버에 JAR 복사 (비밀번호 방식)
@@ -76,7 +77,7 @@ jobs:
           username: ${{ secrets.SSH_USER }}
           password: ${{ secrets.SSH_PASSWORD }}
           source: ${{ steps.pick.outputs.jar }}
-          target: ${{ secrets.APP_DIR }}/
+          target: ${{ secrets.APP_DIR }}/${{ secrets.JAR_NAME }}
           overwrite: true
 
       # 9️⃣ 서버에서 JAR 이름 고정 + 실행 스크립트 호출
@@ -88,9 +89,4 @@ jobs:
           password: ${{ secrets.SSH_PASSWORD }}
           script: |
             cd ${{ secrets.APP_DIR }}
-            # 새로 업로드된 jar가 기존 이름이 아니면 이름 변경
-            UPLOADED=$(ls -1 *.jar | grep -v "${{ secrets.JAR_NAME }}" | tail -n1 || true)
-            if [ -n "$UPLOADED" ]; then
-              mv "$UPLOADED" "${{ secrets.JAR_NAME }}"
-            fi
             bash ${{ secrets.APP_DIR }}/start.sh
