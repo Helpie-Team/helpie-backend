@@ -5,6 +5,8 @@ import com.helpie.backend.domain.group.Group;
 import com.helpie.backend.domain.group.GroupStatus;
 import io.swagger.v3.oas.annotations.media.Schema;
 
+import java.time.LocalDateTime;
+
 @Schema(description = "소모임 응답 정보",
         example = """
         {
@@ -15,8 +17,9 @@ import io.swagger.v3.oas.annotations.media.Schema;
           "maxMember": 10,
           "thumbnail": null,
           "isPopular": false,
-          "dayBefore": 5,
-          "status": "RECRUITING"
+          "dayBefore": 25,
+          "status": "RECRUITING",
+          "meetingDate": "2025-12-01T19:00:00"
         }
         """)
 public record GroupResponse(
@@ -28,7 +31,8 @@ public record GroupResponse(
     String thumbnail,
     Boolean isPopular,
     Integer dayBefore,
-    GroupStatus status
+    GroupStatus status,
+    LocalDateTime meetingDate
     ) {
     public static GroupResponse from(Group group) {
         return new GroupResponse(
@@ -40,7 +44,8 @@ public record GroupResponse(
             null,
             group.isPopular(),
             group.getDayBefore(),
-            group.getStatus()
+            group.getStatus(),
+            group.getMeetingDate()
         );
     }
 

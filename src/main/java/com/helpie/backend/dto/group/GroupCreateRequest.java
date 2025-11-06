@@ -17,7 +17,8 @@ import java.util.Set;
           "interests": ["MOVIE_WATCHING", "DISCUSSION"],
           "category": "CULTURAL",
           "maxMember": 10,
-          "endAt": "2025-11-30T23:59:00"
+          "endAt": "2025-11-30T23:59:00",
+          "meetingDate": "2025-12-01T19:00:00"
         }
         """)
 public record GroupCreateRequest(
@@ -35,6 +36,9 @@ public record GroupCreateRequest(
     @Schema(description = "모집 마감 날짜 및 시간", 
             example = "2025-11-30T23:59:00", requiredMode = RequiredMode.REQUIRED)
     LocalDateTime endAt,
+    @Schema(description = "모임 예정 날짜 및 시간 (실제 모임이 열리는 날짜)", 
+            example = "2025-12-01T19:00:00", requiredMode = RequiredMode.REQUIRED)
+    LocalDateTime meetingDate,
     @Schema(requiredMode = RequiredMode.REQUIRED)
     Integer maxMember
 ) {

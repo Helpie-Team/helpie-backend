@@ -46,6 +46,7 @@ public class GroupController {
                            **주요 필드:**
                            - cityId: 도시 ID (/api/v1/locations/cities에서 조회)
                            - endAt: 모집 마감 날짜시간 (이후 RECRUITMENT_CLOSED 상태로 변경)
+                           - meetingDate: 실제 모임이 열리는 날짜시간 (참여자들이 모이는 시간)
                            - 생성 시 초기 상태: RECRUITING
                            
                            **상태 변화:**

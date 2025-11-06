@@ -56,7 +56,8 @@ public class GroupService {
             req.category(),
             req.interests(),
             req.maxMember(),
-            req.endAt()
+            req.endAt(),
+            req.meetingDate()
             );
         Group savedGroup = groupRepository.save(group);
         log.info("소모임 생성 완료 - groupId: {}", savedGroup.getId());
