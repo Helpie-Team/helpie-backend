@@ -107,8 +107,5 @@ jobs:
           script: |
               set -e
               cd ${{ secrets.APP_DIR }}
-              # 최신 JAR를 고정 파일명으로 링크(또는 복사)
-              NEW_JAR=$(ls -1t *.jar | head -n1)
-              ln -sf "$NEW_JAR" ${{ secrets.JAR_NAME }}
               # 애플리케이션 재시작 (start.sh 내부에서 ./config/application.yml 사용)
               bash ${{ secrets.APP_DIR }}/start.sh
