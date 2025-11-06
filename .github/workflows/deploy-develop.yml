@@ -77,7 +77,7 @@ jobs:
           username: ${{ secrets.SSH_USER }}
           password: ${{ secrets.SSH_PASSWORD }}
           source: ${{ steps.pick.outputs.jar }}
-          target: ${{ secrets.APP_DIR }}/
+          target: ${{ secrets.APP_DIR }}
           overwrite: true
 
       # 9️⃣ 서버에서 JAR 이름 고정 + 실행 스크립트 호출
