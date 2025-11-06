@@ -126,7 +126,7 @@ public class SurveyBasicInfoController {
                            
                            **응답 필드:**
                            - cityId: 도시 ID
-                           - cityName: 도시명 (한국어)
+                           - cityName: 도시명 (국가명 > 도시명 형식, 예: "대한민국 > 서울")
                            - gender: 성별 (MALE/FEMALE)
                            - ageGroup: 연령대 (TEENS/TWENTIES/THIRTIES/FORTIES/FIFTIES_AND_ABOVE)
                            - languages: 사용 언어 목록

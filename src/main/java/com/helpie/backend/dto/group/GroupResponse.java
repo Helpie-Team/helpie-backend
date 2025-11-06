@@ -10,7 +10,7 @@ import io.swagger.v3.oas.annotations.media.Schema;
         {
           "title": "영화 감상 모임",
           "description": "매주 영화를 보고 이야기 나누는 모임입니다",
-          "cityName": "서울",
+          "cityName": "대한민국 > 서울",
           "category": "CULTURAL",
           "maxMember": 10,
           "thumbnail": null,
@@ -34,7 +34,7 @@ public record GroupResponse(
         return new GroupResponse(
             group.getTitle(),
             group.getDescription(),
-            group.getCity().getName(),
+            group.getCity().getCountry().getName() + " > " + group.getCity().getName(),
             group.getCategory(),
             group.getMaxMembers(),
             null,

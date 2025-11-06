@@ -25,7 +25,7 @@ import java.util.Set;
         {
           "id": 1,
           "userId": 123,
-          "cityName": "서울",
+          "cityName": "대한민국 > 서울",
           "cityId": 1,
           "gender": "MALE",
           "ageGroup": "TWENTIES",
@@ -55,7 +55,7 @@ public class SurveyBasicInfoResponse {
         return new SurveyBasicInfoResponse(
                 surveyBasicInfo.getId(),
                 surveyBasicInfo.getUserId(),
-                surveyBasicInfo.getCity().getName(),
+                surveyBasicInfo.getCity().getCountry().getName() + " > " + surveyBasicInfo.getCity().getName(),
                 surveyBasicInfo.getCity().getId(),
                 surveyBasicInfo.getGender(),
                 surveyBasicInfo.getAgeGroup(),
