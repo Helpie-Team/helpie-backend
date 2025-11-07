@@ -33,7 +33,7 @@ public class GroupBrowseController {
         @RequestParam(defaultValue ="0") int page,
         @PageableDefault(size = 20, sort = "createdAt", direction = Sort.Direction.DESC) Pageable pageable
     ){
-        Page<GroupResponse> response=groupService.getGroupByCountry(country,category,pageable);
+        Page<GroupResponse> response=groupService.browseByCountry(country,category,pageable);
         return ResponseEntity.ok(response);
     }
 

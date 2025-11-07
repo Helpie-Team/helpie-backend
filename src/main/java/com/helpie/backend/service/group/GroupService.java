@@ -197,4 +197,12 @@ public class GroupService {
         );
     }
 
+    public Page<GroupResponse> browseByCountry(String code, Category category, Pageable pageable) {
+        List<City> cities=countryRepository.findByCode(code).get().getCities();
+
+        return groupRepository
+            .findAllByFilters(cities,category,pageable)
+            .map(GroupResponse::from);
+
+    }
 }
