@@ -1,6 +1,5 @@
 package com.helpie.backend.service.group;
 
-import com.helpie.backend.dto.group.BookmarkStatus;
 import com.helpie.backend.domain.group.Category;
 import com.helpie.backend.domain.group.Group;
 import com.helpie.backend.domain.group.Bookmark;
@@ -163,23 +162,6 @@ public class GroupService {
         return groupCustomRepository.findMyGroups(userId, groupStatus, pageable);
     }
 
-    @Transactional
-    public BookmarkResponse toggleBookmark(Long userId,Long groupId){
-        if (!bookmarkRepository.existsByUserIdAndGroupId(userId,groupId)){
-            bookmarkRepository.save(new Bookmark(userId,groupId));
-            return new BookmarkResponse(BookmarkStatus.ADDED);
-        }
-
-        Bookmark bookmark=bookmarkRepository.findByUserIdAndGroupId(userId,groupId);
-        boolean liked = bookmark.update();
-
-        if (liked) {
-            return new BookmarkResponse(BookmarkStatus.ADDED);
-        }
-
-        return new BookmarkResponse(BookmarkStatus.REMOVED);
-
-    }
 
     private Page<GroupResponse> mapGroupsWithBookmarks(Long userId, Page<Group> groups) {
         List<Long> groupIds = groups.stream()

@@ -8,6 +8,7 @@ import com.helpie.backend.dto.group.GroupCreateRequest;
 import com.helpie.backend.dto.group.GroupCreateResponse;
 import com.helpie.backend.dto.group.GroupResponse;
 import com.helpie.backend.dto.group.RecommendedResponse;
+import com.helpie.backend.service.group.BookmarkService;
 import com.helpie.backend.service.group.GroupService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
@@ -40,6 +41,7 @@ import org.springframework.web.multipart.MultipartFile;
 public class GroupController {
 
     private final GroupService groupService;
+    private final BookmarkService bookmarkService;
 
     @PostMapping(value = "/create",consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     @Secured(UserRole.USER_TYPE)
@@ -110,7 +112,7 @@ public class GroupController {
         @PathVariable Long groupId,
         @AuthenticationPrincipal UserVo userVo
     ){
-        return ResponseEntity.ok(groupService.toggleBookmark(userVo.getId(),groupId));
+        return ResponseEntity.ok(bookmarkService.toggleBookmark(userVo.getId(),groupId));
     }
 
 
