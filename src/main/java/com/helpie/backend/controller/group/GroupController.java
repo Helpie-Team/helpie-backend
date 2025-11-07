@@ -1,10 +1,12 @@
 package com.helpie.backend.controller.group;
 
+import com.helpie.backend.domain.group.Category;
 import com.helpie.backend.domain.user.UserRole;
 import com.helpie.backend.domain.user.UserVo;
 import com.helpie.backend.dto.group.BookmarkResponse;
 import com.helpie.backend.dto.group.GroupCreateRequest;
 import com.helpie.backend.dto.group.GroupCreateResponse;
+import com.helpie.backend.dto.group.GroupResponse;
 import com.helpie.backend.dto.group.RecommendedResponse;
 import com.helpie.backend.service.group.GroupService;
 import io.swagger.v3.oas.annotations.Operation;
@@ -14,6 +16,7 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
 
+import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.web.PageableDefault;
@@ -77,6 +80,21 @@ public class GroupController {
         @PageableDefault(size = 5, sort = "createdAt", direction = Sort.Direction.DESC) Pageable pageable
     ){
         return ResponseEntity.ok(groupService.getGroupsByInterest(userVo.getId(),pageable));
+    }
+
+    @GetMapping("/list")
+    @Secured(UserRole.USER_TYPE)
+    @SecurityRequirement(name = "JWT Authentication")
+    @Operation(summary = "국가,카테고리별 소모임 조회", description = "국가, 카테고리별로 소모임을 조회합니다")
+    public ResponseEntity<Page<GroupResponse>> getGroupByCountry(
+        @AuthenticationPrincipal UserVo userVo,
+        @Parameter(description = "나라") @RequestParam String country,
+        @Parameter(description = "소모임 카테고리") @RequestParam Category category,
+        @RequestParam(defaultValue ="0") int page,
+        @PageableDefault(size = 20, sort = "createdAt", direction = Sort.Direction.DESC) Pageable pageable
+    ){
+        Page<GroupResponse> response=groupService.getGroupByCountry(userVo.getId(),country,category,pageable);
+        return ResponseEntity.ok(response);
     }
 
     @PostMapping("/mark/{groupId}")

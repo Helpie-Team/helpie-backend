@@ -9,7 +9,7 @@ import java.time.LocalDateTime;
 
 @Schema(description = "소모임 응답 정보",
         example = """
-        {
+        {  "id":1,
           "title": "영화 감상 모임",
           "description": "매주 영화를 보고 이야기 나누는 모임입니다",
           "cityName": "대한민국 > 서울",
@@ -23,6 +23,7 @@ import java.time.LocalDateTime;
         }
         """)
 public record GroupResponse(
+    Long id,
     String title,
     String description,
     String cityName,
@@ -32,10 +33,12 @@ public record GroupResponse(
     Boolean isPopular,
     Integer dayBefore,
     GroupStatus status,
-    LocalDateTime meetingDate
+    LocalDateTime meetingDate,
+    Boolean isMarked
     ) {
-    public static GroupResponse from(Group group) {
+    public static GroupResponse from(Group group,boolean isMarked) {
         return new GroupResponse(
+            group.getId(),
             group.getTitle(),
             group.getDescription(),
             group.getCity().getCountry().getName() + " > " + group.getCity().getName(),
@@ -45,7 +48,8 @@ public record GroupResponse(
             group.isPopular(),
             group.getDayBefore(),
             group.getStatus(),
-            group.getMeetingDate()
+            group.getMeetingDate(),
+            isMarked
         );
     }
 
