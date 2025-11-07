@@ -2,6 +2,7 @@ package com.helpie.backend.controller.group;
 
 import com.helpie.backend.domain.user.UserRole;
 import com.helpie.backend.domain.user.UserVo;
+import com.helpie.backend.dto.group.BookmarkResponse;
 import com.helpie.backend.dto.group.GroupCreateRequest;
 import com.helpie.backend.dto.group.GroupCreateResponse;
 import com.helpie.backend.dto.group.RecommendedResponse;
@@ -21,6 +22,7 @@ import org.springframework.security.access.annotation.Secured;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
@@ -75,6 +77,22 @@ public class GroupController {
         @PageableDefault(size = 5, sort = "createdAt", direction = Sort.Direction.DESC) Pageable pageable
     ){
         return ResponseEntity.ok(groupService.getGroupsByInterest(userVo.getId(),pageable));
+    }
+
+    @PostMapping("/mark/{groupId}")
+    @Secured(UserRole.USER_TYPE)
+    @SecurityRequirement(name = "JWT Authentication")
+    @Operation(summary = "관심 소모임 등록/해제",
+        description = """
+    소모임을 관심 목록에 등록하거나 해제합니다.
+    - **ADDED**: 관심 등록 완료
+    - **REMOVED**: 관심 해제 완료
+    """)
+    public ResponseEntity<BookmarkResponse> toggleBookMark(
+        @PathVariable Long groupId,
+        @AuthenticationPrincipal UserVo userVo
+    ){
+        return ResponseEntity.ok(groupService.toggleBookmark(userVo.getId(),groupId));
     }
 
 

@@ -1,12 +1,15 @@
 package com.helpie.backend.service.group;
 
+import com.helpie.backend.dto.group.BookmarkStatus;
 import com.helpie.backend.domain.group.Category;
 import com.helpie.backend.domain.group.Group;
+import com.helpie.backend.domain.group.Bookmark;
 import com.helpie.backend.domain.group.GroupMember;
 import com.helpie.backend.domain.group.GroupStatus;
 import com.helpie.backend.domain.location.City;
 import com.helpie.backend.domain.survey.SurveyBasicInfo;
 import com.helpie.backend.dto.group.*;
+import com.helpie.backend.repository.group.BookmarkRepository;
 import com.helpie.backend.repository.group.GroupCustomRepository;
 import com.helpie.backend.repository.group.GroupMemberRepository;
 import com.helpie.backend.repository.group.GroupRepository;
@@ -38,6 +41,7 @@ public class GroupService {
     private final ChatRoomService chatRoomService;
     private final ImageStorage imageStorage;
     private final GroupCustomRepository groupCustomRepository;
+    private final BookmarkRepository bookmarkRepository;
 
     @Transactional
     public GroupCreateResponse createGroup(Long userId, GroupCreateRequest req, List<MultipartFile> images) {
@@ -156,5 +160,23 @@ public class GroupService {
      */
     public Page<MyGroupResponse> getMyGroups(Long userId, GroupStatus groupStatus, Pageable pageable) {
         return groupCustomRepository.findMyGroups(userId, groupStatus, pageable);
+    }
+
+    @Transactional
+    public BookmarkResponse toggleBookmark(Long userId,Long groupId){
+        if (!bookmarkRepository.existsByUserIdAndGroupId(userId,groupId)){
+            bookmarkRepository.save(new Bookmark(userId,groupId));
+            return new BookmarkResponse(BookmarkStatus.ADDED);
+        }
+
+        Bookmark bookmark=bookmarkRepository.findByUserIdAndGroupId(userId,groupId);
+        boolean liked = bookmark.update();
+
+        if (liked) {
+            return new BookmarkResponse(BookmarkStatus.ADDED);
+        }
+
+        return new BookmarkResponse(BookmarkStatus.REMOVED);
+
     }
 }
