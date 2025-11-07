@@ -74,9 +74,6 @@ public class Group {
     @Column(name = "current_members", nullable = false)
     private Integer currentMembers;
 
-    @Column(name="end_at",nullable = false)
-    private LocalDateTime endAt;
-
     @Column(name = "meeting_date", nullable = false)
     private LocalDateTime meetingDate;
 
@@ -91,7 +88,7 @@ public class Group {
 
     public Group(String title, String description, City city, Set<Interest> interests,
         Category category, Integer maxMembers, Integer currentMembers,
-        Long createdBy, LocalDateTime endAt, LocalDateTime meetingDate) {
+        Long createdBy, LocalDateTime meetingDate) {
         this.title = title;
         this.description = description;
         this.city = city;
@@ -101,16 +98,15 @@ public class Group {
         this.maxMembers = maxMembers != null ? maxMembers : 5;
         this.currentMembers = currentMembers != null ? currentMembers : 0;
         this.createdBy = createdBy;
-        this.endAt = endAt;
         this.meetingDate = meetingDate;
         this.createdAt = LocalDateTime.now();
         this.updatedAt = LocalDateTime.now();
     }
 
     public Group(String title, String description, City city, Category category,
-        Set<Interest> interests, Integer maxMember, LocalDateTime endAt, LocalDateTime meetingDate) {
+        Set<Interest> interests, Integer maxMember, LocalDateTime meetingDate) {
         this(title, description, city, interests, category, maxMember, 0,
-            null, endAt, meetingDate);
+            null, meetingDate);
     }
 
     @PreUpdate
