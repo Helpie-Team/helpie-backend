@@ -6,10 +6,8 @@ import com.helpie.backend.domain.group.GroupMember;
 import com.helpie.backend.domain.group.GroupStatus;
 import com.helpie.backend.domain.location.City;
 import com.helpie.backend.domain.survey.SurveyBasicInfo;
-import com.helpie.backend.dto.group.GroupCreateRequest;
-import com.helpie.backend.dto.group.GroupCreateResponse;
-import com.helpie.backend.dto.group.GroupResponse;
-import com.helpie.backend.dto.group.RecommendedResponse;
+import com.helpie.backend.dto.group.*;
+import com.helpie.backend.repository.group.GroupCustomRepository;
 import com.helpie.backend.repository.group.GroupMemberRepository;
 import com.helpie.backend.repository.group.GroupRepository;
 import com.helpie.backend.repository.location.CityRepository;
@@ -39,6 +37,7 @@ public class GroupService {
     private final CountryRepository countryRepository;
     private final ChatRoomService chatRoomService;
     private final ImageStorage imageStorage;
+    private final GroupCustomRepository groupCustomRepository;
 
     @Transactional
     public GroupCreateResponse createGroup(Long userId, GroupCreateRequest req, List<MultipartFile> images) {
@@ -152,4 +151,11 @@ public class GroupService {
 
     }
 
+    /**
+      상태별 나의 소모임 조회
+     // TODO: 지난 모임에 대한 isActive false 처리 필요
+     */
+    public Page<MyGroupResponse> getMyGroups(Long userId, GroupStatus groupStatus, Pageable pageable) {
+        return groupCustomRepository.findMyGroups(userId, groupStatus, pageable);
+    }
 }
