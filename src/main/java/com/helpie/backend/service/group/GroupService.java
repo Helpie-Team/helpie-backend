@@ -55,7 +55,6 @@ public class GroupService {
             req.category(),
             req.interests(),
             req.maxMember(),
-            req.endAt(),
             req.meetingDate()
             );
         Group savedGroup = groupRepository.save(group);
