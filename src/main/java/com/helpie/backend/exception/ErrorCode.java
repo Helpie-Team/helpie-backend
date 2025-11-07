@@ -35,7 +35,23 @@ public enum ErrorCode {
     NOT_MATCH_SOCIAL_MEMBER(HttpStatus.UNAUTHORIZED, "SOCIAL_001", ""),
     NOT_MATCH_OAUTH_CODE(HttpStatus.UNAUTHORIZED, "SOCIAL_002", "인증 code가 존재하지 않습니다."),
     NOT_ALLOW_OAUTH_REDIRECT_URI(HttpStatus.BAD_REQUEST, "SOCIAL_003","승인되지 않은 redirectURI입니다."),
-    
+
+    // == 파일 업로드 도메인 에러 ==
+    FAILED_TO_UPLOAD_FILE(HttpStatus.BAD_REQUEST, "FILE_001", "파일 업로드에 실패했습니다."),
+    FILE_NOT_FOUND(HttpStatus.NOT_FOUND, "FILE_002", "업로드할 파일이 존재하지 않습니다."),
+    INVALID_FILE_NAME(HttpStatus.BAD_REQUEST, "FILE_003", "파일명이 유효하지 않습니다."),
+    INVALID_FILE_TYPE(HttpStatus.BAD_REQUEST, "FILE_004", "지원하지 않는 파일 형식입니다."),
+    FILE_TOO_LARGE(HttpStatus.PAYLOAD_TOO_LARGE, "FILE_005", "업로드 가능한 파일 크기를 초과했습니다."),
+    FILE_STREAM_ERROR(HttpStatus.INTERNAL_SERVER_ERROR, "FILE_006", "파일을 읽는 중 오류가 발생했습니다."),
+
+    // == S3/스토리지 에러 ==
+    S3_UPLOAD_FAILED(HttpStatus.INTERNAL_SERVER_ERROR, "S3_001", "스토리지 업로드 중 오류가 발생했습니다."),
+    S3_DELETE_FAILED(HttpStatus.INTERNAL_SERVER_ERROR, "S3_002", "스토리지에서 파일 삭제 중 오류가 발생했습니다."),
+    S3_NO_SUCH_BUCKET(HttpStatus.NOT_FOUND, "S3_003", "지정한 버킷을 찾을 수 없습니다."),
+    S3_ACCESS_DENIED(HttpStatus.FORBIDDEN, "S3_004", "S3 접근 권한이 없습니다."),
+    S3_REGION_MISMATCH(HttpStatus.BAD_REQUEST, "S3_005", "S3 리전 설정이 올바르지 않습니다."),
+    S3_NETWORK_ERROR(HttpStatus.SERVICE_UNAVAILABLE, "S3_006", "스토리지 서버와의 통신에 실패했습니다."),
+
     // === Survey 도메인 에러 ===
     SURVEY_BASIC_INFO_ALREADY_EXISTS(HttpStatus.CONFLICT, "SURVEY_001", "이미 등록된 설문조사 기본정보입니다"),
     SURVEY_BASIC_INFO_NOT_FOUND(HttpStatus.NOT_FOUND, "SURVEY_002", "설문조사 기본정보를 찾을 수 없습니다"),
@@ -49,7 +65,11 @@ public enum ErrorCode {
     VALIDATION_FAILED(HttpStatus.BAD_REQUEST, "COMMON_001", "입력값 검증에 실패했습니다"),
     INTERNAL_SERVER_ERROR(HttpStatus.INTERNAL_SERVER_ERROR, "COMMON_002", "서버 내부 오류가 발생했습니다"),
     UNAUTHORIZED(HttpStatus.UNAUTHORIZED, "COMMON_003", "인증되지 않은 사용자입니다."),
-    FORBIDDEN(HttpStatus.FORBIDDEN, "COMMON_004", "접근 권한이 없습니다.");
+    FORBIDDEN(HttpStatus.FORBIDDEN, "COMMON_004", "접근 권한이 없습니다."),
+    DATABASE_ERROR(HttpStatus.INTERNAL_SERVER_ERROR, "COMMON_005", "데이터베이스 처리 중 오류가 발생했습니다."),
+    EXTERNAL_API_ERROR(HttpStatus.BAD_GATEWAY, "COMMON_006", "외부 API 호출 중 오류가 발생했습니다."),
+    REQUEST_TIMEOUT(HttpStatus.REQUEST_TIMEOUT, "COMMON_007", "요청 시간이 초과되었습니다."),
+    BAD_GATEWAY(HttpStatus.BAD_GATEWAY, "COMMON_008", "외부 서버로부터 잘못된 응답을 받았습니다.");
     
     private final HttpStatus httpStatus;
     private final String code;
