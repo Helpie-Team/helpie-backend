@@ -32,4 +32,13 @@ public class GroupImage {
     @Column(name = "image_url",length = 1000)
     private String imageUrl;
 
+    public GroupImage(Group group, String imageUrl) {
+        this.group = group;
+        this.imageUrl = imageUrl;
+    }
+
+    public void setGroup(Group group) {
+        this.group = group;
+    }
+
 }

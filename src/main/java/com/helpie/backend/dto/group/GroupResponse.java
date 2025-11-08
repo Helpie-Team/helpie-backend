@@ -25,7 +25,7 @@ import lombok.NoArgsConstructor;
           "cityName": "대한민국 > 서울",
           "category": "CULTURAL",
           "maxMember": 10,
-          "thumbnail": null,
+          "thumbnail": "https://kr.object.ncloudstorage.com/helpie-bucket/uploads/2025/11/07/uuid.png",
           "isPopular": false,
           "dayBefore": 25,
           "status": "RECRUITING",
@@ -64,7 +64,7 @@ public class GroupResponse {
             .cityName(group.getCity().getCountry().getName() + " > " + group.getCity().getName())
             .category(group.getCategory())
             .maxMember(group.getMaxMembers())
-            .thumbnail(null)
+            .thumbnail(group.getThumbnail())
             .isPopular(group.isPopular())
             .dayBefore(group.getDayBefore())
             .status(group.getStatus())

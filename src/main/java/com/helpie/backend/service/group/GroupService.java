@@ -3,6 +3,7 @@ package com.helpie.backend.service.group;
 import com.helpie.backend.domain.group.Category;
 import com.helpie.backend.domain.group.Group;
 import com.helpie.backend.domain.group.Bookmark;
+import com.helpie.backend.domain.group.GroupImage;
 import com.helpie.backend.domain.group.GroupMember;
 import com.helpie.backend.domain.group.GroupStatus;
 import com.helpie.backend.domain.location.City;
@@ -16,7 +17,8 @@ import com.helpie.backend.repository.location.CityRepository;
 import com.helpie.backend.repository.location.CountryRepository;
 import com.helpie.backend.repository.survey.SurveyBasicInfoRepository;
 import com.helpie.backend.service.chatroom.ChatRoomService;
-import com.helpie.backend.utils.storage.ImageStorage;
+import com.helpie.backend.service.file.FileService;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
@@ -40,7 +42,7 @@ public class GroupService {
     private final CityRepository cityRepository;
     private final CountryRepository countryRepository;
     private final ChatRoomService chatRoomService;
-    private final ImageStorage imageStorage;
+    private final FileService fileService;
     private final GroupCustomRepository groupCustomRepository;
     private final BookmarkRepository bookmarkRepository;
 
@@ -51,7 +53,7 @@ public class GroupService {
         // 1. 도시 조회
         City city = cityRepository.findById(req.cityId())
             .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 도시입니다: " + req.cityId()));
-        
+
         // 2. 소모임 생성
         Group group = new Group(
             req.title(),
@@ -62,8 +64,23 @@ public class GroupService {
             req.maxMember(),
             req.meetingDate()
             );
+
         Group savedGroup = groupRepository.save(group);
         log.info("소모임 생성 완료 - groupId: {}", savedGroup.getId());
+
+        //TODO: 비동기처리
+        List<String> urls;
+        try {
+            urls = fileService.uploadFiles(images);
+                for (String url : urls) {
+                    GroupImage image = new GroupImage(savedGroup, url);
+                    savedGroup.addImage(image);
+                }
+
+        } catch (RuntimeException e) {
+            log.warn("이미지를 업로드하지 않았습니다");
+            urls = new ArrayList<>();
+        }
 
         // 2. 소모임 멤버 추가
         GroupMember groupMember = new GroupMember(savedGroup, userId);
@@ -74,8 +91,6 @@ public class GroupService {
         String welcomeMessage = String.format("🎉 %s 소모임이 시작되었습니다! 즐거운 모임 되세요!", savedGroup.getTitle());
         Long chatRoomId = chatRoomService.createChatRoomAndJoin(savedGroup, userId, null, welcomeMessage);
 
-        // 4. 이미지 저장
-        List<String> urls = imageStorage.storeAll(images, savedGroup);
 
         log.info("소모임 생성 및 채팅방 자동 설정 완료 - groupId: {}, chatRoomId: {}",
             savedGroup.getId(), chatRoomId);
