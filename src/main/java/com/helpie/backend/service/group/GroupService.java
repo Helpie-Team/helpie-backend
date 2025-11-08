@@ -2,11 +2,13 @@ package com.helpie.backend.service.group;
 
 import com.helpie.backend.domain.group.Category;
 import com.helpie.backend.domain.group.Group;
+import com.helpie.backend.domain.group.Bookmark;
 import com.helpie.backend.domain.group.GroupMember;
 import com.helpie.backend.domain.group.GroupStatus;
 import com.helpie.backend.domain.location.City;
 import com.helpie.backend.domain.survey.SurveyBasicInfo;
 import com.helpie.backend.dto.group.*;
+import com.helpie.backend.repository.group.BookmarkRepository;
 import com.helpie.backend.repository.group.GroupCustomRepository;
 import com.helpie.backend.repository.group.GroupMemberRepository;
 import com.helpie.backend.repository.group.GroupRepository;
@@ -17,6 +19,8 @@ import com.helpie.backend.service.chatroom.ChatRoomService;
 import com.helpie.backend.utils.storage.ImageStorage;
 import java.util.List;
 import java.util.Optional;
+import java.util.Set;
+import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
@@ -38,6 +42,7 @@ public class GroupService {
     private final ChatRoomService chatRoomService;
     private final ImageStorage imageStorage;
     private final GroupCustomRepository groupCustomRepository;
+    private final BookmarkRepository bookmarkRepository;
 
     @Transactional
     public GroupCreateResponse createGroup(Long userId, GroupCreateRequest req, List<MultipartFile> images) {
@@ -118,21 +123,20 @@ public class GroupService {
     }
 
     /**
-     *
-     * 로그인, 비로그인 공통
-     나라와 카테고리별 소모임 조회
+     * 국가,카테고리별 소모임 조회
      */
-    public Page<GroupResponse> getGroupByCountry(String code, Category category,Pageable pageable) {
-        List<City> cities=countryRepository.findByCode(code).get().getCities();
+    public Page<GroupResponse> getGroupByCountry(Long userId, String code, Category category, Pageable pageable) {
+        List<City> cities = countryRepository.findByCode(code)
+            .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 국가 코드입니다."))
+            .getCities();
 
-        return groupRepository
-            .findAllByFilters(cities,category,pageable)
-            .map(GroupResponse::from);
+        Page<Group> groups = groupRepository.findAllByFilters(cities, category, pageable);
+
+        return mapGroupsWithBookmarks(userId, groups);
     }
 
-
     /**
-     맞춤형: 도시, 흥미별 소모임 조회
+     * 맞춤형: 도시, 흥미별 소모임 조회
      */
     public RecommendedResponse getGroupsByInterest(Long userId, Pageable pageable) {
         Optional<SurveyBasicInfo> surveyInfo = surveyBasicInfoRepository.findByUserId(userId);
@@ -140,14 +144,14 @@ public class GroupService {
         if (surveyInfo.isEmpty()) {
             return RecommendedResponse.locked("SURVEY_REQUIRED", pageable);
         }
+
         SurveyBasicInfo surveyBasicInfo = surveyInfo.get();
+        Page<Group> groups = groupRepository.findByInterestFilters(
+            surveyBasicInfo.getCity(), surveyBasicInfo.getInterests(), pageable
+        );
 
-        Page<GroupResponse> page = groupRepository
-            .findByInterestFilters(surveyBasicInfo.getCity(),surveyBasicInfo.getInterests(), pageable)
-            .map(GroupResponse::from);
-
-        return RecommendedResponse.ok(page);
-
+        Page<GroupResponse> responsePage = mapGroupsWithBookmarks(userId, groups);
+        return RecommendedResponse.ok(responsePage);
     }
 
     /**
@@ -156,5 +160,31 @@ public class GroupService {
      */
     public Page<MyGroupResponse> getMyGroups(Long userId, GroupStatus groupStatus, Pageable pageable) {
         return groupCustomRepository.findMyGroups(userId, groupStatus, pageable);
+    }
+
+
+    private Page<GroupResponse> mapGroupsWithBookmarks(Long userId, Page<Group> groups) {
+        List<Long> groupIds = groups.stream()
+            .map(Group::getId)
+            .toList();
+
+        Set<Long> bookmarkedIds = bookmarkRepository
+            .findAllByUserIdAndGroupIdIn(userId, groupIds)
+            .stream()
+            .map(Bookmark::getGroupId)
+            .collect(Collectors.toSet());
+
+        return groups.map(group ->
+            GroupResponse.from(group, bookmarkedIds.contains(group.getId()))
+        );
+    }
+
+    public Page<GroupResponse> browseByCountry(String code, Category category, Pageable pageable) {
+        List<City> cities=countryRepository.findByCode(code).get().getCities();
+
+        return groupRepository
+            .findAllByFilters(cities,category,pageable)
+            .map(GroupResponse::from);
+
     }
 }
