@@ -2,12 +2,14 @@ package com.helpie.backend.service.survey;
 
 import com.helpie.backend.domain.location.City;
 import com.helpie.backend.domain.survey.SurveyBasicInfo;
+import com.helpie.backend.domain.user.User;
 import com.helpie.backend.dto.survey.SurveyBasicInfoRequest;
 import com.helpie.backend.dto.survey.SurveyBasicInfoResponse;
 import com.helpie.backend.exception.survey.SurveyBasicInfoAlreadyExistsException;
 import com.helpie.backend.exception.survey.SurveyBasicInfoNotFoundException;
 import com.helpie.backend.repository.location.CityRepository;
 import com.helpie.backend.repository.survey.SurveyBasicInfoRepository;
+import com.helpie.backend.repository.user.UserRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -27,6 +29,7 @@ public class SurveyBasicInfoServiceImpl implements SurveyBasicInfoService {
 
     private final SurveyBasicInfoRepository surveyBasicInfoRepository;
     private final CityRepository cityRepository;
+    private final UserRepository userRepository;
 
     @Override
     public void saveSurveyBasicInfo(Long userId, SurveyBasicInfoRequest request) {
@@ -35,6 +38,9 @@ public class SurveyBasicInfoServiceImpl implements SurveyBasicInfoService {
         validateUserNotExists(userId);
         SurveyBasicInfo surveyBasicInfo = createSurveyBasicInfo(userId, request);
         surveyBasicInfoRepository.save(surveyBasicInfo);
+        
+        // 설문조사 완료 상태로 업데이트
+        updateUserSurveyStatus(userId);
         
         log.info("설문조사 기본정보 저장 완료 - userId: {}", userId);
     }
@@ -103,5 +109,16 @@ public class SurveyBasicInfoServiceImpl implements SurveyBasicInfoService {
                 request.getLanguages(),
                 request.getInterests()
         );
+    }
+
+    /**
+     * 사용자의 설문조사 완료 상태를 업데이트합니다.
+     */
+    private void updateUserSurveyStatus(Long userId) {
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 사용자입니다: " + userId));
+        
+        user.updateSurveyStatus();
+        log.debug("사용자 설문조사 상태 업데이트 완료 - userId: {}", userId);
     }
 }
