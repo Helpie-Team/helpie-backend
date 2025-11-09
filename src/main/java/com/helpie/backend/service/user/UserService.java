@@ -64,6 +64,12 @@ public class UserService {
         return user.getId();
     }
 
+    @Transactional
+    public void updateUsername(Long userId, String username) {
+        final var user = this.userCommonService.findById(userId);
+        user.updateUsername(username);
+    }
+
     @Transactional(readOnly = true)
     public boolean existsByUsername(String username) {
         return this.userRepository.existsByUsername(username);

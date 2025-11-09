@@ -34,6 +34,10 @@ public class User {
     @Column(length = 255)
     private String password;
 
+    @Column(name = "survey_status")
+    private Boolean surveyStatus;
+
+
     public User(String username, String email) {
         this.username = username;
         this.email = email;
@@ -43,5 +47,13 @@ public class User {
         this.username = username;
         this.email = email;
         this.password = password;
+    }
+
+    public void updateUsername(String username) {
+        this.username = username;
+    }
+
+    public void updateSurveyStatus() {
+        this.surveyStatus = true;
     }
 }
