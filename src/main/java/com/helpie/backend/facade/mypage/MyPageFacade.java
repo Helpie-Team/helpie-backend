@@ -2,9 +2,11 @@ package com.helpie.backend.facade.mypage;
 
 import com.helpie.backend.domain.group.GroupStatus;
 import com.helpie.backend.domain.user.UserImage;
+import com.helpie.backend.dto.group.GroupResponse;
 import com.helpie.backend.dto.group.MyGroupResponse;
 import com.helpie.backend.dto.mypage.response.MyProfileResponse;
 import com.helpie.backend.service.file.FileService;
+import com.helpie.backend.service.group.BookmarkService;
 import com.helpie.backend.service.group.GroupService;
 import com.helpie.backend.service.location.LocationService;
 import com.helpie.backend.service.survey.SurveyBasicInfoService;
@@ -28,6 +30,7 @@ public class MyPageFacade {
     private final FileService fileService;
     private final UserImageService userImageService;
     private final UserService userService;
+    private final BookmarkService bookmarkService;
 
     public MyProfileResponse getMyProfileInfo(Long userId) {
         final var user = userCommonService.findById(userId);
@@ -45,6 +48,10 @@ public class MyPageFacade {
 
     public Page<MyGroupResponse> getMyGroups(Long userId, GroupStatus groupStatus, Pageable pageable) {
         return groupService.getMyGroups(userId, groupStatus, pageable);
+    }
+
+    public Page<GroupResponse> getMyBookmarks(Long userId, Pageable pageable) {
+        return bookmarkService.getByPreference(userId, pageable);
     }
 
     public void updateProfileImage(Long userId, MultipartFile profileImageFile) {
