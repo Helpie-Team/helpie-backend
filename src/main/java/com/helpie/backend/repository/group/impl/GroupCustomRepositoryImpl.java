@@ -15,6 +15,8 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.support.QuerydslRepositorySupport;
 import org.springframework.stereotype.Repository;
 
+import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.List;
 
 @Repository
@@ -28,13 +30,16 @@ public class GroupCustomRepositoryImpl extends QuerydslRepositorySupport impleme
     public Page<MyGroupResponse> findMyGroups(Long userId, GroupStatus groupStatus, Pageable pageable) {
         BooleanBuilder builder = new BooleanBuilder();
         builder.and(groupMemberQ.userId.eq(userId));
-
         if (groupStatus == GroupStatus.RECRUITING || groupStatus == GroupStatus.RECRUITMENT_CLOSED) {
             builder.and(groupMemberQ.isActive.isTrue())
                     .and(groupQ.status.in(GroupStatus.RECRUITING, GroupStatus.RECRUITMENT_CLOSED));
         } else if (groupStatus == GroupStatus.COMPLETED) {
+            LocalDateTime start = LocalDate.now().minusDays(30).atStartOfDay();
+            LocalDateTime end = LocalDate.now().plusDays(1).atStartOfDay();
             builder.and(groupMemberQ.isActive.isFalse())
-                    .and(groupQ.status.eq(GroupStatus.COMPLETED));
+                    .and(groupQ.status.eq(GroupStatus.COMPLETED))
+                    .and(groupQ.meetingDate.goe(start))
+                    .and(groupQ.meetingDate.lt(end));
         }
 
         JPQLQuery<MyGroupResponse> query = from(groupMemberQ)

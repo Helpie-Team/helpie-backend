@@ -21,13 +21,12 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.web.PageableDefault;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.annotation.Secured;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
 @RestController()
 @RequestMapping("/api/v1/my-page")
@@ -35,7 +34,6 @@ import org.springframework.web.bind.annotation.RestController;
 @RequiredArgsConstructor
 public class MyPageController {
     private final MyPageFacade myPageFacade;
-
 
     @GetMapping("/profile-info")
     @SecurityRequirement(name = "JWT Authentication")
@@ -60,5 +58,59 @@ public class MyPageController {
             @PageableDefault(size = 20, sort = "createdAt", direction = Sort.Direction.DESC) Pageable pageable){
 
         return ResponseEntity.ok(myPageFacade.getMyGroups(userVo.getId(), request.status(),pageable));
+    }
+
+
+    @PostMapping(value = "/profile-image", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    @SecurityRequirement(name = "JWT Authentication")
+    @Secured(UserRole.USER_TYPE)
+    @ApiResponses(
+            @ApiResponse(
+                    responseCode = "200",
+                    description = "프로필 사진 업데이트"
+            )
+    )
+    @Operation(summary = "프로필 사진을 업데이트 합니다.")
+    public ResponseEntity<Void> updateProfileImage(
+            @AuthenticationPrincipal UserVo userVo,
+            @RequestPart("profileImageFile") MultipartFile file
+            ){
+        myPageFacade.updateProfileImage(userVo.getId(), file);
+        return ResponseEntity.ok().build();
+    }
+
+    @PostMapping(value = "/profile-image/reset")
+    @SecurityRequirement(name = "JWT Authentication")
+    @Secured(UserRole.USER_TYPE)
+    @ApiResponses(
+            @ApiResponse(
+                    responseCode = "200",
+                    description = "프로필 사진 초기화"
+            )
+    )
+    @Operation(summary = "프로필 사진을 초기화 합니다.")
+    public ResponseEntity<Void> resetProfileImage(
+            @AuthenticationPrincipal UserVo userVo
+    ){
+        myPageFacade.resetProfileImage(userVo.getId());
+        return ResponseEntity.ok().build();
+    }
+
+    @PostMapping("/profile-username")
+    @SecurityRequirement(name = "JWT Authentication")
+    @Secured(UserRole.USER_TYPE)
+    @ApiResponses(
+            @ApiResponse(
+                    responseCode = "200",
+                    description = "사용자 이름 변경 성공"
+            )
+    )
+    @Operation(summary = "사용자 이름을 변경합니다.")
+    public ResponseEntity<Void> updateProfileUsername(
+            @AuthenticationPrincipal UserVo userVo,
+            @RequestParam("username") String username
+    ){
+        myPageFacade.updateProfileUsername(userVo.getId(), username);
+        return ResponseEntity.ok().build();
     }
 }
