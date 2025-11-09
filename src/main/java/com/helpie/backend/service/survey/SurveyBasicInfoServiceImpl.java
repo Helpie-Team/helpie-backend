@@ -9,7 +9,7 @@ import com.helpie.backend.exception.survey.SurveyBasicInfoAlreadyExistsException
 import com.helpie.backend.exception.survey.SurveyBasicInfoNotFoundException;
 import com.helpie.backend.repository.location.CityRepository;
 import com.helpie.backend.repository.survey.SurveyBasicInfoRepository;
-import com.helpie.backend.repository.user.UserRepository;
+import com.helpie.backend.service.user.UserCommonService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -29,7 +29,7 @@ public class SurveyBasicInfoServiceImpl implements SurveyBasicInfoService {
 
     private final SurveyBasicInfoRepository surveyBasicInfoRepository;
     private final CityRepository cityRepository;
-    private final UserRepository userRepository;
+    private final UserCommonService userCommonService;
 
     @Override
     public void saveSurveyBasicInfo(Long userId, SurveyBasicInfoRequest request) {
@@ -115,8 +115,7 @@ public class SurveyBasicInfoServiceImpl implements SurveyBasicInfoService {
      * 사용자의 설문조사 완료 상태를 업데이트합니다.
      */
     private void updateUserSurveyStatus(Long userId) {
-        User user = userRepository.findById(userId)
-                .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 사용자입니다: " + userId));
+        User user = userCommonService.findById(userId);
         
         user.updateSurveyStatus();
         log.debug("사용자 설문조사 상태 업데이트 완료 - userId: {}", userId);
