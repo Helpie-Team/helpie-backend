@@ -97,6 +97,7 @@ public class Group {
         this.status = GroupStatus.RECRUITING;
         this.maxMembers = maxMembers != null ? maxMembers : 5;
         this.currentMembers = currentMembers != null ? currentMembers : 0;
+        this.images=new ArrayList<>();
         this.createdBy = createdBy;
         this.meetingDate = meetingDate;
         this.createdAt = LocalDateTime.now();
@@ -152,5 +153,15 @@ public class Group {
         }
 
         return (int) ChronoUnit.DAYS.between(today, meetingLocalDate);
+    }
+
+    public void addImage(GroupImage image) {
+        images.add(image);
+        image.setGroup(this);
+    }
+
+    public String getThumbnail() {
+        if (images.isEmpty()) return "NO_IMAGE";
+        return this.getImages().get(0).getImageUrl();
     }
 }
