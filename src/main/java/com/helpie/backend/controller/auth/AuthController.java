@@ -130,41 +130,18 @@ public class AuthController {
             description = "만약, refreshToken 만료 3일전이라면 refreshToken도 재발급됩니다."
     )
     public HttpSigninInResponse generateAccessToken(
-            @CookieValue(value = "refreshToken", required = false) String refreshToken,
-            HttpServletResponse response,
-            @Valid @RequestBody() TokenRenewRequest tokenRenewRequest
+            @Valid @RequestBody TokenRenewRequest tokenRenewRequest
     ) {
-        try {
-            if (refreshToken == null) {
-                refreshToken = tokenRenewRequest.refreshToken();
-            }
-
-            if (refreshToken == null) {
-                throw new RuntimeException("토큰이 없습니다.");
-            }
-
-            final var rt = this.authService.generateRefreshTokenOrEmpty(
-                    refreshToken
-            ).orElse(refreshToken);
-
-            final var accessToken = this.authService.generateAccessToken(rt);
-
-            this.setRefreshTokenCookie(
-                    response,
-                    rt
-            );
-
-            return new HttpSigninInResponse(accessToken, rt);
-        } catch (BusinessException exception) {
-            if (
-                    exception.getErrorCode() == ErrorCode.TOKEN_NOT_EXIST ||
-                            exception.getErrorCode() == ErrorCode.TOKEN_EXPIRED_ERROR ||
-                            exception.getErrorCode() == ErrorCode.NOT_FOUND_REFRESH_TOKEN
-            ) {
-                this.removeRefreshTokenCookie(response);
-            }
-            throw exception;
+        final var refreshToken = tokenRenewRequest.refreshToken();
+        if (refreshToken == null || refreshToken.isBlank()) {
+            throw new BusinessException(ErrorCode.TOKEN_NOT_EXIST) {};
         }
+
+        final var rotatedRt = authService.generateRefreshTokenOrEmpty(refreshToken);
+        final var rt = rotatedRt.orElse(refreshToken);
+        final var accessToken = authService.generateAccessToken(rt);
+
+        return new HttpSigninInResponse(accessToken, rt);
     }
 
     @PostMapping("/signout")
@@ -176,13 +153,15 @@ public class AuthController {
     @Operation(summary = "로그아웃 API", description = "refresh token 제거")
     public Response<Void> logout(
             HttpServletResponse response,
-            @CookieValue(value = "refreshToken", required = false) String refreshToken
+            SignOutRequest signOutRequest
     ) {
-        if (refreshToken != null) {
-            this.authService.removeRefreshToken(refreshToken);
+
+        //TODO: 다중 로그인 케이스 추가 필요
+        if (signOutRequest.refreshToken() != null) {
+            this.authService.removeRefreshToken(signOutRequest.refreshToken());
         }
 
-        this.removeRefreshTokenCookie(response);
+//        this.removeRefreshTokenCookie(response);
 
         return Response.success();
     }
