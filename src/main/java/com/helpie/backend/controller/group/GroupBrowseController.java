@@ -30,7 +30,8 @@ public class GroupBrowseController {
     public ResponseEntity<Page<GroupResponse>> getGroupByCountry(
         @Parameter(description = "나라") @RequestParam String country,
         @Parameter(description = "소모임 카테고리") @RequestParam Category category,
-        @RequestParam(defaultValue ="0") int page
+        @RequestParam(defaultValue ="0") int page,
+
     ){
         Pageable pageable= PageRequest.of(page,12,Sort.by("createdAt").descending());
 
