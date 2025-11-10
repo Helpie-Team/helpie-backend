@@ -4,6 +4,7 @@ import com.helpie.backend.domain.group.Bookmark;
 import com.helpie.backend.dto.group.BookmarkResponse;
 import com.helpie.backend.dto.group.BookmarkStatus;
 import com.helpie.backend.dto.group.GroupResponse;
+import com.helpie.backend.dto.mypage.response.MyBookmarkResponse;
 import com.helpie.backend.repository.bookmark.BookmarkCustomRepository;
 import com.helpie.backend.repository.group.BookmarkRepository;
 import lombok.RequiredArgsConstructor;
@@ -21,9 +22,9 @@ public class BookmarkService {
     /**
     관심 소모임 조회
      */
-    public Page<GroupResponse> getByPreference(Long userId, Pageable pageable) {
+    public Page<MyBookmarkResponse> getByPreference(Long userId, Pageable pageable) {
             return bookmarkCustomRepository.findLikeGroups(userId, pageable)
-                .map(GroupResponse::from);
+                .map(MyBookmarkResponse::from);
     }
 
     @Transactional

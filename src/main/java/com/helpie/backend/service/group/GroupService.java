@@ -173,8 +173,8 @@ public class GroupService {
       상태별 나의 소모임 조회
      // TODO: 지난 모임에 대한 isActive false 처리 필요
      */
-    public Page<MyGroupResponse> getMyGroups(Long userId, GroupStatus groupStatus, Pageable pageable) {
-        return groupCustomRepository.findMyGroups(userId, groupStatus, pageable);
+    public Page<MyGroupResponse> getMyGroups(Long userId, String status, Pageable pageable) {
+        return groupCustomRepository.findMyGroups(userId, status, pageable);
     }
 
 
