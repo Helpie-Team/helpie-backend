@@ -19,6 +19,7 @@ import lombok.NoArgsConstructor;
 @Schema(description = "소모임 응답 정보",
     example = """
         {
+       
           "id": 1,
           "title": "영화 감상 모임",
           "description": "매주 영화를 보고 이야기 나누는 모임입니다",
@@ -45,6 +46,7 @@ public class GroupResponse {
     private GroupStatus status;
     private LocalDateTime meetingDate;
     private Boolean isMarked;
+    private static final String DEFAULT_THUMBNAIL_URL="https://kr.object.ncloudstorage.com/helpie-bucket/uploads/2025/11/10/62d39fbe-b94c-4b79-a606-84e80754f9fc.png";
 
     public static GroupResponse from(Group group) {
         return baseBuilder(group).build();
@@ -57,6 +59,9 @@ public class GroupResponse {
     }
 
     private static GroupResponseBuilder baseBuilder(Group group) {
+        String thumbnail=group.getThumbnail();
+        if (thumbnail.equals("NO_IMAGE")) thumbnail=DEFAULT_THUMBNAIL_URL;
+
         return GroupResponse.builder()
             .id(group.getId())
             .title(group.getTitle())
@@ -64,7 +69,7 @@ public class GroupResponse {
             .cityName(group.getCity().getCountry().getName() + " > " + group.getCity().getName())
             .category(group.getCategory())
             .maxMember(group.getMaxMembers())
-            .thumbnail(group.getThumbnail())
+            .thumbnail(thumbnail)
             .isPopular(group.isPopular())
             .dayBefore(group.getDayBefore())
             .status(group.getStatus())
