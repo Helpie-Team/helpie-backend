@@ -8,6 +8,10 @@ import com.helpie.backend.dto.chatroom.SendMessageRequest;
 import com.helpie.backend.service.chatroom.ChatRoomService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
+import io.swagger.v3.oas.annotations.media.Content;
+import io.swagger.v3.oas.annotations.media.Schema;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
@@ -56,6 +60,13 @@ public class ChatRoomController {
                      "- 실시간 WebSocket을 통한 알림\n\n" +
                      "**참고:** 실제 실시간 채팅은 WebSocket `/ws/chat` 연결이 필요합니다."
     )
+    @ApiResponses({
+        @ApiResponse(responseCode = "200", description = "채팅방 입장 성공",
+                    content = @Content(mediaType = "application/json",
+                    schema = @Schema(implementation = ChatRoomResponse.class))),
+        @ApiResponse(responseCode = "403", description = "채팅방 접근 권한 없음"),
+        @ApiResponse(responseCode = "404", description = "채팅방을 찾을 수 없음")
+    })
     public ResponseEntity<ChatRoomResponse> enterChatRoom(
         @AuthenticationPrincipal UserVo userVo,
         @Parameter(description = "채팅방 ID") @PathVariable Long chatRoomId,
@@ -69,6 +80,11 @@ public class ChatRoomController {
     @Secured(UserRole.USER_TYPE)
     @SecurityRequirement(name = "JWT Authentication")
     @Operation(summary = "채팅방 퇴장", description = "채팅방에서 퇴장합니다. 퇴장 시 시스템 메시지가 자동 전송됩니다.")
+    @ApiResponses({
+        @ApiResponse(responseCode = "200", description = "채팅방 퇴장 성공"),
+        @ApiResponse(responseCode = "403", description = "채팅방 접근 권한 없음"),
+        @ApiResponse(responseCode = "404", description = "채팅방을 찾을 수 없음")
+    })
     public ResponseEntity<Void> leaveChatRoom(
         @AuthenticationPrincipal UserVo userVo,
         @Parameter(description = "채팅방 ID") @PathVariable Long chatRoomId,
@@ -123,6 +139,13 @@ public class ChatRoomController {
                      "- 최신 메시지: `?page=0&size=20`\n" +
                      "- 이전 메시지: `?page=1&size=20`"
     )
+    @ApiResponses({
+        @ApiResponse(responseCode = "200", description = "메시지 목록 조회 성공",
+                    content = @Content(mediaType = "application/json",
+                    schema = @Schema(implementation = Page.class))),
+        @ApiResponse(responseCode = "403", description = "채팅방 접근 권한 없음"),
+        @ApiResponse(responseCode = "404", description = "채팅방을 찾을 수 없음")
+    })
     public ResponseEntity<Page<ChatMessageResponse>> getChatMessages(
         @AuthenticationPrincipal UserVo userVo,
         @Parameter(description = "채팅방 ID") @PathVariable Long chatRoomId,
@@ -142,8 +165,17 @@ public class ChatRoomController {
                      "- 실시간 채팅은 WebSocket `/app/chat/{chatRoomId}` 사용\n" +
                      "- 소모임 멤버이고 채팅방에 입장한 상태여야 합니다"
     )
+    @ApiResponses({
+        @ApiResponse(responseCode = "200", description = "메시지 전송 성공",
+                    content = @Content(mediaType = "application/json",
+                    schema = @Schema(implementation = ChatMessageResponse.class))),
+        @ApiResponse(responseCode = "400", description = "잘못된 요청 (메시지 내용 누락 등)"),
+        @ApiResponse(responseCode = "403", description = "채팅방 접근 권한 없음"),
+        @ApiResponse(responseCode = "404", description = "채팅방을 찾을 수 없음")
+    })
     public ResponseEntity<ChatMessageResponse> sendMessage(
         @Parameter(description = "채팅방 ID") @PathVariable Long chatRoomId,
+        @Parameter(description = "메시지 전송 요청 (content, userId, userName 포함)")
         @Valid @RequestBody SendMessageRequest request
     ) {
         ChatMessageResponse response = chatRoomService.sendMessage(chatRoomId, request);
