@@ -18,9 +18,9 @@ import java.util.List;
 import lombok.RequiredArgsConstructor;
 
 import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
-import org.springframework.data.web.PageableDefault;
 import org.springframework.http.MediaType;
 import org.springframework.security.access.annotation.Secured;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
@@ -78,9 +78,9 @@ public class GroupController {
     @SecurityRequirement(name = "JWT Authentication")
     public ResponseEntity<RecommendedResponse> getGroupsByInterest(
         @AuthenticationPrincipal UserVo userVo,
-        @RequestParam(defaultValue ="0") int page,
-        @PageableDefault(size = 5, sort = "createdAt", direction = Sort.Direction.DESC) Pageable pageable
+        @RequestParam(defaultValue ="0") int page
     ){
+        Pageable pageable= PageRequest.of(page,5,Sort.by("createdAt").descending());
         return ResponseEntity.ok(groupService.getGroupsByInterest(userVo.getId(),pageable));
     }
 
@@ -92,9 +92,11 @@ public class GroupController {
         @AuthenticationPrincipal UserVo userVo,
         @Parameter(description = "나라") @RequestParam String country,
         @Parameter(description = "소모임 카테고리") @RequestParam Category category,
-        @RequestParam(defaultValue ="0") int page,
-        @PageableDefault(size = 12, sort = "createdAt", direction = Sort.Direction.DESC) Pageable pageable
+        @RequestParam(defaultValue ="0") int page
+
     ){
+        Pageable pageable= PageRequest.of(page,12,Sort.by("createdAt").descending());
+
         Page<GroupResponse> response=groupService.getGroupByCountry(userVo.getId(),country,category,pageable);
         return ResponseEntity.ok(response);
     }

@@ -8,9 +8,9 @@ import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
-import org.springframework.data.web.PageableDefault;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -31,8 +31,10 @@ public class GroupBrowseController {
         @Parameter(description = "나라") @RequestParam String country,
         @Parameter(description = "소모임 카테고리") @RequestParam Category category,
         @RequestParam(defaultValue ="0") int page,
-        @PageableDefault(size = 12, sort = "createdAt", direction = Sort.Direction.DESC) Pageable pageable
+
     ){
+        Pageable pageable= PageRequest.of(page,12,Sort.by("createdAt").descending());
+
         Page<GroupResponse> response=groupService.browseByCountry(country,category,pageable);
         return ResponseEntity.ok(response);
     }
