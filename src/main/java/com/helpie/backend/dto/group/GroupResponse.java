@@ -19,6 +19,7 @@ import lombok.NoArgsConstructor;
 @Schema(description = "소모임 응답 정보",
     example = """
         {
+       
           "id": 1,
           "title": "영화 감상 모임",
           "description": "매주 영화를 보고 이야기 나누는 모임입니다",
