@@ -26,17 +26,14 @@ public class GroupBrowseController {
     private final GroupService groupService;
 
     @GetMapping("/list")
-    @Operation(summary = "국가,카테고리별 소모임 조회", description = "국가, 카테고리별로 소모임을 조회합니다")
+    @Operation(summary = "국가, 카테고리별 소모임 조회", description = "국가, 카테고리별로 소모임을 조회합니다")
     public ResponseEntity<Page<GroupResponse>> getGroupByCountry(
         @Parameter(description = "나라") @RequestParam String country,
         @Parameter(description = "소모임 카테고리") @RequestParam Category category,
-        @RequestParam(defaultValue ="0") int page,
-
-    ){
-        Pageable pageable= PageRequest.of(page,12,Sort.by("createdAt").descending());
-
-        Page<GroupResponse> response=groupService.browseByCountry(country,category,pageable);
+        @RequestParam(defaultValue = "0") int page
+    ) {
+        Pageable pageable = PageRequest.of(page, 12, Sort.by("createdAt").descending());
+        Page<GroupResponse> response = groupService.browseByCountry(country, category, pageable);
         return ResponseEntity.ok(response);
     }
-
 }
