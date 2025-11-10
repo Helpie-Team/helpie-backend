@@ -7,6 +7,8 @@ import com.helpie.backend.dto.survey.SurveyBasicInfoResponse;
 import com.helpie.backend.service.survey.SurveyBasicInfoService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
+import io.swagger.v3.oas.annotations.media.Content;
+import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
@@ -69,6 +71,7 @@ public class SurveyBasicInfoController {
     })
     public ResponseEntity<Void> saveSurveyBasicInfo(
             @AuthenticationPrincipal UserVo userVo,
+            @Parameter(description = "설문조사 기본정보 저장 요청")
             @Valid @RequestBody SurveyBasicInfoRequest request) {
         
         log.info("설문조사 기본정보 저장 요청 - userId: {}, cityId: {}, gender: {}", 
@@ -103,6 +106,7 @@ public class SurveyBasicInfoController {
     })
     public ResponseEntity<Void> updateSurveyBasicInfo(
             @AuthenticationPrincipal UserVo userVo,
+            @Parameter(description = "설문조사 기본정보 수정 요청")
             @Valid @RequestBody SurveyBasicInfoRequest request) {
         
         log.info("설문조사 기본정보 수정 요청 - userId: {}, cityId: {}, gender: {}", 
@@ -133,7 +137,9 @@ public class SurveyBasicInfoController {
                            - interests: 관심사 목록
                            """)
     @ApiResponses({
-        @ApiResponse(responseCode = "200", description = "조회 성공"),
+        @ApiResponse(responseCode = "200", description = "조회 성공", 
+                    content = @Content(mediaType = "application/json",
+                    schema = @Schema(implementation = SurveyBasicInfoResponse.class))),
         @ApiResponse(responseCode = "404", description = "등록된 정보를 찾을 수 없음"),
         @ApiResponse(responseCode = "500", description = "서버 오류")
     })
