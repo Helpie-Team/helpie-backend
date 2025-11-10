@@ -64,6 +64,7 @@ public class Review {
         this.description = description;
         this.anonymityYn = anonymityYn;
         this.user = user;
+        this.group = group;
         this.createdAt=LocalDateTime.now();
     }
 

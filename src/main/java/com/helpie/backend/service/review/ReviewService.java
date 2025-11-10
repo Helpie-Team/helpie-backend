@@ -6,14 +6,19 @@ import com.helpie.backend.domain.review.ReviewImage;
 import com.helpie.backend.domain.user.User;
 import com.helpie.backend.dto.review.ReviewCreateRequest;
 import com.helpie.backend.dto.review.ReviewCreateResponse;
+import com.helpie.backend.dto.review.ReviewResponse;
 import com.helpie.backend.repository.group.GroupRepository;
+import com.helpie.backend.repository.review.ReviewCustomRepository;
 import com.helpie.backend.repository.review.ReviewRepository;
+import com.helpie.backend.repository.user.UserImageRepository;
 import com.helpie.backend.repository.user.UserRepository;
 import com.helpie.backend.service.file.FileService;
 import java.util.ArrayList;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
@@ -26,6 +31,7 @@ public class ReviewService {
     private final ReviewRepository reviewRepository;
     private final GroupRepository groupRepository;
     private final UserRepository userRepository;
+    private final ReviewCustomRepository reviewCustomRepository;
     private final FileService fileService;
 
     @Transactional
@@ -61,6 +67,10 @@ public class ReviewService {
             urls
         );
 
+    }
+
+    public Page<ReviewResponse> getReview(Pageable pageable) {
+        return reviewCustomRepository.findAllReviews(pageable);
     }
 
 }
