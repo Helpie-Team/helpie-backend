@@ -31,7 +31,7 @@ public class GroupBrowseController {
         @Parameter(description = "나라") @RequestParam String country,
         @Parameter(description = "소모임 카테고리") @RequestParam Category category,
         @RequestParam(defaultValue ="0") int page,
-        @PageableDefault(size = 20, sort = "createdAt", direction = Sort.Direction.DESC) Pageable pageable
+        @PageableDefault(size = 12, sort = "createdAt", direction = Sort.Direction.DESC) Pageable pageable
     ){
         Page<GroupResponse> response=groupService.browseByCountry(country,category,pageable);
         return ResponseEntity.ok(response);
