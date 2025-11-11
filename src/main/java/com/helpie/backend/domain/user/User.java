@@ -56,4 +56,8 @@ public class User {
     public void updateSurveyStatus() {
         this.surveyStatus = true;
     }
+
+    public void updatePassword(String password) {
+        this.password = password;
+    }
 }
