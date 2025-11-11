@@ -32,6 +32,7 @@ public class GroupCustomRepositoryImpl extends QuerydslRepositorySupport impleme
         builder.and(groupMemberQ.userId.eq(userId));
         if (status.equals("UPCOMING")) {
             builder.and(groupMemberQ.isActive.isTrue())
+                    .and(groupMemberQ.leftAt.isNull())
                     .and(groupQ.status.in(GroupStatus.RECRUITING, GroupStatus.RECRUITMENT_CLOSED));
         } else if (status.equals("PAST")) {
             LocalDateTime start = LocalDate.now().minusDays(30).atStartOfDay();
