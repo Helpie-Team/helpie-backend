@@ -139,6 +139,16 @@ public class GroupService {
     }
 
     /**
+     * groupId 별 조회
+     */
+    public GroupResponse getGroupById(Long groupId) {
+        Group group=groupRepository.findById(groupId).orElseThrow(()->new BusinessException(ErrorCode.NO_GROUP_INFO) {
+        });
+
+        return GroupResponse.from(group);
+    }
+
+    /**
      * 국가,카테고리별 소모임 조회
      */
     public Page<GroupResponse> getGroupByCountry(Long userId, String code, Category category, Pageable pageable) {

@@ -117,6 +117,18 @@ public class GroupController {
         return ResponseEntity.ok(bookmarkService.toggleBookmark(userVo.getId(),groupId));
     }
 
+    @GetMapping("/{groupId}")
+    @Secured(UserRole.USER_TYPE)
+    @SecurityRequirement(name = "JWT Authentication")
+    @Operation(summary = "소모임 상세 정보 조회")
+    public ResponseEntity<GroupResponse> getGroupById(
+        @PathVariable Long groupId,
+        @AuthenticationPrincipal UserVo userVo
+    ){
+        return ResponseEntity.ok(groupService.getGroupById(groupId));
+    }
+
+
 
     @PostMapping("/cancel/{groupId}")
     @Secured(UserRole.USER_TYPE)

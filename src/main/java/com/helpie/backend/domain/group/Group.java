@@ -2,6 +2,8 @@ package com.helpie.backend.domain.group;
 
 import com.helpie.backend.domain.location.City;
 import com.helpie.backend.domain.survey.Interest;
+import com.helpie.backend.exception.ErrorCode;
+import com.helpie.backend.exception.GroupException;
 import jakarta.persistence.*;
 import java.time.LocalDate;
 import java.time.temporal.ChronoUnit;
@@ -129,8 +131,9 @@ public class Group {
         LocalDate meetingLocalDate = this.meetingDate.toLocalDate();
 
         if (meetingLocalDate.isBefore(today)) {
-            throw new RuntimeException("이미 완료된 소모임입니다.");
+            throw new GroupException(ErrorCode.GROUP_ENDED);
         }
+
 
         return (int) ChronoUnit.DAYS.between(today, meetingLocalDate);
     }
