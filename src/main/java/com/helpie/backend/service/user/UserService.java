@@ -73,8 +73,10 @@ public class UserService {
     }
 
     @Transactional
-    public void updatePassword(Long userId, String password) {
-        final var user = this.userCommonService.findById(userId);
+    public void updatePassword(String email, String password) {
+        final var user = userRepository.findByEmail(email)
+                .orElseThrow(() -> new BusinessException(ErrorCode.USER_NOT_FOUND) {
+                });
         user.updatePassword(encoder.encode(password));
     }
 
