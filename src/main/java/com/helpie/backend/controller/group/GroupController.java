@@ -128,6 +128,16 @@ public class GroupController {
         return ResponseEntity.ok(groupService.getGroupById(groupId));
     }
 
+    @PostMapping("/join/{groupId}")
+    @Secured(UserRole.USER_TYPE)
+    @SecurityRequirement(name = "JWT Authentication")
+    @Operation(summary = "소모임에 가입합니다")
+    public ResponseEntity<String> joinGroup(@AuthenticationPrincipal UserVo userVo, @PathVariable Long groupId) {
+        groupService.joinGroup(groupId,userVo.getId(), userVo.getUsername());
+        return ResponseEntity.ok("소모임 가입에 완료되었습니다");
+    }
+
+
 
 
     @PostMapping("/cancel/{groupId}")
