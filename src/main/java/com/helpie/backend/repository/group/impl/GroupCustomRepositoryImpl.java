@@ -27,13 +27,14 @@ public class GroupCustomRepositoryImpl extends QuerydslRepositorySupport impleme
     private final QGroupMember groupMemberQ = QGroupMember.groupMember;
 
     @Override
-    public Page<MyGroupResponse> findMyGroups(Long userId, GroupStatus groupStatus, Pageable pageable) {
+    public Page<MyGroupResponse> findMyGroups(Long userId, String status, Pageable pageable) {
         BooleanBuilder builder = new BooleanBuilder();
         builder.and(groupMemberQ.userId.eq(userId));
-        if (groupStatus == GroupStatus.RECRUITING || groupStatus == GroupStatus.RECRUITMENT_CLOSED) {
+        if (status.equals("UPCOMING")) {
             builder.and(groupMemberQ.isActive.isTrue())
+                    .and(groupMemberQ.leftAt.isNull())
                     .and(groupQ.status.in(GroupStatus.RECRUITING, GroupStatus.RECRUITMENT_CLOSED));
-        } else if (groupStatus == GroupStatus.COMPLETED) {
+        } else if (status.equals("PAST")) {
             LocalDateTime start = LocalDate.now().minusDays(30).atStartOfDay();
             LocalDateTime end = LocalDate.now().plusDays(1).atStartOfDay();
             builder.and(groupMemberQ.isActive.isFalse())

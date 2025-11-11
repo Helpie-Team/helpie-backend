@@ -5,6 +5,7 @@ import com.helpie.backend.domain.survey.SurveyBasicInfo;
 import com.helpie.backend.domain.user.UserImage;
 import com.helpie.backend.dto.group.GroupResponse;
 import com.helpie.backend.dto.group.MyGroupResponse;
+import com.helpie.backend.dto.mypage.response.MyBookmarkResponse;
 import com.helpie.backend.dto.mypage.response.MyProfileResponse;
 import com.helpie.backend.dto.survey.SurveyBasicInfoResponse;
 import com.helpie.backend.exception.BusinessException;
@@ -61,11 +62,11 @@ public class MyPageFacade {
         );
     }
 
-    public Page<MyGroupResponse> getMyGroups(Long userId, GroupStatus groupStatus, Pageable pageable) {
-        return groupService.getMyGroups(userId, groupStatus, pageable);
+    public Page<MyGroupResponse> getMyGroups(Long userId, String status, Pageable pageable) {
+        return groupService.getMyGroups(userId, status, pageable);
     }
 
-    public Page<GroupResponse> getMyBookmarks(Long userId, Pageable pageable) {
+    public Page<MyBookmarkResponse> getMyBookmarks(Long userId, Pageable pageable) {
         return bookmarkService.getByPreference(userId, pageable);
     }
 

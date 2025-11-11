@@ -194,6 +194,17 @@ public class AuthController {
         return Response.success(emailService.checkValidAuthByEmail(mail, authNumber));
     }
 
+
+    @PostMapping("/password-change")
+    @SecurityRequirement(name = "JWT Authentication")
+    @Secured(UserRole.USER_TYPE)
+    @Operation(summary = "비밀번호 변경")
+    public Response<String> passwordChange(PasswordChangeRequest passwordChangeRequest) {
+        userService.updatePassword(passwordChangeRequest.email(), passwordChangeRequest.password());
+        return Response.success("비밀번호 변경이 완료되었습니다.");
+    }
+
+
     @GetMapping("/username-check")
     @ApiResponses({
             @ApiResponse(responseCode = "200", content = @Content(

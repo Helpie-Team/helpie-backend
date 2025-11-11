@@ -7,5 +7,5 @@ import org.springframework.data.domain.Pageable;
 
 public interface GroupCustomRepository {
 
-    Page<MyGroupResponse> findMyGroups(Long userId, GroupStatus groupStatus, Pageable pageable);
+    Page<MyGroupResponse> findMyGroups(Long userId, String status, Pageable pageable);
 }

@@ -5,6 +5,7 @@ import com.helpie.backend.domain.user.UserVo;
 import com.helpie.backend.dto.group.FindMyGroupsRequest;
 import com.helpie.backend.dto.group.GroupResponse;
 import com.helpie.backend.dto.group.MyGroupResponse;
+import com.helpie.backend.dto.mypage.response.MyBookmarkResponse;
 import com.helpie.backend.dto.mypage.response.MyProfileResponse;
 import com.helpie.backend.facade.mypage.MyPageFacade;
 import com.helpie.backend.service.location.LocationService;
@@ -66,7 +67,7 @@ public class MyPageController {
     @SecurityRequirement(name = "JWT Authentication")
     @Secured(UserRole.USER_TYPE)
     @Operation(summary = "내 북마크 정보를 불러옵니다.")
-    public ResponseEntity<Page<GroupResponse>> getMyBookmarkInfo(
+    public ResponseEntity<Page<MyBookmarkResponse>> getMyBookmarkInfo(
             @AuthenticationPrincipal UserVo userVo,
             @PageableDefault(size = 20, sort = "createdAt", direction = Sort.Direction.DESC) Pageable pageable){
         return ResponseEntity.ok(myPageFacade.getMyBookmarks(userVo.getId(), pageable));

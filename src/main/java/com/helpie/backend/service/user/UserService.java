@@ -7,6 +7,7 @@ import com.helpie.backend.exception.BusinessException;
 import com.helpie.backend.exception.ErrorCode;
 import com.helpie.backend.repository.user.UserRepository;
 import lombok.RequiredArgsConstructor;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -19,6 +20,7 @@ public class UserService {
 
     private final UserRepository userRepository;
     private final UserCommonService userCommonService;
+    private final BCryptPasswordEncoder encoder;
 
     public UserVo findUserVo(Long memberId) {
 
@@ -68,6 +70,14 @@ public class UserService {
     public void updateUsername(Long userId, String username) {
         final var user = this.userCommonService.findById(userId);
         user.updateUsername(username);
+    }
+
+    @Transactional
+    public void updatePassword(String email, String password) {
+        final var user = userRepository.findByEmail(email)
+                .orElseThrow(() -> new BusinessException(ErrorCode.USER_NOT_FOUND) {
+                });
+        user.updatePassword(encoder.encode(password));
     }
 
     @Transactional(readOnly = true)
