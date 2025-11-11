@@ -66,49 +66,29 @@ public class Group {
 
     @Enumerated(EnumType.STRING)
     @Column(name = "status", nullable = false)
-    private GroupStatus status;
+    @Builder.Default
+    private GroupStatus status=GroupStatus.RECRUITING;
 
     @Column(name = "max_members", nullable = false)
     private Integer maxMembers;
 
     @Column(name = "current_members", nullable = false)
-    private Integer currentMembers;
+    @Builder.Default
+    private Integer currentMembers=0;
 
     @Column(name = "meeting_date", nullable = false)
     private LocalDateTime meetingDate;
 
     @Column(name = "created_at", nullable = false)
-    private LocalDateTime createdAt;
+    @Builder.Default
+    private LocalDateTime createdAt=LocalDateTime.now();
 
     @Column(name = "updated_at")
-    private LocalDateTime updatedAt;
+    @Builder.Default
+    private LocalDateTime updatedAt=LocalDateTime.now();
 
     @Column(name = "created_by")
     private Long createdBy;
-
-    public Group(String title, String description, City city, Set<Interest> interests,
-        Category category, Integer maxMembers, Integer currentMembers,
-        Long createdBy, LocalDateTime meetingDate) {
-        this.title = title;
-        this.description = description;
-        this.city = city;
-        this.interests = interests != null ? new HashSet<>(interests) : new HashSet<>();
-        this.category = category;
-        this.status = GroupStatus.RECRUITING;
-        this.maxMembers = maxMembers != null ? maxMembers : 5;
-        this.currentMembers = currentMembers != null ? currentMembers : 0;
-        this.images=new ArrayList<>();
-        this.createdBy = createdBy;
-        this.meetingDate = meetingDate;
-        this.createdAt = LocalDateTime.now();
-        this.updatedAt = LocalDateTime.now();
-    }
-
-    public Group(String title, String description, City city, Category category,
-        Set<Interest> interests, Integer maxMember, LocalDateTime meetingDate) {
-        this(title, description, city, interests, category, maxMember, 0,
-            null, meetingDate);
-    }
 
     @PreUpdate
     public void onUpdate() {

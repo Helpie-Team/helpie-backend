@@ -5,7 +5,6 @@ import com.helpie.backend.domain.group.Group;
 import com.helpie.backend.domain.group.Bookmark;
 import com.helpie.backend.domain.group.GroupImage;
 import com.helpie.backend.domain.group.GroupMember;
-import com.helpie.backend.domain.group.GroupStatus;
 import com.helpie.backend.domain.location.City;
 import com.helpie.backend.domain.survey.SurveyBasicInfo;
 import com.helpie.backend.dto.group.*;
@@ -56,16 +55,16 @@ public class GroupService {
         City city = cityRepository.findById(req.cityId())
             .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 도시입니다: " + req.cityId()));
 
-        // 2. 소모임 생성
-        Group group = new Group(
-            req.title(),
-            req.description(),
-            city,
-            req.category(),
-            req.interests(),
-            req.maxMember(),
-            req.meetingDate()
-            );
+        Group group=Group.builder()
+            .title(req.title())
+            .description(req.description())
+            .city(city)
+            .category(req.category())
+            .interests(req.interests())
+            .maxMembers(req.maxMember())
+            .meetingDate(req.meetingDate())
+            .createdBy(userId)
+            .build();
 
         Group savedGroup = groupRepository.save(group);
         log.info("소모임 생성 완료 - groupId: {}", savedGroup.getId());
