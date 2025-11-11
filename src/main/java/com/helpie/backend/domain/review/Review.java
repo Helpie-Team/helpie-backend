@@ -57,18 +57,6 @@ public class Review {
     @Column(name = "created_at", nullable = false)
     private LocalDateTime createdAt;
 
-
-
-    public Review(Integer rate, String description, User user, Group group,Boolean anonymityYn) {
-        this.rate = rate;
-        this.description = description;
-        this.anonymityYn = anonymityYn;
-        this.user = user;
-        this.group = group;
-        this.images=new ArrayList<>();
-        this.createdAt=LocalDateTime.now();
-    }
-
     public void addImage(ReviewImage image) {
         images.add(image);
         image.setReview(this);
