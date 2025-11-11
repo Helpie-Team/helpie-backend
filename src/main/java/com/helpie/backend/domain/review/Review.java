@@ -65,6 +65,7 @@ public class Review {
         this.anonymityYn = anonymityYn;
         this.user = user;
         this.group = group;
+        this.images=new ArrayList<>();
         this.createdAt=LocalDateTime.now();
     }
 

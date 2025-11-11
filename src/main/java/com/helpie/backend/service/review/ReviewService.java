@@ -10,7 +10,6 @@ import com.helpie.backend.dto.review.ReviewResponse;
 import com.helpie.backend.repository.group.GroupRepository;
 import com.helpie.backend.repository.review.ReviewCustomRepository;
 import com.helpie.backend.repository.review.ReviewRepository;
-import com.helpie.backend.repository.user.UserImageRepository;
 import com.helpie.backend.repository.user.UserRepository;
 import com.helpie.backend.service.file.FileService;
 import java.util.ArrayList;
@@ -43,8 +42,7 @@ public class ReviewService {
             .orElseThrow(() -> new IllegalArgumentException("해당 그룹이 존재하지 않습니다. groupId=" + groupId));
 
         //리뷰 생성
-        Review review= new Review(request.rate(),request.description(),user,group,request.anonymityYn());
-       reviewRepository.save(review);
+       Review review=reviewRepository.save(new Review(request.rate(),request.description(),user,group,request.anonymityYn()));
 
         //이미지 저장
         List<String> urls;
