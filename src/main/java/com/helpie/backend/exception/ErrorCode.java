@@ -60,7 +60,11 @@ public enum ErrorCode {
     CHATROOM_NOT_FOUND(HttpStatus.NOT_FOUND, "CHATROOM_001", "채팅방을 찾을 수 없습니다"),
     CHATROOM_NOT_JOINED(HttpStatus.BAD_REQUEST, "CHATROOM_002", "채팅방에 입장하지 않았습니다"),
     CHATROOM_ACCESS_DENIED(HttpStatus.FORBIDDEN, "CHATROOM_003", "채팅방 접근 권한이 없습니다"),
-    
+
+    // == group 도메인 에러==
+    NO_GROUP_INFO(HttpStatus.NOT_FOUND, "GROUP_001", "존재하지 않는 소모임입니다"),
+     GROUP_ENDED(HttpStatus.NOT_FOUND, "GROUP_001", "이미 완료한 소모임입니다"),
+
     // === 공통 에러 ===
     VALIDATION_FAILED(HttpStatus.BAD_REQUEST, "COMMON_001", "입력값 검증에 실패했습니다"),
     INTERNAL_SERVER_ERROR(HttpStatus.INTERNAL_SERVER_ERROR, "COMMON_002", "서버 내부 오류가 발생했습니다"),

@@ -117,6 +117,28 @@ public class GroupController {
         return ResponseEntity.ok(bookmarkService.toggleBookmark(userVo.getId(),groupId));
     }
 
+    @GetMapping("/{groupId}")
+    @Secured(UserRole.USER_TYPE)
+    @SecurityRequirement(name = "JWT Authentication")
+    @Operation(summary = "소모임 상세 정보 조회")
+    public ResponseEntity<GroupResponse> getGroupById(
+        @PathVariable Long groupId,
+        @AuthenticationPrincipal UserVo userVo
+    ){
+        return ResponseEntity.ok(groupService.getGroupById(groupId));
+    }
+
+    @PostMapping("/join/{groupId}")
+    @Secured(UserRole.USER_TYPE)
+    @SecurityRequirement(name = "JWT Authentication")
+    @Operation(summary = "소모임에 가입합니다")
+    public ResponseEntity<String> joinGroup(@AuthenticationPrincipal UserVo userVo, @PathVariable Long groupId) {
+        groupService.joinGroup(groupId,userVo.getId(), userVo.getUsername());
+        return ResponseEntity.ok("소모임 가입에 완료되었습니다");
+    }
+
+
+
 
     @PostMapping("/cancel/{groupId}")
     @Secured(UserRole.USER_TYPE)

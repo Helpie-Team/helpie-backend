@@ -41,10 +41,16 @@ public class ReviewService {
         Group group = groupRepository.findById(groupId)
             .orElseThrow(() -> new IllegalArgumentException("해당 그룹이 존재하지 않습니다. groupId=" + groupId));
 
-        //리뷰 생성
-       Review review=reviewRepository.save(new Review(request.rate(),request.description(),user,group,request.anonymityYn()));
+       Review review=Review.builder()
+           .rate(request.rate())
+           .description(request.description())
+           .user(user)
+           .group(group)
+           .anonymityYn(request.anonymityYn())
+           .build();
 
-        //이미지 저장
+        Review saved=reviewRepository.save(review);
+       //이미지 저장
         List<String> urls;
         try {
             urls = fileService.uploadFiles(images);
@@ -59,9 +65,9 @@ public class ReviewService {
         }
 
         return new ReviewCreateResponse(
-            review.getId(),
-            review.getRate(),
-            review.getDescription(),
+            saved.getId(),
+            saved.getRate(),
+            saved.getDescription(),
             urls
         );
 
