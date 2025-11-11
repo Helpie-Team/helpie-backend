@@ -118,7 +118,12 @@ public class GroupController {
     }
 
 
-
-
-
+    @PostMapping("/cancel/{groupId}")
+    @Secured(UserRole.USER_TYPE)
+    @SecurityRequirement(name = "JWT Authentication")
+    @Operation(summary = "소모임 신청을 취소 합니다.")
+    public ResponseEntity<String> cancelGroup(@AuthenticationPrincipal UserVo userVo, @PathVariable Long groupId) {
+        groupService.cancelGroup(userVo.getId(), groupId);
+        return ResponseEntity.ok("소모임 신청이 취소되었습니다.");
+    }
 }

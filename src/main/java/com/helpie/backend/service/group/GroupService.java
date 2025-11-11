@@ -9,6 +9,8 @@ import com.helpie.backend.domain.group.GroupStatus;
 import com.helpie.backend.domain.location.City;
 import com.helpie.backend.domain.survey.SurveyBasicInfo;
 import com.helpie.backend.dto.group.*;
+import com.helpie.backend.exception.BusinessException;
+import com.helpie.backend.exception.ErrorCode;
 import com.helpie.backend.repository.group.BookmarkRepository;
 import com.helpie.backend.repository.group.GroupCustomRepository;
 import com.helpie.backend.repository.group.GroupMemberRepository;
@@ -201,5 +203,14 @@ public class GroupService {
             .findAllByFilters(cities,category,pageable)
             .map(GroupResponse::from);
 
+    }
+
+    public void cancelGroup(Long userId, long groupId) {
+        final var groupMember = groupMemberRepository.findByGroupIdAndUserId(userId, groupId);
+        if (groupMember.isEmpty()) {
+            throw new BusinessException(ErrorCode.INTERNAL_SERVER_ERROR, "User is not a member of the group") {
+            };
+        }
+        groupMember.get().leave();
     }
 }
