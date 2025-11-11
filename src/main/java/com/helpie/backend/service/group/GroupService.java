@@ -205,6 +205,7 @@ public class GroupService {
 
     }
 
+    @Transactional
     public void cancelGroup(Long userId, long groupId) {
         final var groupMember = groupMemberRepository.findByGroupIdAndUserId(userId, groupId);
         if (groupMember.isEmpty()) {
