@@ -1,0 +1,33 @@
+
+<configuration scan="true">
+    <springProperty name="DISCORD_WEBHOOK_URL" source="logging.discord.webhook-url"/>
+
+    <appender name="CONSOLE" class="ch.qos.logback.core.ConsoleAppender">
+        <encoder>
+            <pattern>%d{yyyy-MM-dd HH:mm:ss} [%thread] %-5level %logger{36} - %msg%n</pattern>
+            <charset>UTF-8</charset>
+        </encoder>
+    </appender>
+
+    <appender name="DISCORD" class="com.github.napstr.logback.DiscordAppender">
+        <webhookUri>https://discord.com/api/webhooks/1438149379612475412/X-mypjVTlevcLYf3VeKWxZoz5Nly3ZzqyDgaoOznpa0dnqrnyGPxfAhqF-Bnqso8DuAh</webhookUri>
+        <layout class="ch.qos.logback.classic.PatternLayout">
+            <pattern>%d{HH:mm:ss} [%-5level] %logger{36} - %msg%n```%ex{full}```</pattern>
+        </layout>
+        <username>helpie-backend</username>
+        <tts>false</tts>
+    </appender>
+
+    <appender name="ASYNC_DISCORD" class="ch.qos.logback.classic.AsyncAppender">
+        <appender-ref ref="DISCORD"/>
+        <filter class="ch.qos.logback.classic.filter.ThresholdFilter">
+            <level>ERROR</level>
+        </filter>
+    </appender>
+
+    <!-- 모든 환경에서 콘솔 출력 + Discord 전송 -->
+    <root level="INFO">
+        <appender-ref ref="CONSOLE"/>
+        <appender-ref ref="ASYNC_DISCORD"/>
+    </root>
+</configuration>
