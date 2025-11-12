@@ -216,7 +216,7 @@ public class GroupService {
 
     @Transactional
     public void cancelGroup(Long userId, long groupId) {
-        final var groupMember = groupMemberRepository.findByGroupIdAndUserId(userId, groupId);
+        final var groupMember = groupMemberRepository.findByGroupIdAndUserId(groupId, userId);
         if (groupMember.isEmpty()) {
             throw new BusinessException(ErrorCode.INTERNAL_SERVER_ERROR, "User is not a member of the group") {
             };
