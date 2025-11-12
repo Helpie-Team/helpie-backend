@@ -222,6 +222,11 @@ public class GroupService {
             throw new BusinessException(ErrorCode.INTERNAL_SERVER_ERROR, "User is not a member of the group") {
             };
         }
+
+        if (groupMember.get().getLeftAt() != null) {
+            throw new BusinessException(ErrorCode.INTERNAL_SERVER_ERROR, "이미 취소 된 모임 입니다.") {
+            };
+        }
         groupMember.get().leave();
     }
 }
