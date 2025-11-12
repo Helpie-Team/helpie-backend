@@ -1,6 +1,7 @@
 package com.helpie.backend.dto.group;
 
 import com.helpie.backend.domain.survey.Interest;
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Set;
 
@@ -11,7 +12,8 @@ public record GroupCreateResponse(
     Integer maxMember,
     String city,
     Set<Interest> interest,
-    List<String> imageUrls
+    List<String> imageUrls,
+    LocalDateTime meetingDate
 ) {
 
 }
