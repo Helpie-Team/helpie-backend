@@ -14,8 +14,8 @@ import java.util.Set;
           "title": "영화 감상 모임",
           "description": "매주 영화를 보고 이야기 나누는 모임입니다",
           "cityId": 1,
-          "interests": ["MOVIE_WATCHING", "DISCUSSION"],
-          "category": "CULTURAL",
+          "interests": ["MOVIE_WATCHING","BAKING"],
+          "category": "HOBBY",
           "maxMember": 10,
           "meetingDate": "2025-12-01T19:00:00"
         }
