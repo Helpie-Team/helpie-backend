@@ -103,7 +103,8 @@ public class GroupService {
             savedGroup.getMaxMembers(),
             savedGroup.getCity().getName(),
             savedGroup.getInterests(),
-            urls
+            urls,
+            savedGroup.getMeetingDate()
         );
     }
 
