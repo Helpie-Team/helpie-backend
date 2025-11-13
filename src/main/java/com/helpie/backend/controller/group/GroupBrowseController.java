@@ -36,8 +36,11 @@ public class GroupBrowseController {
         @RequestParam(defaultValue = "0") int page
     ) {
         Pageable pageable = PageRequest.of(page, 12, Sort.by("createdAt").descending());
-        Page<GroupResponse> response = groupService.browseByCountry(country, category, pageable);
-        return ResponseEntity.ok(response);
+
+        if (country.equals("ALL")){
+            return ResponseEntity.ok(groupService.browseAllCountry(category, pageable));
+        }
+        return ResponseEntity.ok(groupService.browseByCountry(country, category, pageable));
     }
 
     @GetMapping("/review/list")

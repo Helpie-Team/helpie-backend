@@ -97,8 +97,10 @@ public class GroupController {
     ){
         Pageable pageable= PageRequest.of(page,12,Sort.by("createdAt").descending());
 
-        Page<GroupResponse> response=groupService.getGroupByCountry(userVo.getId(),country,category,pageable);
-        return ResponseEntity.ok(response);
+        if (country.equals("ALL")){
+            return ResponseEntity.ok(groupService.getAllGroups(userVo.getId(),category,pageable));
+        }
+        return ResponseEntity.ok(groupService.getGroupByCountry(userVo.getId(),country,category,pageable));
     }
 
     @PostMapping("/mark/{groupId}")

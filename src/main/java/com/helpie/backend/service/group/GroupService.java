@@ -6,10 +6,12 @@ import com.helpie.backend.domain.group.Bookmark;
 import com.helpie.backend.domain.group.GroupImage;
 import com.helpie.backend.domain.group.GroupMember;
 import com.helpie.backend.domain.location.City;
+import com.helpie.backend.domain.location.Country;
 import com.helpie.backend.domain.survey.SurveyBasicInfo;
 import com.helpie.backend.dto.group.*;
 import com.helpie.backend.exception.BusinessException;
 import com.helpie.backend.exception.ErrorCode;
+import com.helpie.backend.exception.GroupException;
 import com.helpie.backend.repository.group.BookmarkRepository;
 import com.helpie.backend.repository.group.GroupCustomRepository;
 import com.helpie.backend.repository.group.GroupMemberRepository;
@@ -163,6 +165,15 @@ public class GroupService {
     }
 
     /**
+     * 전체 국가 조회
+     */
+    public Page<GroupResponse> getAllGroups(Long userId,Category category, Pageable pageable) {
+        Page<Group> groups = groupRepository.findAllByFilters(cityRepository.findAll(), category, pageable);
+
+        return mapGroupsWithBookmarks(userId, groups);
+    }
+
+    /**
      * 맞춤형: 도시, 흥미별 소모임 조회
      */
     public RecommendedResponse getGroupsByInterest(Long userId, Pageable pageable) {
@@ -207,13 +218,27 @@ public class GroupService {
     }
 
     public Page<GroupResponse> browseByCountry(String code, Category category, Pageable pageable) {
-        List<City> cities=countryRepository.findByCode(code).get().getCities();
+        Country country = countryRepository.findByCode(code).orElseThrow(()-> new GroupException(ErrorCode.INTERNAL_SERVER_ERROR,"존재하지 않는 국가입니다"));
+
+        return groupRepository
+            .findAllByFilters(country.getCities(),category,pageable)
+            .map(GroupResponse::from);
+
+    }
+
+    /**
+     전체 국가 소모임 조회
+     */
+    public Page<GroupResponse> browseAllCountry(Category category, Pageable pageable) {
+        List<City> cities=cityRepository.findAll();
 
         return groupRepository
             .findAllByFilters(cities,category,pageable)
             .map(GroupResponse::from);
 
     }
+
+
 
     @Transactional
     public void cancelGroup(Long userId, long groupId) {
