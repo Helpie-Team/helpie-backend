@@ -141,7 +141,6 @@ public class GroupController {
 
 
 
-
     @PostMapping("/cancel/{groupId}")
     @Secured(UserRole.USER_TYPE)
     @SecurityRequirement(name = "JWT Authentication")
@@ -150,4 +149,23 @@ public class GroupController {
         groupService.cancelGroup(userVo.getId(), groupId);
         return ResponseEntity.ok("소모임 신청이 취소되었습니다.");
     }
+
+
+    @GetMapping("/search")
+    @Secured(UserRole.USER_TYPE)
+    @SecurityRequirement(name = "JWT Authentication")
+    @Operation(summary = "소모임 검색", description = "태그로 소모임을 조회합니다.ex) 영화 감상 ")
+    public ResponseEntity<Page<GroupResponse>> getGroupByKeyword(
+        @AuthenticationPrincipal UserVo userVo,
+        @Parameter(description = "나라") @RequestParam String country,
+        @Parameter(description = "검색어") @RequestParam String keyword,
+        @RequestParam(defaultValue ="0") int page
+
+    ){
+        Pageable pageable= PageRequest.of(page,12,Sort.by("createdAt").descending());
+        return ResponseEntity.ok(groupService.getKeywordByUser(userVo.getId(),country,keyword,pageable));
+
+    }
+
+
 }

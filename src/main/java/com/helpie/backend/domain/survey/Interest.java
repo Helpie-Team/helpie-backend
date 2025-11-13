@@ -1,5 +1,7 @@
 package com.helpie.backend.domain.survey;
 
+import java.util.Arrays;
+
 /**
  * 관심사 및 취미 Enum
  * 
@@ -42,12 +44,23 @@ public enum Interest {
     EXHIBITION("전시회"),
     MUSEUM("미술관 관람"),
     VOLUNTEER("봉사활동"),
-    HOUSE_HUNTING("집구하기");
+    HOUSE_HUNTING("집구하기"),
+
+    //조회 결과 없음
+    NO_RESULT("결과 없음");
 
     private final String description;
 
     Interest(String description) {
         this.description = description;
+    }
+
+    public static Interest getByDescription(String description) {
+        return Arrays.stream(values())
+            .filter(i -> i.getDescription().equals(description))
+            .findFirst()
+            .orElse(NO_RESULT);
+
     }
 
     public String getDescription() {

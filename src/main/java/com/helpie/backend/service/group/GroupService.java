@@ -7,6 +7,7 @@ import com.helpie.backend.domain.group.GroupImage;
 import com.helpie.backend.domain.group.GroupMember;
 import com.helpie.backend.domain.location.City;
 import com.helpie.backend.domain.location.Country;
+import com.helpie.backend.domain.survey.Interest;
 import com.helpie.backend.domain.survey.SurveyBasicInfo;
 import com.helpie.backend.dto.group.*;
 import com.helpie.backend.exception.BusinessException;
@@ -238,7 +239,36 @@ public class GroupService {
 
     }
 
+    /**
+     로그인: 검색어로 조회
+     */
+    public Page<GroupResponse> getKeywordByUser(Long userId,String code, String keyword, Pageable pageable) {
+        List<City> cities=getByCode(code);
+        Interest interest=Interest.getByDescription(keyword);
 
+        Page<Group> group=groupRepository.findByKeyword(cities, interest, pageable);
+        return mapGroupsWithBookmarks(userId, group);
+
+    }
+
+    public Page<GroupResponse> getByKeyword(String code, String keyword, Pageable pageable) {
+        List<City> cities=getByCode(code);
+        Interest interest=Interest.getByDescription(keyword);
+
+        return groupRepository.findByKeyword(cities, interest, pageable).map(GroupResponse::from);
+
+    }
+
+    private List<City> getByCode(String code){
+        if (code.equals("ALL")){
+            return cityRepository.findAll();
+        }
+        else{
+            return countryRepository.findByCode(code)
+                .orElseThrow(()->new GroupException(ErrorCode.INTERNAL_SERVER_ERROR,"존재하지 않는 국가입니다"))
+                .getCities();
+        }
+    }
 
     @Transactional
     public void cancelGroup(Long userId, long groupId) {
