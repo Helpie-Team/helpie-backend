@@ -52,4 +52,17 @@ public class GroupBrowseController {
         return ResponseEntity.ok(reviewService.getReview(pageable));
     }
 
+
+    @GetMapping("/search")
+    @Operation(summary = "소모임 검색", description = "흥미 있는 키워드로 소모임을 조회합니다 ex) 영화 감상")
+    public ResponseEntity<Page<GroupResponse>> getGroupByKeyword(
+        @Parameter(description = "나라") @RequestParam String country,
+        @Parameter(description = "검색어") @RequestParam String keyword,
+        @RequestParam(defaultValue ="0") int page
+
+    ){
+        Pageable pageable= PageRequest.of(page,12,Sort.by("createdAt").descending());
+        return ResponseEntity.ok(groupService.getByKeyword(country,keyword,pageable));
+    }
+
 }

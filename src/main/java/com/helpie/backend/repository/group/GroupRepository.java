@@ -52,4 +52,15 @@ public interface GroupRepository extends JpaRepository<Group, Long> {
 
 """)
     Page<Group> findByInterestFilters(@Param("city") City city, @Param("interests") Set<Interest> interests, Pageable pageable);
+
+
+    @Query("""
+    SELECT DISTINCT g
+    FROM Group g
+    WHERE g.city IN :cities
+      AND g.status IN ('RECRUITING', 'RECRUITMENT_CLOSED')
+      AND :interest MEMBER OF g.interests
+""")
+
+    Page<Group> findByKeyword(List<City> cities, Interest interest, Pageable pageable);
 }
