@@ -13,7 +13,8 @@ public record GroupCreateResponse(
     String city,
     Set<Interest> interest,
     List<String> imageUrls,
-    LocalDateTime meetingDate
+    LocalDateTime meetingDate,
+    Long chatRoomId
 ) {
 
 }

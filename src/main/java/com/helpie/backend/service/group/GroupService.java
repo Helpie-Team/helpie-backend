@@ -107,7 +107,8 @@ public class GroupService {
             savedGroup.getCity().getName(),
             savedGroup.getInterests(),
             urls,
-            savedGroup.getMeetingDate()
+            savedGroup.getMeetingDate(),
+            chatRoomId
         );
     }
 
