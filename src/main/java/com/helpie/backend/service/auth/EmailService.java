@@ -1,7 +1,7 @@
 package com.helpie.backend.service.auth;
 
-import com.helpie.backend.domain.Email.AuthType;
-import com.helpie.backend.domain.Email.EmailAuth;
+import com.helpie.backend.domain.email.AuthType;
+import com.helpie.backend.domain.email.EmailAuth;
 import com.helpie.backend.exception.BusinessException;
 import com.helpie.backend.exception.ErrorCode;
 import com.helpie.backend.repository.auth.EmailAuthRepository;
@@ -49,14 +49,14 @@ public class EmailService {
         return message;
     }
 
-    public int sendAuthMail(String mail) {
-        checkEmail(mail);
+    public int sendAuthMail(String mail, AuthType authType) {
+        checkEmail(mail, authType);
         MimeMessage message = createAuthMail(mail);
         javaMailSender.send(message);
         emailAuthRepository.save(
                 EmailAuth.builder()
                         .email(mail)
-                        .authType(AuthType.EMAIL_AUTH)
+                        .authType(authType)
                         .authNumber(authNumber)
                         .expired(false)
                         .build());
@@ -68,9 +68,9 @@ public class EmailService {
     }
 
     @Transactional
-    public String checkValidAuthByEmail(String mail, Integer authNumber) {
+    public String checkValidAuthByEmail(String mail, AuthType authType, Integer authNumber) {
         EmailAuth emailAuth = emailAuthRepository.findValidAuthByEmail(
-                mail, AuthType.EMAIL_AUTH, authNumber, LocalDateTime.now()
+                mail, authType, authNumber, LocalDateTime.now()
                 ).orElseThrow(() ->
                         new BusinessException(
                                 ErrorCode.EMAIL_AUTH_INVALID,
@@ -82,8 +82,8 @@ public class EmailService {
         return "이메일 인증 성공";
     }
 
-    private void checkEmail(String mail) {
-        if (userRepository.existsByEmail(mail)) {
+    private void checkEmail(String mail, AuthType authType) {
+        if (emailAuthRepository.existsByEmailAndAuthType(mail, authType)) {
             throw new BusinessException(ErrorCode.ALREADY_EXIST_EMAIL, "이미 존재하는 이메일입니다.") {
             };
         }

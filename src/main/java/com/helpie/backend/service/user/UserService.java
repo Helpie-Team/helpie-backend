@@ -34,6 +34,12 @@ public class UserService {
             String username,
             String email
     ) {
+
+        if (this.existsByEmail(email)) {
+            throw new BusinessException(ErrorCode.ALREADY_EXIST_MEMBER, "이미 존재하는 이메일 입니다.") {
+            };
+        }
+
         if (this.existsByUsername(username)) {
             throw new BusinessException(ErrorCode.ALREADY_EXIST_MEMBER, "이미 존재하는 유저입니다.") {
             };
@@ -83,6 +89,11 @@ public class UserService {
     @Transactional(readOnly = true)
     public boolean existsByUsername(String username) {
         return this.userRepository.existsByUsername(username);
+    }
+
+    @Transactional(readOnly = true)
+    public Boolean existsByEmail(String email) {
+        return this.userRepository.existsByEmail(email);
     }
 }
 

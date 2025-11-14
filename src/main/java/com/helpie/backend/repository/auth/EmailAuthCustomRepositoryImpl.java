@@ -1,8 +1,8 @@
 package com.helpie.backend.repository.auth;
 
-import com.helpie.backend.domain.Email.AuthType;
-import com.helpie.backend.domain.Email.EmailAuth;
-import com.helpie.backend.domain.Email.QEmailAuth;
+import com.helpie.backend.domain.email.AuthType;
+import com.helpie.backend.domain.email.EmailAuth;
+import com.helpie.backend.domain.email.QEmailAuth;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import jakarta.persistence.EntityManager;
 

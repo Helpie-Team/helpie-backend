@@ -1,4 +1,4 @@
-package com.helpie.backend.domain.Email;
+package com.helpie.backend.domain.email;
 
 import jakarta.persistence.*;
 import lombok.Builder;
