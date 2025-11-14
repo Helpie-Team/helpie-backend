@@ -58,13 +58,13 @@ public class ChatRoomServiceImpl implements ChatRoomService {
         validateGroupMembership(chatRoom.getGroup().getId(), userId);
         
         // 이미 입장해 있는지 확인
-        Optional<ChatRoomParticipant> existingParticipant = 
+        Optional<ChatRoomParticipant> existingParticipant =
             participantRepository.findByChatRoomIdAndUserId(chatRoomId, userId);
-        
-        if (existingParticipant.isPresent() && existingParticipant.get().getIsOnline()) {
-            log.info("사용자 {}가 이미 채팅방 {}에 입장해 있습니다", userId, chatRoomId);
-            return ChatRoomResponse.from(chatRoom);
-        }
+
+//        if (existingParticipant.isPresent() && existingParticipant.get().getIsOnline()) {
+//            log.info("사용자 {}가 이미 채팅방 {}에 입장해 있습니다", userId, chatRoomId);
+//            return ChatRoomResponse.from(chatRoom);
+//        }
         
         // 참여자 정보 저장 또는 업데이트
         if (existingParticipant.isPresent()) {
@@ -203,7 +203,7 @@ public class ChatRoomServiceImpl implements ChatRoomService {
     
     @Override
     @Transactional
-    public void autoJoinGroupChatRoom(Long groupId, Long userId, String userName, String joinMessage) {
+    public Long autoJoinGroupChatRoom(Long groupId, Long userId, String userName, String joinMessage) {
         log.debug("소모임 채팅방 자동 입장 - groupId: {}, userId: {}", groupId, userId);
         
         // 1. 채팅방 찾기
@@ -219,6 +219,8 @@ public class ChatRoomServiceImpl implements ChatRoomService {
         if (joinMessage != null && !joinMessage.isEmpty()) {
             webSocketService.sendSystemMessage(chatRoom.getId(), joinMessage);
         }
+
+        return chatRoom.getId();
     }
 
     /**
