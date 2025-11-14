@@ -175,8 +175,8 @@ public class AuthController {
     @Operation(
             summary = "이메일 인증 번호를 발송합니다."
     )
-    public Response<String> mailSend(String mail) {
-        return Response.success("" + emailService.sendAuthMail(mail));
+    public Response<String> mailSend(EmailSendRequest req) {
+        return Response.success("" + emailService.sendAuthMail(req.email(), req.authType()));
     }
 
     @ApiResponses({
@@ -190,8 +190,8 @@ public class AuthController {
             description = "인증번호, 만료여부를 확인합니다. 이메일 인증 성공 후 인증번호는 만료처리 됩니다."
     )
     @GetMapping("/mail-check")
-    public Response<String> mailCheck(@RequestParam String mail, Integer authNumber) {
-        return Response.success(emailService.checkValidAuthByEmail(mail, authNumber));
+    public Response<String> mailCheck(EmailAuthCheckRequest req) {
+        return Response.success(emailService.checkValidAuthByEmail(req.email(), req.authType(), req.authNumber()));
     }
 
 

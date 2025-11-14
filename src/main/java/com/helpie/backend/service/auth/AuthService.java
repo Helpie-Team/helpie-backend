@@ -54,6 +54,7 @@ public class AuthService {
             SocialType socialType,
             SignupByCodeRequest signupByCodeRequest
     ) {
+
         final Long memberId = this.userService.createUser(
                 signupByCodeRequest.username(),
                 signupByCodeRequest.email()
