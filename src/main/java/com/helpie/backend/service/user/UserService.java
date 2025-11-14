@@ -1,10 +1,12 @@
 package com.helpie.backend.service.user;
 
+import com.helpie.backend.domain.email.AuthType;
 import com.helpie.backend.domain.user.User;
 import com.helpie.backend.domain.user.UserRole;
 import com.helpie.backend.domain.user.UserVo;
 import com.helpie.backend.exception.BusinessException;
 import com.helpie.backend.exception.ErrorCode;
+import com.helpie.backend.repository.auth.EmailAuthRepository;
 import com.helpie.backend.repository.user.UserRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
@@ -21,6 +23,7 @@ public class UserService {
     private final UserRepository userRepository;
     private final UserCommonService userCommonService;
     private final BCryptPasswordEncoder encoder;
+    private final EmailAuthRepository emailAuthRepository;
 
     public UserVo findUserVo(Long memberId) {
 
@@ -79,11 +82,14 @@ public class UserService {
     }
 
     @Transactional
-    public void updatePassword(String email, String password) {
+    public void updatePassword(String email, String password, AuthType authType) {
         final var user = userRepository.findByEmail(email)
                 .orElseThrow(() -> new BusinessException(ErrorCode.USER_NOT_FOUND) {
                 });
         user.updatePassword(encoder.encode(password));
+
+        final var emailAuthByPW = emailAuthRepository.findByEmailAndAuthType(email, authType);
+        emailAuthRepository.delete(emailAuthByPW);
     }
 
     @Transactional(readOnly = true)
