@@ -295,4 +295,13 @@ public class GroupService {
     }
 
 
+    public JoinStateResponse getJoinState(Long userId, Long groupId) {
+        Optional<GroupMember> groupMember=groupMemberRepository.findByGroupIdAndUserId(groupId,userId);
+
+        if (groupMember.isEmpty()) {
+            return new JoinStateResponse(false);
+        }
+
+        return new JoinStateResponse(true);
+    }
 }

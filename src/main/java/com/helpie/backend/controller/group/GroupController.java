@@ -8,6 +8,7 @@ import com.helpie.backend.dto.group.GroupCreateRequest;
 import com.helpie.backend.dto.group.GroupCreateResponse;
 import com.helpie.backend.dto.group.JoinResponse;
 import com.helpie.backend.dto.group.GroupResponse;
+import com.helpie.backend.dto.group.JoinStateResponse;
 import com.helpie.backend.dto.group.RecommendedResponse;
 import com.helpie.backend.service.group.BookmarkService;
 import com.helpie.backend.service.group.GroupService;
@@ -137,6 +138,15 @@ public class GroupController {
     @Operation(summary = "소모임에 가입합니다")
     public ResponseEntity<JoinResponse> joinGroup(@AuthenticationPrincipal UserVo userVo, @PathVariable Long groupId) {
         return ResponseEntity.ok(groupService.joinGroup(groupId,userVo.getId(), userVo.getUsername()));
+    }
+
+    @GetMapping("/join/{groupId}")
+    @Secured(UserRole.USER_TYPE)
+    @SecurityRequirement(name = "JWT Authentication")
+    @Operation(summary = "소모임 가입 여부를 조회합니다")
+    public ResponseEntity<JoinStateResponse> getGroup(@AuthenticationPrincipal UserVo userVo, @PathVariable Long groupId) {
+        groupService.getJoinState(userVo.getId(),groupId);
+        return ResponseEntity.ok(groupService.getJoinState(userVo.getId(),groupId));
     }
 
     @GetMapping("/room/{roomId}")
