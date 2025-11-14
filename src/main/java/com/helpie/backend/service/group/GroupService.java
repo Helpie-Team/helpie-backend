@@ -115,7 +115,7 @@ public class GroupService {
      * 소모임에 가입하고 채팅방에 자동 입장합니다.
      */
     @Transactional
-    public void joinGroup(Long groupId, Long userId, String userName) {
+    public JoinResponse joinGroup(Long groupId, Long userId, String userName) {
         log.debug("소모임 가입 시작 - groupId: {}, userId: {}", groupId, userId);
 
         // 1. 소모임 조회 및 검증
@@ -137,9 +137,17 @@ public class GroupService {
         // 4. 채팅방에 자동 입장 (ChatRoomService에 위임)
         String joinMessage = String.format("👋 %s님이 소모임에 참가하셨습니다! 환영해주세요!",
             userName != null ? userName : "새로운 멤버");
-        chatRoomService.autoJoinGroupChatRoom(groupId, userId, userName, joinMessage);
+        Long chatroomId=chatRoomService.autoJoinGroupChatRoom(groupId, userId, userName, joinMessage);
 
         log.info("소모임 가입 및 채팅방 자동 입장 완료 - groupId: {}, userId: {}", groupId, userId);
+
+        return new JoinResponse(chatroomId,"소모임 가입이 완료되었습니다");
+    }
+
+    public JoinResponse enterChatRoom(Long roomId, Long id, String username) {
+        chatRoomService.enterChatRoom(roomId, id, username);
+
+        return new JoinResponse(roomId,"채팅방 입장이 완료되었습니다");
     }
 
     /**
@@ -284,4 +292,6 @@ public class GroupService {
         }
         groupMember.get().leave();
     }
+
+
 }

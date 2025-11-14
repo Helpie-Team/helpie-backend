@@ -6,6 +6,7 @@ import com.helpie.backend.domain.user.UserVo;
 import com.helpie.backend.dto.group.BookmarkResponse;
 import com.helpie.backend.dto.group.GroupCreateRequest;
 import com.helpie.backend.dto.group.GroupCreateResponse;
+import com.helpie.backend.dto.group.JoinResponse;
 import com.helpie.backend.dto.group.GroupResponse;
 import com.helpie.backend.dto.group.RecommendedResponse;
 import com.helpie.backend.service.group.BookmarkService;
@@ -134,9 +135,16 @@ public class GroupController {
     @Secured(UserRole.USER_TYPE)
     @SecurityRequirement(name = "JWT Authentication")
     @Operation(summary = "소모임에 가입합니다")
-    public ResponseEntity<String> joinGroup(@AuthenticationPrincipal UserVo userVo, @PathVariable Long groupId) {
-        groupService.joinGroup(groupId,userVo.getId(), userVo.getUsername());
-        return ResponseEntity.ok("소모임 가입에 완료되었습니다");
+    public ResponseEntity<JoinResponse> joinGroup(@AuthenticationPrincipal UserVo userVo, @PathVariable Long groupId) {
+        return ResponseEntity.ok(groupService.joinGroup(groupId,userVo.getId(), userVo.getUsername()));
+    }
+
+    @GetMapping("/room/{roomId}")
+    @Secured(UserRole.USER_TYPE)
+    @SecurityRequirement(name = "JWT Authentication")
+    @Operation(summary = "가입한 소모임의 채팅방으로 이동합니다")
+    public ResponseEntity<JoinResponse> enterChatRoom(@AuthenticationPrincipal UserVo userVo, @PathVariable Long roomId) {
+        return ResponseEntity.ok(groupService.enterChatRoom(roomId,userVo.getId(), userVo.getUsername()));
     }
 
 

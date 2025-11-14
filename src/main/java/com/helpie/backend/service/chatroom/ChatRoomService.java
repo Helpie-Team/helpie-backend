@@ -100,5 +100,5 @@ public interface ChatRoomService {
      * @param userName 사용자 이름
      * @param joinMessage 가입 메시지
      */
-    void autoJoinGroupChatRoom(Long groupId, Long userId, String userName, String joinMessage);
+    Long autoJoinGroupChatRoom(Long groupId, Long userId, String userName, String joinMessage);
 }
