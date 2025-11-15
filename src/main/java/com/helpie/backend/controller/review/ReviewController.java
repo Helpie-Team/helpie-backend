@@ -42,7 +42,7 @@ public class ReviewController {
                            - rate: 평점
                            - description: 후기
                            """)
-    public ResponseEntity<ReviewCreateResponse> createGroup(
+    public ResponseEntity<ReviewCreateResponse> createReview(
         @AuthenticationPrincipal UserVo userVo,
         @PathVariable Long groupId,
         @Parameter(description = "리뷰 작성") @RequestPart("payload") ReviewCreateRequest request,
@@ -53,5 +53,4 @@ public class ReviewController {
 
         return ResponseEntity.ok(response);
     }
-
 }

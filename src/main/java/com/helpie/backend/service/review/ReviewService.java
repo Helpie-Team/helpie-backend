@@ -7,6 +7,8 @@ import com.helpie.backend.domain.user.User;
 import com.helpie.backend.dto.review.ReviewCreateRequest;
 import com.helpie.backend.dto.review.ReviewCreateResponse;
 import com.helpie.backend.dto.review.ReviewResponse;
+import com.helpie.backend.exception.ErrorCode;
+import com.helpie.backend.exception.GroupException;
 import com.helpie.backend.repository.group.GroupRepository;
 import com.helpie.backend.repository.review.ReviewCustomRepository;
 import com.helpie.backend.repository.review.ReviewRepository;
@@ -32,6 +34,7 @@ public class ReviewService {
     private final UserRepository userRepository;
     private final ReviewCustomRepository reviewCustomRepository;
     private final FileService fileService;
+    private final AnonymousService anonymousService;
 
     @Transactional
     public ReviewCreateResponse createReview(Long userId,Long groupId, ReviewCreateRequest request, List<MultipartFile> images) {
@@ -41,6 +44,11 @@ public class ReviewService {
         Group group = groupRepository.findById(groupId)
             .orElseThrow(() -> new IllegalArgumentException("해당 그룹이 존재하지 않습니다. groupId=" + groupId));
 
+        if (reviewRepository.existsByGroup_IdAndUser_Id(groupId,userId)){
+            throw new GroupException(ErrorCode.DUPLICATED_REVIEW,"이미 작성한 리뷰입니다");
+
+        }
+
        Review review=Review.builder()
            .rate(request.rate())
            .description(request.description())
@@ -48,6 +56,11 @@ public class ReviewService {
            .group(group)
            .anonymityYn(request.anonymityYn())
            .build();
+
+        if (Boolean.TRUE.equals(request.anonymityYn())) {
+            Long seq = anonymousService.nextNumber();
+            review.assignAnonymousName(seq);
+        }
 
         Review saved=reviewRepository.save(review);
        //이미지 저장

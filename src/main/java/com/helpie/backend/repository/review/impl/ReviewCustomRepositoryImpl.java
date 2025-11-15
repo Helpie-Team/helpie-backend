@@ -46,7 +46,9 @@ public class ReviewCustomRepositoryImpl implements ReviewCustomRepository {
                 review.description,
                 group.meetingDate,
                 reviewImage.imageUrl,
-                userImage.imageUrl
+                userImage.imageUrl,
+                review.anonymityYn,
+                review.anonymousName
             )
             .from(review)
             .join(review.user, user)
@@ -64,6 +66,9 @@ public class ReviewCustomRepositoryImpl implements ReviewCustomRepository {
             Long reviewId = tuple.get(review.id);
 
             ReviewResponseBuilder builder = map.computeIfAbsent(reviewId, id -> {
+                Boolean anonymityYn = tuple.get(review.anonymityYn);
+                String anonymousName = tuple.get(review.anonymousName);
+
                 String reviewerName = tuple.get(user.username);
                 String groupTitle = tuple.get(group.title);
                 Integer rate = tuple.get(review.rate);
@@ -73,12 +78,12 @@ public class ReviewCustomRepositoryImpl implements ReviewCustomRepository {
 
                 return new ReviewResponseBuilder(
                     id,
-                    reviewerName,
+                    anonymityYn==Boolean.TRUE?anonymousName:reviewerName,
                     groupTitle,
                     rate,
                     description,
                     meetingDate,
-                    profileImageUrl
+                    anonymityYn==Boolean.TRUE?null:profileImageUrl
                 );
             });
 
