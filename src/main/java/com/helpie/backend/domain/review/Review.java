@@ -55,7 +55,8 @@ public class Review {
     private Group group;
 
     @Column(name = "created_at", nullable = false)
-    private LocalDateTime createdAt;
+    @Builder.Default
+    private LocalDateTime createdAt=LocalDateTime.now();
 
     public void addImage(ReviewImage image) {
         images.add(image);
