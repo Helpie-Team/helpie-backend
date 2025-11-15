@@ -64,6 +64,7 @@ public enum ErrorCode {
     // == group 도메인 에러==
     NO_GROUP_INFO(HttpStatus.NOT_FOUND, "GROUP_001", "존재하지 않는 소모임입니다"),
      GROUP_ENDED(HttpStatus.NOT_FOUND, "GROUP_001", "이미 완료한 소모임입니다"),
+    DUPLICATED_REVIEW(HttpStatus.BAD_REQUEST,"GROUP_002","이미 작성한 리뷰입니다"),
 
     // === 공통 에러 ===
     VALIDATION_FAILED(HttpStatus.BAD_REQUEST, "COMMON_001", "입력값 검증에 실패했습니다"),

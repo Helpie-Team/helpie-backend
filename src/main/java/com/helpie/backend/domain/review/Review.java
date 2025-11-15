@@ -42,6 +42,10 @@ public class Review {
     @Column(name="anonymityYn")
     private Boolean anonymityYn;
 
+    @Column(name = "anonymous_name", length = 50)
+    @Builder.Default
+    private String anonymousName=null;
+
     @OneToMany(mappedBy = "review", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
     @Builder.Default
     private List<ReviewImage> images = new ArrayList<>();
@@ -62,5 +66,10 @@ public class Review {
         images.add(image);
         image.setReview(this);
     }
+
+    public void assignAnonymousName(Long sequence) {
+        this.anonymousName = "익명 "+sequence;
+    }
+
 
 }
