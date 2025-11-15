@@ -261,9 +261,10 @@ public class GroupService {
     }
 
     public Page<GroupResponse> getByKeyword(String code, String keyword, Pageable pageable) {
+        log.info("keyword: {}, code: {}", keyword,code);
         List<City> cities=getByCode(code);
         Interest interest=Interest.getByDescription(keyword);
-
+        log.info("interest: {}", interest);
         return groupRepository.findByKeyword(cities, interest, pageable).map(GroupResponse::from);
 
     }
