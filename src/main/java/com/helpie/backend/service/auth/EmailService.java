@@ -49,6 +49,7 @@ public class EmailService {
         return message;
     }
 
+    @Transactional
     public int sendAuthMail(String mail, AuthType authType) {
         checkEmail(mail, authType);
         MimeMessage message = createAuthMail(mail);
