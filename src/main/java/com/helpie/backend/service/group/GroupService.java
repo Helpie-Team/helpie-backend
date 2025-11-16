@@ -73,6 +73,7 @@ public class GroupService {
 
         Group savedGroup = groupRepository.save(group);
         log.info("소모임 생성 완료 - groupId: {}", savedGroup.getId());
+        savedGroup.addMember(userId);
 
         //TODO: 비동기처리
         List<String> urls;
@@ -300,6 +301,8 @@ public class GroupService {
             throw new BusinessException(ErrorCode.INTERNAL_SERVER_ERROR, "이미 취소 된 모임 입니다.") {
             };
         }
+        Group group=groupMember.get().getGroup();
+        group.removeMember(userId);
         groupMember.get().leave();
     }
 
