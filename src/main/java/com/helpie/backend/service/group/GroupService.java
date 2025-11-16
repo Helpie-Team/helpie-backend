@@ -133,7 +133,7 @@ public class GroupService {
 
         //재가입 추가
         if (existingMember.isPresent()) {
-            existingMember.get().updateToActive();
+            existingMember.get().rejoin();
         }else{
             // 3. 소모임 멤버 추가
             group.addMember(userId); // 현재 인원수 증가

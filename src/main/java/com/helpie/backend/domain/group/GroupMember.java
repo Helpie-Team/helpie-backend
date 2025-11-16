@@ -76,7 +76,4 @@ public class GroupMember {
         this.leftAt = null;
     }
 
-    public void updateToActive() {
-        this.isActive = true;
-    }
 }
