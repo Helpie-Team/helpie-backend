@@ -65,7 +65,7 @@ public class GroupResponse {
         int dayBefore;
         try {
             dayBefore = group.getDayBefore();
-        } catch (Exception e) {
+        } catch (com.helpie.backend.exception.GroupException e) {
             dayBefore = 0; // 끝난 모임은 0으로 처리
         }
 

@@ -45,9 +45,12 @@ public class GroupCustomRepositoryImpl extends QuerydslRepositorySupport impleme
                     .and(groupQ.meetingDate.lt(end));
         }
 
-        // Group 엔티티 전체를 가져와서 썸네일 정보 포함
+        // Group 엔티티 전체를 가져와서 썸네일 정보 포함 (N+1 문제 해결)
         JPQLQuery<Group> query = from(groupMemberQ)
                 .join(groupMemberQ.group, groupQ)
+                .leftJoin(groupQ.city).fetchJoin()
+                .leftJoin(groupQ.city.country).fetchJoin()
+                .leftJoin(groupQ.images).fetchJoin()
                 .where(builder)
                 .select(groupQ)
                 .orderBy(groupQ.meetingDate.desc())
