@@ -115,10 +115,10 @@ public class Group {
     }
 
     /**
-     * 소모임이 가득 찼는지 확인합니다. (현재는 무제한이므로 항상 false)
+     * 소모임이 가득 찼는지 확인합니다.
      */
     public boolean isFull() {
-        return false;
+        return currentMembers >= maxMembers;
     }
 
 
@@ -144,7 +144,8 @@ public class Group {
     }
 
     public String getThumbnail() {
-        if (images.isEmpty()) return "NO_IMAGE";
-        return this.getImages().get(0).getImageUrl();
+        if (images == null || images.isEmpty()) return "NO_IMAGE";
+        GroupImage firstImage = images.get(0);
+        return firstImage != null ? firstImage.getImageUrl() : "NO_IMAGE";
     }
 }

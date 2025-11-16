@@ -62,6 +62,13 @@ public class GroupResponse {
         String thumbnail=group.getThumbnail();
         if (thumbnail.equals("NO_IMAGE")) thumbnail=DEFAULT_THUMBNAIL_URL;
 
+        int dayBefore;
+        try {
+            dayBefore = group.getDayBefore();
+        } catch (com.helpie.backend.exception.GroupException e) {
+            dayBefore = 0; // 끝난 모임은 0으로 처리
+        }
+
         return GroupResponse.builder()
             .id(group.getId())
             .title(group.getTitle())
@@ -71,7 +78,7 @@ public class GroupResponse {
             .maxMember(group.getMaxMembers())
             .thumbnail(thumbnail)
             .isPopular(group.isPopular())
-            .dayBefore(group.getDayBefore())
+            .dayBefore(dayBefore)
             .status(group.getStatus())
             .meetingDate(group.getMeetingDate());
     }

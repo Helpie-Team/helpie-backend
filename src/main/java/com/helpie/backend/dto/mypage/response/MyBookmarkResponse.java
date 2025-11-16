@@ -35,10 +35,23 @@ public record MyBookmarkResponse(
         LocalDateTime meetingDate,
 
         @Schema(description = "모임 생성일")
-        LocalDateTime createdAt
+        LocalDateTime createdAt,
+
+        @Schema(description = "썸네일 URL", example = "https://example.com/thumbnail.jpg")
+        String thumbnailUrl,
+
+        @Schema(description = "모임까지 남은 일수", example = "3")
+        int dDay
 ) {
 
     public static MyBookmarkResponse from(Group group) {
+        int dDay;
+        try {
+            dDay = group.getDayBefore();
+        } catch (com.helpie.backend.exception.GroupException e) {
+            dDay = 0; // 끝난 모임은 0으로 처리
+        }
+        
         return new MyBookmarkResponse(
                 group.getId(),
                 group.getTitle(),
@@ -48,7 +61,9 @@ public record MyBookmarkResponse(
                 group.getCity().getName(),
                 group.getCategory(),
                 group.getMeetingDate(),
-                group.getCreatedAt()
+                group.getCreatedAt(),
+                group.getThumbnail(),
+                dDay
         );
     }
 }
