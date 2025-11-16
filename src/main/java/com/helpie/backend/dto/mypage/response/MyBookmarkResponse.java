@@ -35,7 +35,10 @@ public record MyBookmarkResponse(
         LocalDateTime meetingDate,
 
         @Schema(description = "모임 생성일")
-        LocalDateTime createdAt
+        LocalDateTime createdAt,
+
+        @Schema(description = "썸네일 URL", example = "https://example.com/thumbnail.jpg")
+        String thumbnailUrl
 ) {
 
     public static MyBookmarkResponse from(Group group) {
@@ -48,7 +51,8 @@ public record MyBookmarkResponse(
                 group.getCity().getName(),
                 group.getCategory(),
                 group.getMeetingDate(),
-                group.getCreatedAt()
+                group.getCreatedAt(),
+                group.getThumbnail()
         );
     }
 }
