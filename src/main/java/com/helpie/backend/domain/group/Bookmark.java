@@ -37,6 +37,7 @@ public class Bookmark {
     public Bookmark(Long userId, Long groupId) {
         this.userId = userId;
         this.groupId = groupId;
+        this.bookmarkYn = true;
     }
 
     public boolean update() {
