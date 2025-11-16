@@ -45,6 +45,13 @@ public record MyBookmarkResponse(
 ) {
 
     public static MyBookmarkResponse from(Group group) {
+        int dDay;
+        try {
+            dDay = group.getDayBefore();
+        } catch (Exception e) {
+            dDay = 0; // 끝난 모임은 0으로 처리
+        }
+        
         return new MyBookmarkResponse(
                 group.getId(),
                 group.getTitle(),
@@ -56,7 +63,7 @@ public record MyBookmarkResponse(
                 group.getMeetingDate(),
                 group.getCreatedAt(),
                 group.getThumbnail(),
-                group.getDayBefore()
+                dDay
         );
     }
 }
