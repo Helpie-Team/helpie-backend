@@ -13,6 +13,7 @@ import com.helpie.backend.dto.group.*;
 import com.helpie.backend.exception.BusinessException;
 import com.helpie.backend.exception.ErrorCode;
 import com.helpie.backend.exception.GroupException;
+import com.helpie.backend.repository.chatroom.ChatRoomRepository;
 import com.helpie.backend.repository.group.BookmarkRepository;
 import com.helpie.backend.repository.group.GroupCustomRepository;
 import com.helpie.backend.repository.group.GroupMemberRepository;
@@ -49,6 +50,7 @@ public class GroupService {
     private final FileService fileService;
     private final GroupCustomRepository groupCustomRepository;
     private final BookmarkRepository bookmarkRepository;
+    private final ChatRoomRepository chatRoomRepository;
 
     @Transactional
     public GroupCreateResponse createGroup(Long userId, GroupCreateRequest req, List<MultipartFile> images) {
@@ -129,21 +131,27 @@ public class GroupService {
             throw new IllegalStateException("이미 가입된 소모임입니다: " + groupId);
         }
 
-        // 3. 소모임 멤버 추가
-        group.addMember(userId); // 현재 인원수 증가
-        GroupMember groupMember = new GroupMember(group, userId, userName, true);
-        groupMemberRepository.save(groupMember);
-        log.info("소모임 가입 완료 - groupId: {}, userId: {}", groupId, userId);
+        //재가입 추가
+        if (existingMember.isPresent()) {
+            existingMember.get().updateToActive();
+        }else{
+            // 3. 소모임 멤버 추가
+            group.addMember(userId); // 현재 인원수 증가
+            GroupMember groupMember = new GroupMember(group, userId, userName, true);
+            groupMemberRepository.save(groupMember);
+            log.info("소모임 가입 완료 - groupId: {}, userId: {}", groupId, userId);
 
-        // 4. 채팅방에 자동 입장 (ChatRoomService에 위임)
-        String joinMessage = String.format("👋 %s님이 소모임에 참가하셨습니다! 환영해주세요!",
-            userName != null ? userName : "새로운 멤버");
-        Long chatroomId=chatRoomService.autoJoinGroupChatRoom(groupId, userId, userName, joinMessage);
+            // 4. 채팅방에 자동 입장 (ChatRoomService에 위임)
+            String joinMessage = String.format("👋 %s님이 소모임에 참가하셨습니다! 환영해주세요!",
+                userName != null ? userName : "새로운 멤버");
+            Long chatroomId=chatRoomService.autoJoinGroupChatRoom(groupId, userId, userName, joinMessage);
 
-        log.info("소모임 가입 및 채팅방 자동 입장 완료 - groupId: {}, userId: {}", groupId, userId);
+            log.info("소모임 가입 및 채팅방 자동 입장 완료 - groupId: {}, userId: {}", groupId, userId);
+        }
 
-        return new JoinResponse(chatroomId,"소모임 가입이 완료되었습니다");
+        return new JoinResponse(chatRoomRepository.findByGroupId(groupId).get().getId(),"소모임 가입이 완료되었습니다");
     }
+    @Transactional
 
     public JoinResponse enterChatRoom(Long roomId, Long id, String username) {
         chatRoomService.enterChatRoom(roomId, id, username);
@@ -288,7 +296,7 @@ public class GroupService {
             };
         }
 
-        if (groupMember.get().getLeftAt() != null) {
+        if (!groupMember.get().getIsActive()) {
             throw new BusinessException(ErrorCode.INTERNAL_SERVER_ERROR, "이미 취소 된 모임 입니다.") {
             };
         }
