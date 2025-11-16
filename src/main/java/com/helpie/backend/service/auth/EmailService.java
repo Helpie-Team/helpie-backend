@@ -83,6 +83,10 @@ public class EmailService {
     }
 
     private void checkEmail(String mail, AuthType authType) {
+        if (authType.equals(AuthType.PW_AUTH) && !userRepository.existsByEmail(mail)) {
+            throw new BusinessException(ErrorCode.NOT_EXIST_EMAIL, "존재하지 않는 이메일입니다.") {
+            };
+        }
         if (authType.equals(AuthType.EMAIL_AUTH) && emailAuthRepository.existsByEmailAndAuthType(mail, authType)) {
             throw new BusinessException(ErrorCode.ALREADY_EXIST_EMAIL, "이미 존재하는 이메일입니다.") {
             };
