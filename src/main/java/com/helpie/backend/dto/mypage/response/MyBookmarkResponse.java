@@ -48,7 +48,7 @@ public record MyBookmarkResponse(
         int dDay;
         try {
             dDay = group.getDayBefore();
-        } catch (Exception e) {
+        } catch (com.helpie.backend.exception.GroupException e) {
             dDay = 0; // 끝난 모임은 0으로 처리
         }
         

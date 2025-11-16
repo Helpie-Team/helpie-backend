@@ -34,6 +34,9 @@ public interface GroupRepository extends JpaRepository<Group, Long> {
 
     @Query("""
     SELECT g FROM Group g
+    JOIN FETCH g.city c
+    JOIN FETCH c.country
+    LEFT JOIN FETCH g.images
     WHERE g.city IN :cities
       AND (:category = 'ALL' OR g.category = :category)
       AND g.status IN ('RECRUITING', 'RECRUITMENT_CLOSED')
@@ -57,6 +60,9 @@ public interface GroupRepository extends JpaRepository<Group, Long> {
     @Query("""
     SELECT DISTINCT g
     FROM Group g
+    JOIN FETCH g.city c
+    JOIN FETCH c.country
+    LEFT JOIN FETCH g.images
     WHERE g.city IN :cities
       AND g.status IN ('RECRUITING', 'RECRUITMENT_CLOSED')
       AND :interest MEMBER OF g.interests

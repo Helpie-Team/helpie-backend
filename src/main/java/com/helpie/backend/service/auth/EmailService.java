@@ -14,6 +14,7 @@ import org.springframework.scheduling.annotation.EnableAsync;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.security.SecureRandom;
 import java.time.LocalDateTime;
 import java.util.Map;
 
@@ -26,11 +27,10 @@ public class EmailService {
 
 
     private static final String SENDER_EMAIL = "junobee27@gmail.com";
-    private static int authNumber;
+    private final SecureRandom secureRandom = new SecureRandom();
     private final UserRepository userRepository;
 
-    public MimeMessage createAuthMail(String mail) {
-        createNumber();
+    public MimeMessage createAuthMail(String mail, int authNumber) {
         MimeMessage message = javaMailSender.createMimeMessage();
 
         try {
@@ -52,7 +52,8 @@ public class EmailService {
     @Transactional
     public int sendAuthMail(String mail, AuthType authType) {
         checkEmail(mail, authType);
-        MimeMessage message = createAuthMail(mail);
+        int authNumber = generateAuthNumber();
+        MimeMessage message = createAuthMail(mail, authNumber);
         javaMailSender.send(message);
         emailAuthRepository.save(
                 EmailAuth.builder()
@@ -64,8 +65,8 @@ public class EmailService {
         return authNumber;
     }
 
-    public static void createNumber() {
-        authNumber = (int) (Math.random() * (90000)) + 100000;
+    private int generateAuthNumber() {
+        return secureRandom.nextInt(900000) + 100000; // 100000-999999
     }
 
     @Transactional
