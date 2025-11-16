@@ -27,6 +27,9 @@ public class BookmarkCustomRepositoryImpl implements BookmarkCustomRepository {
                 .select(g)
                 .from(b)
                 .join(g).on(g.id.eq(b.groupId))
+                .leftJoin(g.city).fetchJoin()
+                .leftJoin(g.city.country).fetchJoin()
+                .leftJoin(g.images).fetchJoin()
                 .where(
                     b.userId.eq(userId),
                     b.bookmarkYn.isTrue()

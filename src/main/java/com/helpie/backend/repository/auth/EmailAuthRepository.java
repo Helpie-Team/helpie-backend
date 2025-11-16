@@ -7,4 +7,6 @@ import org.springframework.data.jpa.repository.JpaRepository;
 public interface EmailAuthRepository extends JpaRepository<EmailAuth, Long>, EmailAuthCustomRepository {
     Boolean existsByEmailAndAuthType(String email, AuthType authType);
     EmailAuth findByEmailAndAuthType(String email, AuthType authType);
+    Boolean existsByEmailAndAuthTypeAndExpired(String email, AuthType authType, Boolean expired);
+    void deleteByEmailAndAuthType(String email, AuthType authType);
 }
