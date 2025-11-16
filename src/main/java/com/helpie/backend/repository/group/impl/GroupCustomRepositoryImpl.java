@@ -1,5 +1,6 @@
 package com.helpie.backend.repository.group.impl;
 
+import com.helpie.backend.domain.group.Group;
 import com.helpie.backend.domain.group.GroupMember;
 import com.helpie.backend.domain.group.GroupStatus;
 import com.helpie.backend.domain.group.QGroup;
@@ -18,6 +19,7 @@ import org.springframework.stereotype.Repository;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.stream.Collectors;
 
 @Repository
 public class GroupCustomRepositoryImpl extends QuerydslRepositorySupport implements GroupCustomRepository {
@@ -43,24 +45,32 @@ public class GroupCustomRepositoryImpl extends QuerydslRepositorySupport impleme
                     .and(groupQ.meetingDate.lt(end));
         }
 
-        JPQLQuery<MyGroupResponse> query = from(groupMemberQ)
+        // Group 엔티티 전체를 가져와서 썸네일 정보 포함
+        JPQLQuery<Group> query = from(groupMemberQ)
                 .join(groupMemberQ.group, groupQ)
                 .where(builder)
-                .select(Projections.constructor(MyGroupResponse.class,
-                        groupQ.id,
-                        groupQ.title,
-                        groupQ.description,
-                        groupQ.city.name,
-                        groupQ.currentMembers,
-                        groupQ.maxMembers,
-                        groupQ.category,
-                        groupQ.meetingDate
-                ))
+                .select(groupQ)
                 .orderBy(groupQ.meetingDate.desc())
                 .offset(pageable.getOffset())
                 .limit(pageable.getPageSize());
 
-        List<MyGroupResponse> content = query.fetch();
+        List<Group> groups = query.fetch();
+        
+        // Group 엔티티를 MyGroupResponse로 변환
+        List<MyGroupResponse> content = groups.stream()
+                .map(group -> new MyGroupResponse(
+                        group.getId(),
+                        group.getTitle(),
+                        group.getDescription(),
+                        group.getCity().getName(),
+                        group.getCurrentMembers(),
+                        group.getMaxMembers(),
+                        group.getCategory(),
+                        group.getMeetingDate(),
+                        group.getThumbnail()
+                ))
+                .collect(Collectors.toList());
+
         Long total = from(groupMemberQ)
                 .join(groupMemberQ.group, groupQ)
                 .where(builder)
