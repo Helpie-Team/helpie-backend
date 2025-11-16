@@ -23,7 +23,7 @@ import lombok.NoArgsConstructor;
           "id": 1,
           "title": "영화 감상 모임",
           "description": "매주 영화를 보고 이야기 나누는 모임입니다",
-          "cityName": "대한민국 > 서울",
+          "cityName": "서울",
           "category": "CULTURAL",
           "maxMember": 10,
           "thumbnail": "https://kr.object.ncloudstorage.com/helpie-bucket/uploads/2025/11/07/uuid.png",
@@ -73,7 +73,7 @@ public class GroupResponse {
             .id(group.getId())
             .title(group.getTitle())
             .description(group.getDescription())
-            .cityName(group.getCity().getCountry().getName() + " > " + group.getCity().getName())
+            .cityName(group.getCity().getName())
             .category(group.getCategory())
             .maxMember(group.getMaxMembers())
             .thumbnail(thumbnail)
