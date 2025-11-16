@@ -87,9 +87,11 @@ public class EmailService {
             throw new BusinessException(ErrorCode.NOT_EXIST_EMAIL, "존재하지 않는 이메일입니다.") {
             };
         }
-        if (authType.equals(AuthType.EMAIL_AUTH) && emailAuthRepository.existsByEmailAndAuthType(mail, authType)) {
-            throw new BusinessException(ErrorCode.ALREADY_EXIST_EMAIL, "이미 존재하는 이메일입니다.") {
-            };
+        if (authType.equals(AuthType.EMAIL_AUTH)) {
+            // 기존 EmailAuth 기록이 있으면 삭제 (재인증 허용)
+            if (emailAuthRepository.existsByEmailAndAuthType(mail, authType)) {
+                emailAuthRepository.deleteByEmailAndAuthType(mail, authType);
+            }
         }
     }
 }
