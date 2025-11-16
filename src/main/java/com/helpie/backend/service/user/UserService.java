@@ -65,7 +65,18 @@ public class UserService {
         if (this.existsByUsername(username)) {
             throw new BusinessException(ErrorCode.ALREADY_EXIST_MEMBER, "이미 존재하는 유저입니다.") {
             };
+        }
 
+        if (this.existsByEmail(email)) {
+            // 이메일 인증이 완료되지 않은 계정인지 확인
+            if (!this.isEmailVerified(email)) {
+                // 미인증 계정 삭제
+                this.deleteUnverifiedUser(email);
+            } else {
+                // 인증 완료된 계정이면 중복 오류
+                throw new BusinessException(ErrorCode.ALREADY_EXIST_MEMBER, "이미 존재하는 이메일 입니다.") {
+                };
+            }
         }
 
         final var user = new User(username, email, password);
@@ -100,6 +111,35 @@ public class UserService {
     @Transactional(readOnly = true)
     public Boolean existsByEmail(String email) {
         return this.userRepository.existsByEmail(email);
+    }
+
+    /**
+     * 이메일 인증이 완료되었는지 확인
+     */
+    @Transactional(readOnly = true)
+    public boolean isEmailVerified(String email) {
+        // EMAIL_AUTH 타입으로 인증이 완료된(expired=true) 기록이 있는지 확인
+        return emailAuthRepository.existsByEmailAndAuthTypeAndExpired(
+                email, 
+                com.helpie.backend.domain.email.AuthType.EMAIL_AUTH, 
+                true
+        );
+    }
+
+    /**
+     * 미인증 계정 삭제
+     */
+    @Transactional
+    public void deleteUnverifiedUser(String email) {
+        userRepository.findByEmail(email).ifPresent(user -> {
+            // 관련된 EmailAuth 기록도 삭제
+            emailAuthRepository.deleteByEmailAndAuthType(
+                    email, 
+                    com.helpie.backend.domain.email.AuthType.EMAIL_AUTH
+            );
+            // 사용자 삭제
+            userRepository.delete(user);
+        });
     }
 }
 
