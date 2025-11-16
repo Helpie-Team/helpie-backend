@@ -14,12 +14,12 @@ public record SignupByCodeRequest(
         @Schema(
                 requiredMode = Schema.RequiredMode.REQUIRED,
                 description = "유저 별명",
-                minLength = 4,
-                maxLength = 15,
+                minLength = 2,
+                maxLength = 12,
                 pattern = UserRegexp.USERNAME_REGEXP
         )
         @Pattern(regexp = UserRegexp.USERNAME_REGEXP)
-        @Length(min = 4, max = 15)
+        @Length(min = 2, max = 12)
         String username,
 
         @NotNull
