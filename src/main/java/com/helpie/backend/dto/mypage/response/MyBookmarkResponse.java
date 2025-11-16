@@ -38,7 +38,10 @@ public record MyBookmarkResponse(
         LocalDateTime createdAt,
 
         @Schema(description = "썸네일 URL", example = "https://example.com/thumbnail.jpg")
-        String thumbnailUrl
+        String thumbnailUrl,
+
+        @Schema(description = "모임까지 남은 일수", example = "3")
+        int dDay
 ) {
 
     public static MyBookmarkResponse from(Group group) {
@@ -52,7 +55,8 @@ public record MyBookmarkResponse(
                 group.getCategory(),
                 group.getMeetingDate(),
                 group.getCreatedAt(),
-                group.getThumbnail()
+                group.getThumbnail(),
+                group.getDayBefore()
         );
     }
 }
