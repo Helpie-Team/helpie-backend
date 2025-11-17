@@ -60,7 +60,37 @@ public enum Interest {
             .filter(i -> i.getDescription().equals(description))
             .findFirst()
             .orElse(NO_RESULT);
-
+    }
+    
+    public static Interest findByKeyword(String keyword) {
+        if (keyword == null || keyword.trim().isEmpty()) {
+            return NO_RESULT;
+        }
+        
+        String normalizedKeyword = keyword.trim().toLowerCase();
+        
+        // 정확한 매칭 시도
+        Interest exactMatch = Arrays.stream(values())
+            .filter(i -> i.getDescription().toLowerCase().equals(normalizedKeyword))
+            .findFirst()
+            .orElse(null);
+            
+        if (exactMatch != null && exactMatch != NO_RESULT) {
+            return exactMatch;
+        }
+        
+        // 부분 매칭 시도 (공백 제거하여 비교)
+        Interest partialMatch = Arrays.stream(values())
+            .filter(i -> i != NO_RESULT)
+            .filter(i -> {
+                String normalizedDesc = i.getDescription().toLowerCase().replaceAll("\\s+", "");
+                String normalizedKey = normalizedKeyword.replaceAll("\\s+", "");
+                return normalizedDesc.contains(normalizedKey) || normalizedKey.contains(normalizedDesc);
+            })
+            .findFirst()
+            .orElse(null);
+            
+        return partialMatch != null ? partialMatch : NO_RESULT;
     }
 
     public String getDescription() {
