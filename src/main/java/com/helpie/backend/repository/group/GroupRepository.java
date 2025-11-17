@@ -65,8 +65,11 @@ public interface GroupRepository extends JpaRepository<Group, Long> {
     LEFT JOIN FETCH g.images
     WHERE g.city IN :cities
       AND g.status IN ('RECRUITING', 'RECRUITMENT_CLOSED')
-      AND :interest MEMBER OF g.interests
+      AND (
+                    g.title LIKE CONCAT('%', :keyword, '%')
+                    OR g.description LIKE CONCAT('%', :keyword, '%')
+                )
 """)
 
-    Page<Group> findByKeyword(List<City> cities, Interest interest, Pageable pageable);
+    Page<Group> findByKeyword(List<City> cities, String keyword, Pageable pageable);
 }
