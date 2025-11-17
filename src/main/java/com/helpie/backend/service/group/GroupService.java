@@ -7,7 +7,6 @@ import com.helpie.backend.domain.group.GroupImage;
 import com.helpie.backend.domain.group.GroupMember;
 import com.helpie.backend.domain.location.City;
 import com.helpie.backend.domain.location.Country;
-import com.helpie.backend.domain.survey.Interest;
 import com.helpie.backend.domain.survey.SurveyBasicInfo;
 import com.helpie.backend.dto.group.*;
 import com.helpie.backend.exception.BusinessException;
@@ -260,40 +259,18 @@ public class GroupService {
     /**
      로그인: 검색어로 조회
      */
-    public Page<GroupResponse> getKeywordByUser(Long userId,String code, String keyword, Pageable pageable) {
-        log.info("사용자 검색 시작 - userId: {}, keyword: {}, country: {}", userId, keyword, code);
-        
+    public Page<GroupResponse> getKeywordByUserV2(Long userId,String code, String keyword, Pageable pageable) {
         List<City> cities=getByCode(code);
-        Interest interest=Interest.findByKeyword(keyword);
-        
-        if (interest == Interest.NO_RESULT) {
-            log.warn("검색어에 매칭되는 관심사를 찾을 수 없습니다 - keyword: {}", keyword);
-            return Page.empty(pageable);
-        }
-        
-        log.info("매칭된 관심사 - interest: {}", interest.getDescription());
-        Page<Group> group=groupRepository.findByKeyword(cities, interest, pageable);
-        log.info("검색 결과 - 총 {}개 소모임", group.getTotalElements());
-        
+
+        Page<Group> group=groupRepository.findByKeyword(cities, keyword, pageable);
         return mapGroupsWithBookmarks(userId, group);
     }
 
-    public Page<GroupResponse> getByKeyword(String code, String keyword, Pageable pageable) {
-        log.info("공개 검색 시작 - keyword: {}, country: {}", keyword, code);
-        
+    public Page<GroupResponse> getByKeywordV2(String code, String keyword, Pageable pageable) {
+        log.info("keyword: {}, code: {}", keyword,code);
         List<City> cities=getByCode(code);
-        Interest interest=Interest.findByKeyword(keyword);
-        
-        if (interest == Interest.NO_RESULT) {
-            log.warn("검색어에 매칭되는 관심사를 찾을 수 없습니다 - keyword: {}", keyword);
-            return Page.empty(pageable);
-        }
-        
-        log.info("매칭된 관심사 - interest: {}", interest.getDescription());
-        Page<Group> groups = groupRepository.findByKeyword(cities, interest, pageable);
-        log.info("검색 결과 - 총 {}개 소모임", groups.getTotalElements());
-        
-        return groups.map(GroupResponse::from);
+        return groupRepository.findByKeyword(cities, keyword, pageable).map(GroupResponse::from);
+
     }
 
     private List<City> getByCode(String code){
