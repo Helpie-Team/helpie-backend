@@ -181,7 +181,7 @@ public class GroupController {
 
     ){
         Pageable pageable= PageRequest.of(page,12,Sort.by("createdAt").descending());
-        return ResponseEntity.ok(groupService.getKeywordByUser(userVo.getId(),country,keyword,pageable));
+        return ResponseEntity.ok(groupService.getKeywordByUserV2(userVo.getId(),country,keyword,pageable));
 
     }
 

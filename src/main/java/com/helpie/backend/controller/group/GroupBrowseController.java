@@ -62,7 +62,7 @@ public class GroupBrowseController {
 
     ){
         Pageable pageable= PageRequest.of(page,12,Sort.by("createdAt").descending());
-        return ResponseEntity.ok(groupService.getByKeyword(country,keyword,pageable));
+        return ResponseEntity.ok(groupService.getByKeywordV2(country,keyword,pageable));
     }
 
 }
