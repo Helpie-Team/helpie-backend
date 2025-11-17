@@ -264,7 +264,6 @@ public class GroupService {
 
         Page<Group> group=groupRepository.findByKeyword(cities, keyword, pageable);
         return mapGroupsWithBookmarks(userId, group);
-
     }
 
     public Page<GroupResponse> getByKeywordV2(String code, String keyword, Pageable pageable) {
