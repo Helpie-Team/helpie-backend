@@ -7,7 +7,6 @@ import com.helpie.backend.domain.group.GroupImage;
 import com.helpie.backend.domain.group.GroupMember;
 import com.helpie.backend.domain.location.City;
 import com.helpie.backend.domain.location.Country;
-import com.helpie.backend.domain.survey.Interest;
 import com.helpie.backend.domain.survey.SurveyBasicInfo;
 import com.helpie.backend.dto.group.*;
 import com.helpie.backend.exception.BusinessException;
@@ -260,21 +259,18 @@ public class GroupService {
     /**
      로그인: 검색어로 조회
      */
-    public Page<GroupResponse> getKeywordByUser(Long userId,String code, String keyword, Pageable pageable) {
+    public Page<GroupResponse> getKeywordByUserV2(Long userId,String code, String keyword, Pageable pageable) {
         List<City> cities=getByCode(code);
-        Interest interest=Interest.getByDescription(keyword);
 
-        Page<Group> group=groupRepository.findByKeyword(cities, interest, pageable);
+        Page<Group> group=groupRepository.findByKeyword(cities, keyword, pageable);
         return mapGroupsWithBookmarks(userId, group);
 
     }
 
-    public Page<GroupResponse> getByKeyword(String code, String keyword, Pageable pageable) {
+    public Page<GroupResponse> getByKeywordV2(String code, String keyword, Pageable pageable) {
         log.info("keyword: {}, code: {}", keyword,code);
         List<City> cities=getByCode(code);
-        Interest interest=Interest.getByDescription(keyword);
-        log.info("interest: {}", interest);
-        return groupRepository.findByKeyword(cities, interest, pageable).map(GroupResponse::from);
+        return groupRepository.findByKeyword(cities, keyword, pageable).map(GroupResponse::from);
 
     }
 
