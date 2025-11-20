@@ -103,7 +103,11 @@ public class ChatRoomController {
                      "**조회 기준:**\n" +
                      "- 사용자가 소모임 멤버인 채팅방만 조회\n" +
                      "- 현재 참여자 수 / 총 소모임 멤버 수 표시\n" +
-                     "- 활성 상태인 채팅방만 포함"
+                     "- 활성 상태인 채팅방만 포함\n\n" +
+                     "**응답 정보:**\n" +
+                     "- 채팅방 기본 정보 (ID, 제목, 참여자 수 등)\n" +
+                     "- 소모임 정보 (제목, 대표 이미지, 지역, 카테고리)\n" +
+                     "- 모바일 UI 구현에 필요한 모든 데이터 포함"
     )
     public ResponseEntity<List<ChatRoomResponse>> getAccessibleChatRooms(
         @AuthenticationPrincipal UserVo userVo
