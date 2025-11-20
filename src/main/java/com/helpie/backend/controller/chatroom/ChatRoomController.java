@@ -53,12 +53,14 @@ public class ChatRoomController {
     @SecurityRequirement(name = "JWT Authentication")
     @Operation(
         summary = "채팅방 입장", 
-        description = "소모임 멤버가 채팅방에 입장합니다.\n\n" +
+        description = "소모임 멤버가 채팅방에 조용히 입장합니다.\n\n" +
                      "**주요 기능:**\n" +
                      "- 소모임 멤버 권한 확인\n" +
-                     "- 입장 시 시스템 메시지 자동 전송\n" +
-                     "- 실시간 WebSocket을 통한 알림\n\n" +
-                     "**참고:** 실제 실시간 채팅은 WebSocket `/ws/chat` 연결이 필요합니다."
+                     "- 조용한 입장 (입장 알림 메시지 없음)\n" +
+                     "- 참여자 수 업데이트\n\n" +
+                     "**참고:**\n" +
+                     "- 소모임 최초 가입 시에만 환영 메시지가 표시됩니다\n" +
+                     "- 실제 실시간 채팅은 WebSocket `/ws/chat` 연결이 필요합니다"
     )
     @ApiResponses({
         @ApiResponse(responseCode = "200", description = "채팅방 입장 성공",
@@ -79,7 +81,7 @@ public class ChatRoomController {
     @PostMapping("/{chatRoomId}/leave")
     @Secured(UserRole.USER_TYPE)
     @SecurityRequirement(name = "JWT Authentication")
-    @Operation(summary = "채팅방 퇴장", description = "채팅방에서 퇴장합니다. 퇴장 시 시스템 메시지가 자동 전송됩니다.")
+    @Operation(summary = "채팅방 퇴장", description = "채팅방에서 임시 퇴장합니다. 소모임 멤버 상태는 유지되며 언제든 재입장 가능합니다. 퇴장 시 '[사용자명]님이 채팅방을 나갔습니다.' 메시지가 전송됩니다.")
     @ApiResponses({
         @ApiResponse(responseCode = "200", description = "채팅방 퇴장 성공"),
         @ApiResponse(responseCode = "403", description = "채팅방 접근 권한 없음"),

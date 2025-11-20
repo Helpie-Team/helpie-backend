@@ -79,8 +79,7 @@ public class ChatRoomServiceImpl implements ChatRoomService {
         chatRoom.addParticipant(userId);
         chatRoomRepository.save(chatRoom);
         
-        // 입장 시스템 메시지 전송 (웹소켓을 통해 실시간 전송)
-        webSocketService.sendSystemMessage(chatRoomId, userName + "님이 참가하셨습니다.");
+        // 입장 시스템 메시지 제거 (소모임 가입 시만 환영 메시지 표시)
         
         log.info("사용자 {}가 채팅방 {}에 입장했습니다", userId, chatRoomId);
         return ChatRoomResponse.from(chatRoom);
@@ -109,7 +108,7 @@ public class ChatRoomServiceImpl implements ChatRoomService {
         chatRoomRepository.save(chatRoom);
         
         // 퇴장 시스템 메시지 전송 (웹소켓을 통해 실시간 전송)
-        webSocketService.sendSystemMessage(chatRoomId, userName + "님이 소모임을 나갔습니다.");
+        webSocketService.sendSystemMessage(chatRoomId, userName + "님이 채팅방을 나갔습니다.");
         
         log.info("사용자 {}가 채팅방 {}에서 퇴장했습니다", userId, chatRoomId);
     }
