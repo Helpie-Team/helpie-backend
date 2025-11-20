@@ -18,6 +18,8 @@ import com.helpie.backend.exception.chatroom.ChatRoomNotFoundException;
 import com.helpie.backend.exception.chatroom.ChatRoomAccessDeniedException;
 import com.helpie.backend.exception.chatroom.ChatRoomNotJoinedException;
 import com.helpie.backend.service.websocket.ChatWebSocketService;
+import com.helpie.backend.service.user.UserImageService;
+import com.helpie.backend.domain.user.UserImage;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
@@ -47,6 +49,7 @@ public class ChatRoomServiceImpl implements ChatRoomService {
     private final ChatMessageRepository messageRepository;
     private final GroupMemberRepository groupMemberRepository;
     private final ChatWebSocketService webSocketService;
+    private final UserImageService userImageService;
     
     @Override
     @Transactional
@@ -143,7 +146,13 @@ public class ChatRoomServiceImpl implements ChatRoomService {
         
         return messageRepository
             .findByChatRoomIdAndIsDeletedFalseOrderBySentAtDesc(chatRoomId, pageable)
-            .map(ChatMessageResponse::from);
+            .map(message -> {
+                // 발신자 프로필 이미지 조회
+                String profileImage = userImageService.getUserImage(message.getSenderId())
+                    .map(UserImage::getImageUrl)
+                    .orElse(null);
+                return ChatMessageResponse.from(message, profileImage);
+            });
     }
     
     @Override
@@ -173,8 +182,13 @@ public class ChatRoomServiceImpl implements ChatRoomService {
         );
         ChatMessage savedMessage = messageRepository.save(message);
         
+        // 발신자 프로필 이미지 조회
+        String profileImage = userImageService.getUserImage(request.getUserId())
+            .map(UserImage::getImageUrl)
+            .orElse(null);
+        
         log.info("사용자 {}가 채팅방 {}에 메시지를 전송했습니다", request.getUserId(), chatRoomId);
-        return ChatMessageResponse.from(savedMessage);
+        return ChatMessageResponse.from(savedMessage, profileImage);
     }
     
     @Override

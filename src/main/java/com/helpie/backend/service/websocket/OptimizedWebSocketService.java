@@ -167,6 +167,7 @@ public class OptimizedWebSocketService {
             original.getChatRoomId(),
             original.getSenderId(),
             original.getSenderName(),
+            original.getSenderProfileImage(),
             compressed.getData(),
             original.getTimestamp()
         );
