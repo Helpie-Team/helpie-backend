@@ -3,13 +3,21 @@ package com.helpie.backend.service.community;
 import com.helpie.backend.domain.community.Community;
 import com.helpie.backend.domain.community.CommunityCategory;
 import com.helpie.backend.domain.community.CommunityImage;
+import com.helpie.backend.domain.community.CommunityComment;
+import com.helpie.backend.domain.community.CommunityLike;
 import com.helpie.backend.dto.community.CommunityCreateRequest;
 import com.helpie.backend.dto.community.CommunityResponse;
 import com.helpie.backend.dto.community.CommunityUpdateRequest;
+import com.helpie.backend.dto.community.CommunityCommentRequest;
+import com.helpie.backend.dto.community.CommunityCommentResponse;
 import com.helpie.backend.repository.community.CommunityRepository;
 import com.helpie.backend.repository.community.CommunityImageRepository;
+import com.helpie.backend.repository.community.CommunityCommentRepository;
+import com.helpie.backend.repository.community.CommunityLikeRepository;
 import com.helpie.backend.service.file.FileService;
 import com.helpie.backend.service.user.UserImageService;
+import com.helpie.backend.service.notification.NotificationSettingService;
+import com.helpie.backend.service.notification.NotificationService;
 import com.helpie.backend.domain.user.UserImage;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -20,6 +28,7 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.util.List;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 /**
@@ -36,8 +45,12 @@ public class CommunityServiceImpl implements CommunityService {
     
     private final CommunityRepository communityRepository;
     private final CommunityImageRepository communityImageRepository;
+    private final CommunityCommentRepository communityCommentRepository;
+    private final CommunityLikeRepository communityLikeRepository;
     private final FileService fileService;
     private final UserImageService userImageService;
+    private final NotificationSettingService notificationSettingService;
+    private final NotificationService notificationService;
     
     @Override
     @Transactional
@@ -242,5 +255,114 @@ public class CommunityServiceImpl implements CommunityService {
                 communityImageRepository.save(communityImage);
             }
         }
+    }
+    
+    @Override
+    @Transactional
+    public CommunityCommentResponse createComment(Long communityId, Long userId, String username, CommunityCommentRequest request) {
+        log.debug("댓글 작성 시작 - communityId: {}, userId: {}", communityId, userId);
+        
+        // 게시글 존재 확인
+        Community community = communityRepository.findById(communityId)
+            .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 게시글입니다: " + communityId));
+        
+        // 댓글 생성
+        CommunityComment comment = new CommunityComment(community, userId, username, request.content());
+        CommunityComment savedComment = communityCommentRepository.save(comment);
+        
+        // 게시글 작성자와 댓글 작성자가 다르고, 댓글 알림이 활성화된 경우 알림 발송
+        if (!community.getUserId().equals(userId) && 
+            notificationSettingService.canReceiveCommentNotification(community.getUserId())) {
+            notificationService.sendCommentNotification(
+                community.getUserId(), 
+                communityId, 
+                community.getTitle(), 
+                userId, 
+                username
+            );
+        }
+        
+        log.info("댓글 작성 완료 - commentId: {}", savedComment.getId());
+        
+        // 프로필 이미지 조회
+        String profileImage = userImageService.getUserImageUrl(userId);
+        
+        return CommunityCommentResponse.from(savedComment, profileImage);
+    }
+    
+    @Override
+    public Page<CommunityCommentResponse> getComments(Long communityId, Pageable pageable) {
+        log.debug("댓글 목록 조회 - communityId: {}", communityId);
+        
+        Page<CommunityComment> comments = communityCommentRepository.findByCommunityIdAndNotDeleted(communityId, pageable);
+        
+        return comments.map(comment -> {
+            String profileImage = userImageService.getUserImageUrl(comment.getUserId());
+            return CommunityCommentResponse.from(comment, profileImage);
+        });
+    }
+    
+    @Override
+    @Transactional
+    public void deleteComment(Long commentId, Long userId) {
+        log.debug("댓글 삭제 시작 - commentId: {}, userId: {}", commentId, userId);
+        
+        CommunityComment comment = communityCommentRepository.findById(commentId)
+            .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 댓글입니다: " + commentId));
+        
+        // 작성자 확인
+        if (!comment.getUserId().equals(userId)) {
+            throw new IllegalArgumentException("댓글을 삭제할 권한이 없습니다");
+        }
+        
+        // 논리적 삭제
+        comment.delete();
+        communityCommentRepository.save(comment);
+        
+        log.info("댓글 삭제 완료 - commentId: {}", commentId);
+    }
+    
+    @Override
+    @Transactional
+    public boolean toggleLike(Long communityId, Long userId, String username) {
+        log.debug("좋아요 토글 시작 - communityId: {}, userId: {}", communityId, userId);
+        
+        // 게시글 존재 확인
+        Community community = communityRepository.findById(communityId)
+            .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 게시글입니다: " + communityId));
+        
+        // 기존 좋아요 확인
+        Optional<CommunityLike> existingLike = communityLikeRepository.findByCommunityIdAndUserId(communityId, userId);
+        
+        if (existingLike.isPresent()) {
+            // 좋아요 취소
+            communityLikeRepository.delete(existingLike.get());
+            log.info("좋아요 취소 완료 - communityId: {}, userId: {}", communityId, userId);
+            return false;
+        } else {
+            // 좋아요 추가
+            CommunityLike like = new CommunityLike(community, userId, username);
+            communityLikeRepository.save(like);
+            
+            // 게시글 작성자와 좋아요 작성자가 다르고, 좋아요 알림이 활성화된 경우 알림 발송
+            if (!community.getUserId().equals(userId) && 
+                notificationSettingService.canReceiveLikeNotification(community.getUserId())) {
+                notificationService.sendLikeNotification(
+                    community.getUserId(), 
+                    communityId, 
+                    community.getTitle(), 
+                    userId, 
+                    username
+                );
+            }
+            
+            log.info("좋아요 추가 완료 - communityId: {}, userId: {}", communityId, userId);
+            return true;
+        }
+    }
+    
+    @Override
+    public boolean isLikedByUser(Long communityId, Long userId) {
+        return communityLikeRepository.existsByCommunityIdAndUserId(communityId, userId);
     }
 }

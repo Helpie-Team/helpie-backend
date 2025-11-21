@@ -6,6 +6,8 @@ import com.helpie.backend.domain.user.UserVo;
 import com.helpie.backend.dto.community.CommunityCreateRequest;
 import com.helpie.backend.dto.community.CommunityResponse;
 import com.helpie.backend.dto.community.CommunityUpdateRequest;
+import com.helpie.backend.dto.community.CommunityCommentRequest;
+import com.helpie.backend.dto.community.CommunityCommentResponse;
 import com.helpie.backend.service.community.CommunityService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
@@ -27,6 +29,7 @@ import org.springframework.security.access.annotation.Secured;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
+import org.springframework.data.domain.Page;
 
 import java.util.List;
 
@@ -218,5 +221,80 @@ public class CommunityController {
     ) {
         communityService.deleteCommunity(communityId, userVo.getId());
         return ResponseEntity.ok().build();
+    }
+    
+    @PostMapping("/{communityId}/comments")
+    @Secured(UserRole.USER_TYPE)
+    @SecurityRequirement(name = "JWT Authentication")
+    @Operation(summary = "커뮤니티 댓글 작성", description = "커뮤니티 게시글에 댓글을 작성합니다.")
+    @ApiResponses({
+        @ApiResponse(responseCode = "200", description = "댓글 작성 성공"),
+        @ApiResponse(responseCode = "404", description = "존재하지 않는 게시글")
+    })
+    public ResponseEntity<CommunityCommentResponse> createComment(
+        @AuthenticationPrincipal UserVo userVo,
+        @Parameter(description = "게시글 ID") @PathVariable Long communityId,
+        @Valid @RequestBody CommunityCommentRequest request
+    ) {
+        CommunityCommentResponse response = communityService.createComment(
+            communityId, userVo.getId(), userVo.getUsername(), request
+        );
+        return ResponseEntity.ok(response);
+    }
+    
+    @GetMapping("/{communityId}/comments")
+    @Operation(summary = "커뮤니티 댓글 목록 조회", description = "커뮤니티 게시글의 댓글 목록을 조회합니다.")
+    public ResponseEntity<Page<CommunityCommentResponse>> getComments(
+        @Parameter(description = "게시글 ID") @PathVariable Long communityId,
+        @Parameter(description = "페이징 정보 (기본: 20개, 작성일순)")
+        @PageableDefault(size = 20, sort = "createdAt", direction = Sort.Direction.ASC) Pageable pageable
+    ) {
+        Page<CommunityCommentResponse> response = communityService.getComments(communityId, pageable);
+        return ResponseEntity.ok(response);
+    }
+    
+    @DeleteMapping("/comments/{commentId}")
+    @Secured(UserRole.USER_TYPE)
+    @SecurityRequirement(name = "JWT Authentication")
+    @Operation(summary = "커뮤니티 댓글 삭제", description = "작성자만 자신의 댓글을 삭제할 수 있습니다.")
+    @ApiResponses({
+        @ApiResponse(responseCode = "200", description = "댓글 삭제 성공"),
+        @ApiResponse(responseCode = "403", description = "삭제 권한 없음 (작성자가 아님)"),
+        @ApiResponse(responseCode = "404", description = "존재하지 않는 댓글")
+    })
+    public ResponseEntity<Void> deleteComment(
+        @AuthenticationPrincipal UserVo userVo,
+        @Parameter(description = "댓글 ID") @PathVariable Long commentId
+    ) {
+        communityService.deleteComment(commentId, userVo.getId());
+        return ResponseEntity.ok().build();
+    }
+    
+    @PostMapping("/{communityId}/like")
+    @Secured(UserRole.USER_TYPE)
+    @SecurityRequirement(name = "JWT Authentication")
+    @Operation(summary = "커뮤니티 좋아요 토글", description = "커뮤니티 게시글에 좋아요를 누르거나 취소합니다.")
+    @ApiResponses({
+        @ApiResponse(responseCode = "200", description = "좋아요 토글 성공"),
+        @ApiResponse(responseCode = "404", description = "존재하지 않는 게시글")
+    })
+    public ResponseEntity<Boolean> toggleLike(
+        @AuthenticationPrincipal UserVo userVo,
+        @Parameter(description = "게시글 ID") @PathVariable Long communityId
+    ) {
+        boolean isLiked = communityService.toggleLike(communityId, userVo.getId(), userVo.getUsername());
+        return ResponseEntity.ok(isLiked);
+    }
+    
+    @GetMapping("/{communityId}/like/status")
+    @Secured(UserRole.USER_TYPE)
+    @SecurityRequirement(name = "JWT Authentication")
+    @Operation(summary = "좋아요 상태 확인", description = "사용자가 해당 게시글에 좋아요를 눌렀는지 확인합니다.")
+    public ResponseEntity<Boolean> getLikeStatus(
+        @AuthenticationPrincipal UserVo userVo,
+        @Parameter(description = "게시글 ID") @PathVariable Long communityId
+    ) {
+        boolean isLiked = communityService.isLikedByUser(communityId, userVo.getId());
+        return ResponseEntity.ok(isLiked);
     }
 }

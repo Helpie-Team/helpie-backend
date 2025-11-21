@@ -4,6 +4,8 @@ import com.helpie.backend.domain.community.CommunityCategory;
 import com.helpie.backend.dto.community.CommunityCreateRequest;
 import com.helpie.backend.dto.community.CommunityResponse;
 import com.helpie.backend.dto.community.CommunityUpdateRequest;
+import com.helpie.backend.dto.community.CommunityCommentRequest;
+import com.helpie.backend.dto.community.CommunityCommentResponse;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.web.multipart.MultipartFile;
@@ -73,4 +75,28 @@ public interface CommunityService {
      */
     List<CommunityResponse> getRecommendedCommunities();
     
+    /**
+     * 댓글 작성
+     */
+    CommunityCommentResponse createComment(Long communityId, Long userId, String username, CommunityCommentRequest request);
+    
+    /**
+     * 댓글 목록 조회
+     */
+    Page<CommunityCommentResponse> getComments(Long communityId, Pageable pageable);
+    
+    /**
+     * 댓글 삭제
+     */
+    void deleteComment(Long commentId, Long userId);
+    
+    /**
+     * 좋아요 토글
+     */
+    boolean toggleLike(Long communityId, Long userId, String username);
+    
+    /**
+     * 좋아요 상태 확인
+     */
+    boolean isLikedByUser(Long communityId, Long userId);
 }
