@@ -15,7 +15,7 @@ import org.springframework.web.socket.config.annotation.WebSocketMessageBrokerCo
  * STOMP를 사용한 실시간 채팅 구현
  * 
  * @author 전우선
- * @since 2025-10-25(토)
+ * @since 2025-11-24(월)
  */
 @Configuration
 @EnableWebSocketMessageBroker
@@ -44,6 +44,11 @@ public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
         registry.addEndpoint("/ws/chat")
                 .setAllowedOriginPatterns("*") // CORS 허용
                 .withSockJS(); // SockJS 지원 (WebSocket을 지원하지 않는 브라우저 대응)
+        
+        // 알림용 WebSocket 엔드포인트 추가        
+        registry.addEndpoint("/ws/notifications")
+                .setAllowedOriginPatterns("*")
+                .withSockJS();
     }
     
     @Override

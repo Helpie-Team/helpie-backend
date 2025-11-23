@@ -31,7 +31,18 @@ import org.springframework.web.bind.annotation.*;
 @RestController
 @RequestMapping("/api/v1/notifications")
 @RequiredArgsConstructor
-@Tag(name = "알림 관리", description = "알림 설정 및 알림 목록 관리 API")
+@Tag(name = "알림 관리", description = """
+    알림 설정 및 알림 목록 관리 API
+    
+    **실시간 알림:**
+    - WebSocket 연결: /ws/notifications
+    - 개별 알림 구독: /topic/notifications/{userId}
+    - 알림 개수 구독: /topic/notifications/{userId}/count
+    
+    **REST API:**
+    - 기존 방식과 병행하여 사용 가능
+    - 알림 목록 조회, 읽음/삭제 처리
+    """)
 public class NotificationController {
 
     private final NotificationSettingService notificationSettingService;
@@ -80,7 +91,14 @@ public class NotificationController {
     @SecurityRequirement(name = "JWT Authentication")
     @Operation(
         summary = "알림 목록 조회",
-        description = "사용자의 알림 목록을 최신순으로 조회합니다."
+        description = """
+                     사용자의 알림 목록을 최신순으로 조회합니다.
+                     
+                     **실시간 알림과 병행 사용:**
+                     - WebSocket으로 실시간 수신: /topic/notifications/{userId}
+                     - REST API로 기존 알림 조회: 이 API 사용
+                     - 두 방식 모두 동일한 데이터 구조 사용
+                     """
     )
     public ResponseEntity<Page<NotificationResponse>> getNotifications(
         @AuthenticationPrincipal UserVo userVo,

@@ -2,9 +2,12 @@ package com.helpie.backend.service.notification;
 
 import com.helpie.backend.domain.notification.Notification;
 import com.helpie.backend.dto.notification.NotificationResponse;
+import com.helpie.backend.event.notification.NotificationEvent;
+import com.helpie.backend.event.notification.NotificationCountUpdateEvent;
 import com.helpie.backend.repository.notification.NotificationRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
@@ -14,7 +17,7 @@ import org.springframework.transaction.annotation.Transactional;
  * 알림 서비스 구현체
  * 
  * @author 전우선
- * @since 2025-11-21(금)
+ * @since 2025-11-24(월)
  */
 @Slf4j
 @Service
@@ -23,6 +26,7 @@ import org.springframework.transaction.annotation.Transactional;
 public class NotificationServiceImpl implements NotificationService {
 
     private final NotificationRepository notificationRepository;
+    private final ApplicationEventPublisher eventPublisher;
     
     @Override
     @Transactional
@@ -33,8 +37,12 @@ public class NotificationServiceImpl implements NotificationService {
             receiverId, communityId, actorId, actorName, communityTitle
         );
         
-        notificationRepository.save(notification);
-        log.info("댓글 알림 저장 완료 - notificationId: {}", notification.getId());
+        Notification savedNotification = notificationRepository.save(notification);
+        log.info("댓글 알림 저장 완료 - notificationId: {}", savedNotification.getId());
+        
+        // 실시간 알림 이벤트 발행
+        NotificationResponse notificationResponse = NotificationResponse.from(savedNotification);
+        eventPublisher.publishEvent(new NotificationEvent(receiverId, notificationResponse));
     }
 
     @Override
@@ -46,8 +54,12 @@ public class NotificationServiceImpl implements NotificationService {
             receiverId, communityId, actorId, actorName, communityTitle
         );
         
-        notificationRepository.save(notification);
-        log.info("좋아요 알림 저장 완료 - notificationId: {}", notification.getId());
+        Notification savedNotification = notificationRepository.save(notification);
+        log.info("좋아요 알림 저장 완료 - notificationId: {}", savedNotification.getId());
+        
+        // 실시간 알림 이벤트 발행
+        NotificationResponse notificationResponse = NotificationResponse.from(savedNotification);
+        eventPublisher.publishEvent(new NotificationEvent(receiverId, notificationResponse));
     }
 
 
@@ -82,6 +94,9 @@ public class NotificationServiceImpl implements NotificationService {
             notification.markAsRead();
             notificationRepository.save(notification);
             log.info("알림 읽음 처리 완료 - notificationId: {}", notificationId);
+            
+            // 읽지 않은 알림 개수 업데이트 이벤트 발행
+            eventPublisher.publishEvent(new NotificationCountUpdateEvent(userId));
         }
     }
 
@@ -92,6 +107,9 @@ public class NotificationServiceImpl implements NotificationService {
         
         notificationRepository.markAllAsReadByUserId(userId);
         log.info("모든 알림 읽음 처리 완료 - userId: {}", userId);
+        
+        // 읽지 않은 알림 개수 업데이트 이벤트 발행 (0개가 됨)
+        eventPublisher.publishEvent(new NotificationCountUpdateEvent(userId));
     }
 
     @Override
@@ -109,6 +127,9 @@ public class NotificationServiceImpl implements NotificationService {
         
         notificationRepository.delete(notification);
         log.info("알림 삭제 완료 - notificationId: {}", notificationId);
+        
+        // 읽지 않은 알림 개수 업데이트 이벤트 발행
+        eventPublisher.publishEvent(new NotificationCountUpdateEvent(userId));
     }
 
     @Override
@@ -118,5 +139,8 @@ public class NotificationServiceImpl implements NotificationService {
         
         notificationRepository.deleteByUserId(userId);
         log.info("모든 알림 삭제 완료 - userId: {}", userId);
+        
+        // 읽지 않은 알림 개수 업데이트 이벤트 발행 (0개가 됨)
+        eventPublisher.publishEvent(new NotificationCountUpdateEvent(userId));
     }
 }
