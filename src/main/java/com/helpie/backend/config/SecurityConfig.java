@@ -119,6 +119,13 @@ public class SecurityConfig {
         "/api/v1/public/**"
     };
 
+    private static final String[] COMMUNITY_PUBLIC_URIS = {
+        "/api/v1/communities",
+        "/api/v1/communities/search", 
+        "/api/v1/communities/popular",
+        "/api/v1/communities/recommended"
+    };
+
     private static final String[] CHATROOM_API_URIS = {
             "/api/v1/chatrooms/**"
     };
@@ -159,7 +166,11 @@ public class SecurityConfig {
                         .requestMatchers(SWAGGER_URIS).permitAll()
                         // WebSocket 엔드포인트 허용
                         .requestMatchers(WEBSOCKET_URIS).permitAll()
-                    .requestMatchers(PUBLIC_URIS).permitAll()
+                        .requestMatchers(PUBLIC_URIS).permitAll()
+                        // 커뮤니티 읽기 API 허용 (비로그인 가능)
+                        .requestMatchers(HttpMethod.GET, COMMUNITY_PUBLIC_URIS).permitAll()
+                        .requestMatchers(HttpMethod.GET, "/api/v1/communities/*").permitAll()
+                        .requestMatchers(HttpMethod.GET, "/api/v1/communities/*/comments").permitAll()
                         // 채팅방 API도 JWT 인증 필요로 변경
                         // .requestMatchers(CHATROOM_API_URIS).permitAll()
                         .requestMatchers(LOCATION_URIS).permitAll()
