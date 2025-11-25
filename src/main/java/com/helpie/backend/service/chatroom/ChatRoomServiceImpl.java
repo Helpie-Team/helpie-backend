@@ -256,9 +256,9 @@ public class ChatRoomServiceImpl implements ChatRoomService {
         Group group = chatRoom.getGroup();
         GroupStatus status = group.getStatus();
         
-        // RECRUITING 또는 RECRUITMENT_CLOSED 상태일 때만 채팅 가능
-        // COMPLETED 상태가 되면 채팅 차단
-        return status == GroupStatus.RECRUITING || status == GroupStatus.RECRUITMENT_CLOSED;
+        // 모든 상태에서 채팅 가능 (지난 모임도 채팅 허용)
+        // RECRUITING, RECRUITMENT_CLOSED, COMPLETED 모두 채팅 가능
+        return status == GroupStatus.RECRUITING || status == GroupStatus.RECRUITMENT_CLOSED || status == GroupStatus.COMPLETED;
     }
     
 }

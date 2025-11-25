@@ -29,7 +29,7 @@ public interface ChatRoomService {
     
     /**
      * 채팅방이 활성화 상태인지 확인합니다.
-     * 소모임 상태가 RECRUITING 또는 RECRUITMENT_CLOSED일 때만 채팅 가능
+     * 소모임 상태가 RECRUITING, RECRUITMENT_CLOSED, COMPLETED일 때 채팅 가능 (지난 모임도 채팅 허용)
      * 
      * @param chatRoomId 채팅방 ID
      * @return 채팅 가능 여부
