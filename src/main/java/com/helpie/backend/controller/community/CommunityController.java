@@ -113,7 +113,16 @@ public class CommunityController {
     )
     public ResponseEntity<Page<CommunityResponse>> getCommunities(
         @Parameter(description = "카테고리 (선택)") @RequestParam(required = false) CommunityCategory category,
-        @Parameter(description = "페이징 정보 (기본: 10개, 최신순)")
+        @Parameter(
+            description = "페이징 정보 (기본: 10개, 최신순)",
+            example = """
+                {
+                  "page": 0,
+                  "size": 10,
+                  "sort": ["createdAt,desc"]
+                }
+                """
+        )
         @PageableDefault(size = 10, sort = "createdAt", direction = Sort.Direction.DESC) Pageable pageable
     ) {
         Page<CommunityResponse> response = category != null 
@@ -128,6 +137,16 @@ public class CommunityController {
     @Operation(summary = "내 게시글 조회", description = "로그인한 사용자가 작성한 게시글 목록을 조회합니다.")
     public ResponseEntity<Page<CommunityResponse>> getMyCommunities(
         @AuthenticationPrincipal UserVo userVo,
+        @Parameter(
+            description = "페이징 정보 (기본: 10개, 최신순)",
+            example = """
+                {
+                  "page": 0,
+                  "size": 10,
+                  "sort": ["createdAt,desc"]
+                }
+                """
+        )
         @PageableDefault(size = 10, sort = "createdAt", direction = Sort.Direction.DESC) Pageable pageable
     ) {
         Page<CommunityResponse> response = communityService.getMyCommunities(userVo.getId(), pageable);
@@ -145,6 +164,16 @@ public class CommunityController {
     public ResponseEntity<Page<CommunityResponse>> searchCommunities(
         @Parameter(description = "검색 키워드") @RequestParam String keyword,
         @Parameter(description = "카테고리 (선택)") @RequestParam(required = false) CommunityCategory category,
+        @Parameter(
+            description = "페이징 정보 (기본: 10개, 최신순)",
+            example = """
+                {
+                  "page": 0,
+                  "size": 10,
+                  "sort": ["createdAt,desc"]
+                }
+                """
+        )
         @PageableDefault(size = 10, sort = "createdAt", direction = Sort.Direction.DESC) Pageable pageable
     ) {
         Page<CommunityResponse> response = category != null
@@ -246,7 +275,16 @@ public class CommunityController {
     @Operation(summary = "커뮤니티 댓글 목록 조회", description = "커뮤니티 게시글의 댓글 목록을 조회합니다.")
     public ResponseEntity<Page<CommunityCommentResponse>> getComments(
         @Parameter(description = "게시글 ID") @PathVariable Long communityId,
-        @Parameter(description = "페이징 정보 (기본: 20개, 작성일순)")
+        @Parameter(
+            description = "페이징 정보 (기본: 20개, 작성일순)",
+            example = """
+                {
+                  "page": 0,
+                  "size": 20,
+                  "sort": ["createdAt,asc"]
+                }
+                """
+        )
         @PageableDefault(size = 20, sort = "createdAt", direction = Sort.Direction.ASC) Pageable pageable
     ) {
         Page<CommunityCommentResponse> response = communityService.getComments(communityId, pageable);

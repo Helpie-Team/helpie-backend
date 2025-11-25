@@ -102,7 +102,16 @@ public class NotificationController {
     )
     public ResponseEntity<Page<NotificationResponse>> getNotifications(
         @AuthenticationPrincipal UserVo userVo,
-        @Parameter(description = "페이징 정보 (기본: 20개, 최신순)")
+        @Parameter(
+            description = "페이징 정보 (기본: 20개, 최신순)",
+            example = """
+                {
+                  "page": 0,
+                  "size": 20,
+                  "sort": ["createdAt,desc"]
+                }
+                """
+        )
         @PageableDefault(size = 20, sort = "createdAt", direction = Sort.Direction.DESC) Pageable pageable
     ) {
         Page<NotificationResponse> response = notificationService.getNotifications(userVo.getId(), pageable);
