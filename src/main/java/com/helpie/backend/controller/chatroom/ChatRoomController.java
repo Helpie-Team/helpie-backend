@@ -110,6 +110,8 @@ public class ChatRoomController {
         description = "사용자가 접근 가능한 채팅방 목록을 조회합니다.\n\n" +
                      "**조회 기준:**\n" +
                      "- 사용자가 소모임 멤버인 채팅방만 조회\n" +
+                     "- **지난 모임(COMPLETED) 채팅방도 포함** - 지속적 소통 지원\n" +
+                     "- 소모임에서 탈퇴한 멤버는 접근 불가\n" +
                      "- 현재 참여자 수는 소모임 실제 가입 멤버 수로 표시\n" +
                      "- 활성 상태인 채팅방만 포함\n\n" +
                      "**응답 정보:**\n" +
@@ -150,6 +152,19 @@ public class ChatRoomController {
                         "groupThumbnail": "https://example.com/fitness.jpg",
                         "location": "서울",
                         "category": "SPORTS"
+                    },
+                    {
+                        "id": 3,
+                        "groupId": 103,
+                        "title": "[지난 모임] 제주도 여행 채팅방",
+                        "currentParticipants": 6,
+                        "totalMembers": 6,
+                        "isActive": true,
+                        "createdAt": "2025-11-15T12:00:00",
+                        "groupTitle": "제주도 여행 소모임",
+                        "groupThumbnail": "https://example.com/jeju.jpg",
+                        "location": "제주",
+                        "category": "TRAVEL"
                     }
                 ]
                 """)

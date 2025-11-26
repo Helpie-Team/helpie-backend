@@ -155,14 +155,15 @@ public class ChatWebSocketServiceImpl implements ChatWebSocketService {
     }
     
     /**
-     * 소모임 멤버인지 확인합니다.
+     * 소모임 멤버인지 확인합니다. (지난 모임 포함, 탈퇴하지 않은 멤버만)
      */
     private void validateGroupMembership(Long groupId, Long userId) {
         GroupMember groupMember = groupMemberRepository.findByGroupIdAndUserId(groupId, userId)
             .orElseThrow(() -> WebSocketException.accessDenied("소모임 멤버가 아닙니다"));
         
-        if (!groupMember.getIsActive()) {
-            throw WebSocketException.accessDenied("활성화되지 않은 소모임 멤버입니다");
+        // 소모임에서 탈퇴한 경우만 차단 (지난 모임은 허용)
+        if (groupMember.getLeftAt() != null) {
+            throw WebSocketException.accessDenied("탈퇴한 소모임 멤버입니다");
         }
     }
 }

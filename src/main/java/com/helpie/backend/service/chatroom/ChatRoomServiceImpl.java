@@ -237,13 +237,14 @@ public class ChatRoomServiceImpl implements ChatRoomService {
     }
 
     /**
-     * 소모임 멤버인지 확인합니다.
+     * 소모임 멤버인지 확인합니다. (지난 모임 포함, 탈퇴하지 않은 멤버만)
      */
     private void validateGroupMembership(Long groupId, Long userId) {
         GroupMember groupMember = groupMemberRepository.findByGroupIdAndUserId(groupId, userId)
             .orElseThrow(() -> new ChatRoomAccessDeniedException());
         
-        if (!groupMember.getIsActive()) {
+        // 소모임에서 탈퇴한 경우만 차단 (지난 모임은 허용)
+        if (groupMember.getLeftAt() != null) {
             throw new ChatRoomAccessDeniedException();
         }
     }

@@ -44,9 +44,9 @@ public class ChatRoomAuthService {
         GroupMember groupMember = groupMemberRepository.findByGroupIdAndUserId(groupId, userId)
             .orElseThrow(() -> new ChatRoomAccessDeniedException(chatRoomId, userId));
         
-        // 활성 멤버인지 확인
-        if (!groupMember.getIsActive()) {
-            log.warn("비활성 소모임 멤버가 채팅방 접근 시도 - 채팅방: {}, 사용자: {}", chatRoomId, userId);
+        // 소모임에서 탈퇴한 멤버인지 확인 (지난 모임은 허용)
+        if (groupMember.getLeftAt() != null) {
+            log.warn("탈퇴한 소모임 멤버가 채팅방 접근 시도 - 채팅방: {}, 사용자: {}", chatRoomId, userId);
             throw new ChatRoomAccessDeniedException(chatRoomId, userId);
         }
         
