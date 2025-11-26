@@ -9,6 +9,7 @@ import com.helpie.backend.service.chatroom.ChatRoomService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.media.Content;
+import io.swagger.v3.oas.annotations.media.ExampleObject;
 import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
@@ -109,12 +110,50 @@ public class ChatRoomController {
         description = "사용자가 접근 가능한 채팅방 목록을 조회합니다.\n\n" +
                      "**조회 기준:**\n" +
                      "- 사용자가 소모임 멤버인 채팅방만 조회\n" +
-                     "- 현재 참여자 수 / 총 소모임 멤버 수 표시\n" +
+                     "- 현재 참여자 수는 소모임 실제 가입 멤버 수로 표시\n" +
                      "- 활성 상태인 채팅방만 포함\n\n" +
                      "**응답 정보:**\n" +
                      "- 채팅방 기본 정보 (ID, 제목, 참여자 수 등)\n" +
                      "- 소모임 정보 (제목, 대표 이미지, 지역, 카테고리)\n" +
-                     "- 모바일 UI 구현에 필요한 모든 데이터 포함"
+                     "- 모바일 UI 구현에 필요한 모든 데이터 포함\n\n" +
+                     "**중요:** currentParticipants는 이제 소모임 실제 가입 멤버 수를 정확히 표시합니다."
+    )
+    @ApiResponse(
+        responseCode = "200", 
+        description = "성공",
+        content = @Content(
+            schema = @Schema(implementation = ChatRoomResponse.class),
+            examples = @ExampleObject(value = """
+                [
+                    {
+                        "id": 1,
+                        "groupId": 101,
+                        "title": "일본 디즈니랜드 소모임 채팅방",
+                        "currentParticipants": 4,
+                        "totalMembers": 4,
+                        "isActive": true,
+                        "createdAt": "2025-11-20T10:00:00",
+                        "groupTitle": "일본 디즈니랜드 소모임",
+                        "groupThumbnail": "https://example.com/disney.jpg",
+                        "location": "도쿄",
+                        "category": "TRAVEL"
+                    },
+                    {
+                        "id": 2,
+                        "groupId": 102,
+                        "title": "헬스 동호회 채팅방",
+                        "currentParticipants": 8,
+                        "totalMembers": 10,
+                        "isActive": true,
+                        "createdAt": "2025-11-18T15:30:00",
+                        "groupTitle": "헬스 동호회",
+                        "groupThumbnail": "https://example.com/fitness.jpg",
+                        "location": "서울",
+                        "category": "SPORTS"
+                    }
+                ]
+                """)
+        )
     )
     public ResponseEntity<List<ChatRoomResponse>> getAccessibleChatRooms(
         @AuthenticationPrincipal UserVo userVo

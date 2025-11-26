@@ -57,7 +57,7 @@ public class ChatRoom {
     public ChatRoom(Group group) {
         this.group = group;
         this.title = group.getTitle() + " 채팅방";
-        this.currentParticipants = 0;
+        this.currentParticipants = group.getCurrentMembers(); // 소모임 가입 멤버 수로 초기화
         this.isActive = true;
         this.createdAt = LocalDateTime.now();
         this.updatedAt = LocalDateTime.now();

@@ -29,7 +29,7 @@ public class ChatRoomResponse {
     @Schema(description = "채팅방 제목", example = "5555555 채팅방")
     private String title;
     
-    @Schema(description = "현재 채팅방 참여자 수", example = "23")
+    @Schema(description = "소모임 현재 참여자 수", example = "23")
     private Integer currentParticipants;
     
     @Schema(description = "소모임 총 멤버 수", example = "3")
@@ -58,7 +58,7 @@ public class ChatRoomResponse {
             chatRoom.getId(),
             chatRoom.getGroup().getId(),
             chatRoom.getTitle(),
-            chatRoom.getCurrentParticipants(),
+            chatRoom.getGroup().getCurrentMembers(), // 소모임 가입 멤버 수 사용
             chatRoom.getGroup().getCurrentMembers(),
             chatRoom.getIsActive(),
             chatRoom.getCreatedAt(),
