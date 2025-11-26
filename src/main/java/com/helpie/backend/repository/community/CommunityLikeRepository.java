@@ -46,7 +46,7 @@ public interface CommunityLikeRepository extends JpaRepository<CommunityLike, Lo
     /**
      * 사용자가 좋아요 누른 커뮤니티 게시글들 조회 (최신 좋아요순)
      */
-    @Query("SELECT l.community FROM CommunityLike l WHERE l.userId = :userId ORDER BY l.createdAt DESC")
+    @Query("SELECT l.community FROM CommunityLike l LEFT JOIN FETCH l.community.images WHERE l.userId = :userId ORDER BY l.createdAt DESC")
     Page<Community> findLikedCommunitiesByUserId(@Param("userId") Long userId, Pageable pageable);
     
     /**

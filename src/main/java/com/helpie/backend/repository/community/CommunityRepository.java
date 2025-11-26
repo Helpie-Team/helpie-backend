@@ -34,7 +34,8 @@ public interface CommunityRepository extends JpaRepository<Community, Long> {
     /**
      * 사용자별 게시글 조회
      */
-    Page<Community> findByUserIdOrderByCreatedAtDesc(Long userId, Pageable pageable);
+    @Query("SELECT c FROM Community c LEFT JOIN FETCH c.images WHERE c.userId = :userId ORDER BY c.createdAt DESC")
+    Page<Community> findByUserIdOrderByCreatedAtDesc(@Param("userId") Long userId, Pageable pageable);
     
     /**
      * 제목으로 검색
