@@ -186,7 +186,7 @@ public class MyPageController {
         return ResponseEntity.ok(myPageFacade.getMyCommunityActivities(userVo.getId(), pageable));
     }
 
-    @GetMapping("/my-bookmarks")
+    @GetMapping("/my-likes")
     @SecurityRequirement(name = "JWT Authentication")
     @Secured(UserRole.USER_TYPE)
     @Operation(
