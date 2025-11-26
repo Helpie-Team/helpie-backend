@@ -85,7 +85,21 @@ public class ChatRoomServiceImpl implements ChatRoomService {
         // 입장 시스템 메시지 제거 (소모임 가입 시만 환영 메시지 표시)
         
         log.info("사용자 {}가 채팅방 {}에 입장했습니다", userId, chatRoomId);
-        return ChatRoomResponse.from(chatRoom);
+        
+        // 마지막 메시지 정보와 함께 응답 생성
+        List<ChatMessage> lastMessages = messageRepository.findLastMessagesByChatRoomIds(List.of(chatRoomId));
+        
+        if (!lastMessages.isEmpty()) {
+            ChatMessage lastMessage = lastMessages.get(0);
+            return ChatRoomResponse.fromWithLastMessage(
+                chatRoom,
+                lastMessage.getContent(),
+                lastMessage.getSentAt(),
+                lastMessage.getSenderName()
+            );
+        } else {
+            return ChatRoomResponse.from(chatRoom);
+        }
     }
     
     @Override
@@ -120,8 +134,40 @@ public class ChatRoomServiceImpl implements ChatRoomService {
     public List<ChatRoomResponse> getAccessibleChatRooms(Long userId) {
         List<ChatRoom> accessibleChatRooms = chatRoomRepository.findAccessibleChatRoomsByUserId(userId);
         
+        if (accessibleChatRooms.isEmpty()) {
+            return List.of();
+        }
+        
+        // 채팅방 ID 목록 추출
+        List<Long> chatRoomIds = accessibleChatRooms.stream()
+            .map(ChatRoom::getId)
+            .collect(Collectors.toList());
+        
+        // 마지막 메시지들 일괄 조회
+        List<ChatMessage> lastMessages = messageRepository.findLastMessagesByChatRoomIds(chatRoomIds);
+        
+        // 채팅방 ID별 마지막 메시지 매핑
+        java.util.Map<Long, ChatMessage> lastMessageMap = lastMessages.stream()
+            .collect(Collectors.toMap(
+                message -> message.getChatRoom().getId(),
+                message -> message
+            ));
+        
+        // 마지막 메시지 정보와 함께 응답 생성
         return accessibleChatRooms.stream()
-            .map(ChatRoomResponse::from)
+            .map(chatRoom -> {
+                ChatMessage lastMessage = lastMessageMap.get(chatRoom.getId());
+                if (lastMessage != null) {
+                    return ChatRoomResponse.fromWithLastMessage(
+                        chatRoom,
+                        lastMessage.getContent(),
+                        lastMessage.getSentAt(),
+                        lastMessage.getSenderName()
+                    );
+                } else {
+                    return ChatRoomResponse.from(chatRoom);
+                }
+            })
             .collect(Collectors.toList());
     }
     
@@ -133,7 +179,20 @@ public class ChatRoomServiceImpl implements ChatRoomService {
         // 소모임 멤버인지 확인
         validateGroupMembership(chatRoom.getGroup().getId(), userId);
         
-        return ChatRoomResponse.from(chatRoom);
+        // 마지막 메시지 조회
+        List<ChatMessage> lastMessages = messageRepository.findLastMessagesByChatRoomIds(List.of(chatRoomId));
+        
+        if (!lastMessages.isEmpty()) {
+            ChatMessage lastMessage = lastMessages.get(0);
+            return ChatRoomResponse.fromWithLastMessage(
+                chatRoom,
+                lastMessage.getContent(),
+                lastMessage.getSentAt(),
+                lastMessage.getSenderName()
+            );
+        } else {
+            return ChatRoomResponse.from(chatRoom);
+        }
     }
     
     @Override

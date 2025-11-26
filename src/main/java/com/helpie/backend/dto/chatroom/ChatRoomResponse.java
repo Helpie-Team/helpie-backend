@@ -53,6 +53,15 @@ public class ChatRoomResponse {
     @Schema(description = "소모임 카테고리", example = "ACTIVITY_LIFE")
     private String category;
     
+    @Schema(description = "마지막 메시지 내용", example = "안녕하세요! 내일 모임 시간 확인드려요")
+    private String lastMessage;
+    
+    @Schema(description = "마지막 메시지 발송 시간", example = "2025-11-26T15:30:00")
+    private LocalDateTime lastMessageTime;
+    
+    @Schema(description = "마지막 메시지 발신자명", example = "홍길동")
+    private String lastMessageSender;
+    
     public static ChatRoomResponse from(ChatRoom chatRoom) {
         return new ChatRoomResponse(
             chatRoom.getId(),
@@ -65,7 +74,30 @@ public class ChatRoomResponse {
             chatRoom.getGroup().getTitle(),
             chatRoom.getGroup().getThumbnail(),
             chatRoom.getGroup().getCity().getName(),
-            chatRoom.getGroup().getCategory().name()
+            chatRoom.getGroup().getCategory().name(),
+            null, // lastMessage
+            null, // lastMessageTime 
+            null  // lastMessageSender
+        );
+    }
+    
+    public static ChatRoomResponse fromWithLastMessage(ChatRoom chatRoom, String lastMessage, 
+                                                      LocalDateTime lastMessageTime, String lastMessageSender) {
+        return new ChatRoomResponse(
+            chatRoom.getId(),
+            chatRoom.getGroup().getId(),
+            chatRoom.getTitle(),
+            chatRoom.getGroup().getCurrentMembers(),
+            chatRoom.getGroup().getCurrentMembers(),
+            chatRoom.getIsActive(),
+            chatRoom.getCreatedAt(),
+            chatRoom.getGroup().getTitle(),
+            chatRoom.getGroup().getThumbnail(),
+            chatRoom.getGroup().getCity().getName(),
+            chatRoom.getGroup().getCategory().name(),
+            lastMessage,
+            lastMessageTime,
+            lastMessageSender
         );
     }
 }

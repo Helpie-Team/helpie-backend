@@ -64,6 +64,8 @@ public class ChatRoomController {
                      "- 진행중/모집완료/지난 모임 모두 입장 가능\n" +
                      "- 조용한 입장 (입장 알림 메시지 없음)\n" +
                      "- 참여자 수 업데이트\n\n" +
+                     "**응답 정보:**\n" +
+                     "- 채팅방 기본 정보와 **마지막 메시지 정보** 포함\n\n" +
                      "**참고:**\n" +
                      "- 소모임 최초 가입 시에만 환영 메시지가 표시됩니다\n" +
                      "- 실제 실시간 채팅은 WebSocket `/ws/chat` 연결이 필요합니다"
@@ -71,7 +73,25 @@ public class ChatRoomController {
     @ApiResponses({
         @ApiResponse(responseCode = "200", description = "채팅방 입장 성공",
                     content = @Content(mediaType = "application/json",
-                    schema = @Schema(implementation = ChatRoomResponse.class))),
+                    schema = @Schema(implementation = ChatRoomResponse.class),
+                    examples = @ExampleObject(value = """
+                        {
+                            "id": 1,
+                            "groupId": 101,
+                            "title": "일본 디즈니랜드 소모임 채팅방",
+                            "currentParticipants": 4,
+                            "totalMembers": 4,
+                            "isActive": true,
+                            "createdAt": "2025-11-20T10:00:00",
+                            "groupTitle": "일본 디즈니랜드 소모임",
+                            "profileImageUrl": "https://example.com/disney.jpg",
+                            "location": "도쿄",
+                            "category": "TRAVEL",
+                            "lastMessage": "내일 몇 시에 만날까요?",
+                            "lastMessageTime": "2025-11-26T15:30:00",
+                            "lastMessageSender": "김민수"
+                        }
+                        """))),
         @ApiResponse(responseCode = "403", description = "채팅방 접근 권한 없음"),
         @ApiResponse(responseCode = "404", description = "채팅방을 찾을 수 없음")
     })
@@ -117,8 +137,12 @@ public class ChatRoomController {
                      "**응답 정보:**\n" +
                      "- 채팅방 기본 정보 (ID, 제목, 참여자 수 등)\n" +
                      "- 소모임 정보 (제목, 대표 이미지, 지역, 카테고리)\n" +
+                     "- **NEW: 마지막 메시지 정보 (내용, 시간, 발신자)**\n" +
                      "- 모바일 UI 구현에 필요한 모든 데이터 포함\n\n" +
-                     "**중요:** currentParticipants는 이제 소모임 실제 가입 멤버 수를 정확히 표시합니다."
+                     "**UX 개선:**\n" +
+                     "- 이제 WebSocket 구독 없이도 채팅방 목록에서 마지막 메시지 확인 가능\n" +
+                     "- 효율적인 배치 쿼리로 성능 최적화\n" +
+                     "- currentParticipants는 소모임 실제 가입 멤버 수를 정확히 표시"
     )
     @ApiResponse(
         responseCode = "200", 
@@ -136,9 +160,12 @@ public class ChatRoomController {
                         "isActive": true,
                         "createdAt": "2025-11-20T10:00:00",
                         "groupTitle": "일본 디즈니랜드 소모임",
-                        "groupThumbnail": "https://example.com/disney.jpg",
+                        "profileImageUrl": "https://example.com/disney.jpg",
                         "location": "도쿄",
-                        "category": "TRAVEL"
+                        "category": "TRAVEL",
+                        "lastMessage": "내일 몇 시에 만날까요?",
+                        "lastMessageTime": "2025-11-26T15:30:00",
+                        "lastMessageSender": "김민수"
                     },
                     {
                         "id": 2,
@@ -149,9 +176,12 @@ public class ChatRoomController {
                         "isActive": true,
                         "createdAt": "2025-11-18T15:30:00",
                         "groupTitle": "헬스 동호회",
-                        "groupThumbnail": "https://example.com/fitness.jpg",
+                        "profileImageUrl": "https://example.com/fitness.jpg",
                         "location": "서울",
-                        "category": "SPORTS"
+                        "category": "SPORTS",
+                        "lastMessage": "오늘 운동 정말 힘들었네요 ㅠㅠ",
+                        "lastMessageTime": "2025-11-26T14:22:15",
+                        "lastMessageSender": "박지훈"
                     },
                     {
                         "id": 3,
@@ -162,9 +192,12 @@ public class ChatRoomController {
                         "isActive": true,
                         "createdAt": "2025-11-15T12:00:00",
                         "groupTitle": "제주도 여행 소모임",
-                        "groupThumbnail": "https://example.com/jeju.jpg",
+                        "profileImageUrl": "https://example.com/jeju.jpg",
                         "location": "제주",
-                        "category": "TRAVEL"
+                        "category": "TRAVEL",
+                        "lastMessage": "사진 정말 잘 나왔어요! 감사합니다",
+                        "lastMessageTime": "2025-11-25T20:45:32",
+                        "lastMessageSender": "이수진"
                     }
                 ]
                 """)
@@ -180,7 +213,40 @@ public class ChatRoomController {
     @GetMapping("/{chatRoomId}")
     @Secured(UserRole.USER_TYPE)
     @SecurityRequirement(name = "JWT Authentication")
-    @Operation(summary = "채팅방 상세 조회", description = "채팅방의 상세 정보를 조회합니다.")
+    @Operation(
+        summary = "채팅방 상세 조회", 
+        description = "채팅방의 상세 정보를 조회합니다.\\n\\n" +
+                     "**응답 정보:**\\n" +
+                     "- 채팅방 기본 정보 (ID, 제목, 참여자 수 등)\\n" +
+                     "- 소모임 정보 (제목, 대표 이미지, 지역, 카테고리)\\n" +
+                     "- **마지막 메시지 정보 (내용, 시간, 발신자)**\\n\\n" +
+                     "**참고:** 이 API도 마지막 메시지를 함께 반환하여 일관성을 유지합니다."
+    )
+    @ApiResponse(
+        responseCode = "200", 
+        description = "성공",
+        content = @Content(
+            schema = @Schema(implementation = ChatRoomResponse.class),
+            examples = @ExampleObject(value = """
+                {
+                    "id": 1,
+                    "groupId": 101,
+                    "title": "일본 디즈니랜드 소모임 채팅방",
+                    "currentParticipants": 4,
+                    "totalMembers": 4,
+                    "isActive": true,
+                    "createdAt": "2025-11-20T10:00:00",
+                    "groupTitle": "일본 디즈니랜드 소모임",
+                    "profileImageUrl": "https://example.com/disney.jpg",
+                    "location": "도쿄",
+                    "category": "TRAVEL",
+                    "lastMessage": "내일 몇 시에 만날까요?",
+                    "lastMessageTime": "2025-11-26T15:30:00",
+                    "lastMessageSender": "김민수"
+                }
+                """)
+        )
+    )
     public ResponseEntity<ChatRoomResponse> getChatRoomDetail(
         @AuthenticationPrincipal UserVo userVo,
         @Parameter(description = "채팅방 ID") @PathVariable Long chatRoomId
