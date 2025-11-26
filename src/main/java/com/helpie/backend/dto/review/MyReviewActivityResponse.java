@@ -23,7 +23,7 @@ public class MyReviewActivityResponse {
     @Schema(description = "리뷰 ID", example = "1")
     private Long id;
 
-    @Schema(description = "썸네일 이미지 URL", example = "https://example.com/image.jpg")
+    @Schema(description = "썸네일 이미지 URL (없으면 null)", example = "https://example.com/image.jpg")
     private String thumbnailUrl;
 
     @Schema(description = "소모임 제목", example = "헬스 동호회")

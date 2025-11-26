@@ -24,7 +24,7 @@ public class MyCommunityActivityResponse {
     @Schema(description = "게시글 ID", example = "1")
     private Long id;
 
-    @Schema(description = "썸네일 이미지 URL", example = "https://example.com/image.jpg")
+    @Schema(description = "썸네일 이미지 URL (없으면 null)", example = "https://example.com/image.jpg")
     private String thumbnailUrl;
 
     @Schema(description = "게시판 이름", example = "정보공유")

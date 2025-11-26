@@ -33,6 +33,17 @@ import org.springframework.data.domain.Page;
                     "contentPreview": "정말 좋은 모임이었습니다. 다들 친절하시고 운동도 열심히...",
                     "createdAt": "2025-11-26T14:30:00",
                     "isAnonymous": false
+                },
+                {
+                    "id": 2,
+                    "thumbnailUrl": null,
+                    "groupTitle": "독서 모임",
+                    "rating": 4,
+                    "reviewerName": "익명 1",
+                    "meetingDate": "2025-10-20T15:00:00",
+                    "contentPreview": "이미지는 없지만 좋은 모임이었어요...",
+                    "createdAt": "2025-11-25T12:00:00",
+                    "isAnonymous": true
                 }
             ],
             "pageable": {

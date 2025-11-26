@@ -60,7 +60,7 @@ public class GroupResponse {
 
     private static GroupResponseBuilder baseBuilder(Group group) {
         String thumbnail=group.getThumbnail();
-        if (thumbnail.equals("NO_IMAGE")) thumbnail=DEFAULT_THUMBNAIL_URL;
+        if (thumbnail == null) thumbnail=DEFAULT_THUMBNAIL_URL;
 
         int dayBefore;
         try {

@@ -30,6 +30,15 @@ import org.springframework.data.domain.Page;
                     "contentPreview": "안녕하세요! 오늘은 정말 유용한 정보를 공유하고 싶어서 글을 작성합니다...",
                     "createdAt": "2025-11-26T14:30:00",
                     "category": "INFO_SHARE"
+                },
+                {
+                    "id": 2,
+                    "thumbnailUrl": null,
+                    "categoryDisplayName": "자유게시판",
+                    "title": "이미지 없는 게시글",
+                    "contentPreview": "이미지가 없는 게시글의 예시입니다...",
+                    "createdAt": "2025-11-25T10:15:00",
+                    "category": "FREE_BOARD"
                 }
             ],
             "pageable": {

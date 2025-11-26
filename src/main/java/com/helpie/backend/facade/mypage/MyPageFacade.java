@@ -135,8 +135,8 @@ public class MyPageFacade {
         if (communityResponse.getImageUrls() != null && !communityResponse.getImageUrls().isEmpty()) {
             return communityResponse.getImageUrls().get(0);
         }
-        // 이미지가 없으면 기본 썸네일 반환
-        return "/api/v1/images/community-default-thumbnail.png";
+        // 이미지가 없으면 null 반환
+        return null;
     }
 
     /**
@@ -193,8 +193,8 @@ public class MyPageFacade {
         if (review.getImages() != null && !review.getImages().isEmpty()) {
             return review.getImages().get(0).getImageUrl();
         }
-        // 이미지가 없으면 기본 썸네일 반환
-        return "/api/v1/images/review-default-thumbnail.png";
+        // 이미지가 없으면 null 반환
+        return null;
     }
 
     /**
