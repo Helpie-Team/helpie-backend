@@ -9,6 +9,8 @@ import com.helpie.backend.dto.mypage.response.MyBookmarkResponse;
 import com.helpie.backend.dto.mypage.response.MyProfileResponse;
 import com.helpie.backend.dto.community.FindMyCommunitiesRequest;
 import com.helpie.backend.dto.community.MyCommunityResponse;
+import com.helpie.backend.dto.review.FindMyReviewsRequest;
+import com.helpie.backend.dto.review.MyReviewResponse;
 import com.helpie.backend.facade.mypage.MyPageFacade;
 import com.helpie.backend.service.location.LocationService;
 import com.helpie.backend.service.survey.SurveyBasicInfoService;
@@ -146,5 +148,24 @@ public class MyPageController {
             @PageableDefault(size = 20, sort = "createdAt", direction = Sort.Direction.DESC) Pageable pageable){
 
         return ResponseEntity.ok(myPageFacade.getMyCommunities(userVo.getId(), request.sort(), pageable));
+    }
+
+    @GetMapping("/review-info")
+    @SecurityRequirement(name = "JWT Authentication")
+    @Secured(UserRole.USER_TYPE)
+    @Operation(
+        summary = "내 리뷰 정보를 조회합니다.",
+        description = "내 리뷰 활동 통계(총 리뷰 수, 평균 평점, 평점별 리뷰 수)와 작성한 리뷰 목록을 함께 조회합니다.<br>" +
+                     "소모임 정보 조회와 동일한 구조입니다."
+    )
+    @ApiResponse(responseCode = "200", content = @Content(
+            schema = @Schema(implementation = MyReviewResponse.class)
+    ))
+    public ResponseEntity<MyReviewResponse> getReviewInfo(
+            @AuthenticationPrincipal UserVo userVo,
+            FindMyReviewsRequest request,
+            @PageableDefault(size = 20, sort = "createdAt", direction = Sort.Direction.DESC) Pageable pageable){
+
+        return ResponseEntity.ok(myPageFacade.getMyReviews(userVo.getId(), request.sort(), pageable));
     }
 }

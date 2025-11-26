@@ -9,6 +9,9 @@ import com.helpie.backend.dto.mypage.response.MyBookmarkResponse;
 import com.helpie.backend.dto.mypage.response.MyProfileResponse;
 import com.helpie.backend.dto.community.MyCommunityResponse;
 import com.helpie.backend.dto.mypage.response.MyCommunityActivityResponse;
+import com.helpie.backend.dto.review.MyReviewResponse;
+import com.helpie.backend.dto.review.MyReviewActivityResponse;
+import com.helpie.backend.repository.review.ReviewRepository;
 import com.helpie.backend.dto.survey.SurveyBasicInfoResponse;
 import com.helpie.backend.exception.BusinessException;
 import com.helpie.backend.service.file.FileService;
@@ -25,6 +28,7 @@ import com.helpie.backend.repository.community.CommunityRepository;
 import com.helpie.backend.dto.community.CommunityResponse;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import java.time.LocalDateTime;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
@@ -45,6 +49,7 @@ public class MyPageFacade {
     private final BookmarkService bookmarkService;
     private final CommunityService communityService;
     private final CommunityRepository communityRepository;
+    private final ReviewRepository reviewRepository;
 
     public MyProfileResponse getMyProfileInfo(Long userId) {
         final var user = userCommonService.findById(userId);
@@ -153,5 +158,64 @@ public class MyPageFacade {
      */
     private Integer getCommunityPostCount(Long userId) {
         return communityRepository.countByUserId(userId);
+    }
+
+    /**
+     * 내 리뷰 정보 조회 (통계 + 활동 내역 통합)
+     */
+    public MyReviewResponse getMyReviews(Long userId, String sort, Pageable pageable) {
+        // 통계 정보 계산
+        Integer totalReviews = getReviewCount(userId);
+        Double averageRating = getAverageRating(userId);
+        Integer fiveStarCount = getReviewCountByRating(userId, 5);
+        Integer fourStarCount = getReviewCountByRating(userId, 4);
+        Integer threeStarCount = getReviewCountByRating(userId, 3);
+        
+        // 활동 내역 조회
+        Page<MyReviewActivityResponse> activities = reviewRepository.findByUser_IdOrderByCreatedAtDesc(userId, pageable)
+            .map(review -> {
+                String thumbnailUrl = extractReviewThumbnailUrl(review);
+                String groupTitle = review.getGroup().getTitle();
+                String reviewerName = review.getAnonymityYn() ? review.getAnonymousName() : review.getUser().getUsername();
+                LocalDateTime meetingDate = review.getGroup().getMeetingDate();
+                
+                return MyReviewActivityResponse.from(review, thumbnailUrl, groupTitle, reviewerName, meetingDate);
+            });
+            
+        return MyReviewResponse.of(totalReviews, averageRating, fiveStarCount, fourStarCount, threeStarCount, activities);
+    }
+
+    /**
+     * 리뷰 썸네일 URL 추출
+     */
+    private String extractReviewThumbnailUrl(com.helpie.backend.domain.review.Review review) {
+        // 리뷰 이미지에서 첫 번째 이미지를 썸네일로 사용
+        if (review.getImages() != null && !review.getImages().isEmpty()) {
+            return review.getImages().get(0).getImageUrl();
+        }
+        // 이미지가 없으면 기본 썸네일 반환
+        return "/api/v1/images/review-default-thumbnail.png";
+    }
+
+    /**
+     * 내가 작성한 총 리뷰 수 계산
+     */
+    private Integer getReviewCount(Long userId) {
+        return reviewRepository.countByUser_Id(userId);
+    }
+
+    /**
+     * 내가 작성한 리뷰의 평균 평점 계산
+     */
+    private Double getAverageRating(Long userId) {
+        Double average = reviewRepository.findAverageRatingByUserId(userId);
+        return average != null ? Math.round(average * 10) / 10.0 : 0.0; // 소수점 1자리 반올림
+    }
+
+    /**
+     * 특정 평점의 리뷰 수 계산
+     */
+    private Integer getReviewCountByRating(Long userId, Integer rating) {
+        return reviewRepository.countByUser_IdAndRate(userId, rating);
     }
 }
