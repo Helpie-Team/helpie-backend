@@ -130,61 +130,6 @@ public class MyPageController {
         return ResponseEntity.ok().build();
     }
 
-    @GetMapping("/my-posts")
-    @SecurityRequirement(name = "JWT Authentication")
-    @Secured(UserRole.USER_TYPE)
-    @Operation(
-        summary = "내 게시글 목록을 조회합니다.",
-        description = "마이페이지 > 나의활동 > '내 게시글 5' 탭<br>" +
-                     "내가 작성한 커뮤니티 게시글 목록을 최신순으로 조회합니다."
-    )
-    @ApiResponse(responseCode = "200", description = "성공", content = @Content(
-            schema = @Schema(implementation = Page.class),
-            examples = @ExampleObject(value = """
-                {
-                    "content": [
-                        {
-                            "id": 1,
-                            "thumbnailUrl": "https://example.com/image.jpg",
-                            "categoryDisplayName": "정보공유",
-                            "title": "유용한 정보 공유합니다",
-                            "contentPreview": "안녕하세요! 오늘은 정말 유용한 정보를 공유하고 싶어서...",
-                            "createdAt": "2025-11-26T14:30:00",
-                            "category": "INFO_SHARE"
-                        },
-                        {
-                            "id": 2,
-                            "thumbnailUrl": null,
-                            "categoryDisplayName": "자유게시판",
-                            "title": "이미지 없는 게시글",
-                            "contentPreview": "이미지가 없는 게시글의 예시입니다...",
-                            "createdAt": "2025-11-25T10:15:00",
-                            "category": "FREE_BOARD"
-                        }
-                    ],
-                    "pageable": {
-                        "pageNumber": 0,
-                        "pageSize": 20,
-                        "sort": {
-                            "sorted": true,
-                            "direction": "DESC",
-                            "orderBy": ["createdAt"]
-                        }
-                    },
-                    "totalElements": 2,
-                    "totalPages": 1,
-                    "last": true,
-                    "first": true,
-                    "numberOfElements": 2
-                }
-                """)
-    ))
-    public ResponseEntity<Page<MyCommunityActivityResponse>> getCommunityInfo(
-            @AuthenticationPrincipal UserVo userVo,
-            @PageableDefault(size = 20, sort = "createdAt", direction = Sort.Direction.DESC) Pageable pageable){
-
-        return ResponseEntity.ok(myPageFacade.getMyCommunityActivities(userVo.getId(), pageable));
-    }
 
     @GetMapping("/my-likes")
     @SecurityRequirement(name = "JWT Authentication")
@@ -298,6 +243,122 @@ public class MyPageController {
             @PageableDefault(size = 20, sort = "createdAt", direction = Sort.Direction.DESC) Pageable pageable){
 
         return ResponseEntity.ok(myPageFacade.getMyReviewActivities(userVo.getId(), pageable));
+    }
+
+    @GetMapping("/my-posts/groups")
+    @SecurityRequirement(name = "JWT Authentication")
+    @Secured(UserRole.USER_TYPE)
+    @Operation(
+        summary = "내가 작성한 소모임 목록을 조회합니다.",
+        description = "마이페이지 > 나의활동 > '내 게시글' > '소모임' 하위탭<br>" +
+                     "내가 작성한 소모임 목록을 최신순으로 조회합니다."
+    )
+    @ApiResponse(responseCode = "200", description = "성공", content = @Content(
+            schema = @Schema(implementation = Page.class),
+            examples = @ExampleObject(value = """
+                {
+                    "content": [
+                        {
+                            "groupId": 1,
+                            "title": "헬스 동호회",
+                            "description": "주 3회 운동 모임",
+                            "cityName": "서울",
+                            "currentMember": 8,
+                            "maxMember": 15,
+                            "category": "SPORTS",
+                            "meetingDate": "2025-12-01T19:00:00",
+                            "thumbnailUrl": "https://example.com/image.jpg"
+                        },
+                        {
+                            "groupId": 2,
+                            "title": "독서 클럽",
+                            "description": "매주 토요일 독서 모임",
+                            "cityName": "부산",
+                            "currentMember": 5,
+                            "maxMember": 10,
+                            "category": "CULTURAL",
+                            "meetingDate": "2025-11-30T14:00:00",
+                            "thumbnailUrl": null
+                        }
+                    ],
+                    "pageable": {
+                        "pageNumber": 0,
+                        "pageSize": 20,
+                        "sort": {
+                            "sorted": true,
+                            "direction": "DESC",
+                            "orderBy": ["createdAt"]
+                        }
+                    },
+                    "totalElements": 2,
+                    "totalPages": 1,
+                    "last": true,
+                    "first": true,
+                    "numberOfElements": 2
+                }
+                """)
+    ))
+    public ResponseEntity<Page<MyGroupResponse>> getMyPostGroups(
+            @AuthenticationPrincipal UserVo userVo,
+            @PageableDefault(size = 20, sort = "createdAt", direction = Sort.Direction.DESC) Pageable pageable){
+
+        return ResponseEntity.ok(myPageFacade.getMyCreatedGroups(userVo.getId(), pageable));
+    }
+
+    @GetMapping("/my-posts/communities")
+    @SecurityRequirement(name = "JWT Authentication")
+    @Secured(UserRole.USER_TYPE)
+    @Operation(
+        summary = "내가 작성한 커뮤니티 게시글 목록을 조회합니다.",
+        description = "마이페이지 > 나의활동 > '내 게시글' > '커뮤니티' 하위탭<br>" +
+                     "내가 작성한 커뮤니티 게시글 목록을 최신순으로 조회합니다."
+    )
+    @ApiResponse(responseCode = "200", description = "성공", content = @Content(
+            schema = @Schema(implementation = Page.class),
+            examples = @ExampleObject(value = """
+                {
+                    "content": [
+                        {
+                            "id": 1,
+                            "thumbnailUrl": "https://example.com/image.jpg",
+                            "categoryDisplayName": "정보공유",
+                            "title": "내가 작성한 커뮤니티 게시글",
+                            "contentPreview": "이것은 내가 작성한 게시글입니다...",
+                            "createdAt": "2025-11-25T14:30:00",
+                            "category": "INFO_SHARE"
+                        },
+                        {
+                            "id": 2,
+                            "thumbnailUrl": null,
+                            "categoryDisplayName": "자유게시판",
+                            "title": "또 다른 내 게시글",
+                            "contentPreview": "자유게시판에 올린 글입니다...",
+                            "createdAt": "2025-11-24T09:15:00",
+                            "category": "FREE_BOARD"
+                        }
+                    ],
+                    "pageable": {
+                        "pageNumber": 0,
+                        "pageSize": 20,
+                        "sort": {
+                            "sorted": true,
+                            "direction": "DESC",
+                            "orderBy": ["createdAt"]
+                        }
+                    },
+                    "totalElements": 2,
+                    "totalPages": 1,
+                    "last": true,
+                    "first": true,
+                    "numberOfElements": 2
+                }
+                """)
+    ))
+    public ResponseEntity<Page<MyCommunityActivityResponse>> getMyPostCommunities(
+            @AuthenticationPrincipal UserVo userVo,
+            @PageableDefault(size = 20, sort = "createdAt", direction = Sort.Direction.DESC) Pageable pageable){
+
+        return ResponseEntity.ok(myPageFacade.getMyCreatedCommunities(userVo.getId(), pageable));
     }
 
     @GetMapping("/my-comments")

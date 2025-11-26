@@ -20,7 +20,6 @@ import com.helpie.backend.service.survey.SurveyBasicInfoService;
 import com.helpie.backend.service.user.UserCommonService;
 import com.helpie.backend.service.user.UserImageService;
 import com.helpie.backend.service.user.UserService;
-import com.helpie.backend.service.community.CommunityService;
 import com.helpie.backend.domain.community.Community;
 import com.helpie.backend.repository.community.CommunityRepository;
 import com.helpie.backend.repository.community.CommunityCommentRepository;
@@ -47,7 +46,6 @@ public class MyPageFacade {
     private final UserImageService userImageService;
     private final UserService userService;
     private final BookmarkService bookmarkService;
-    private final CommunityService communityService;
     private final CommunityRepository communityRepository;
     private final CommunityLikeRepository communityLikeRepository;
     private final CommunityCommentRepository communityCommentRepository;
@@ -99,27 +97,6 @@ public class MyPageFacade {
         userService.updateUsername(userId, username);
     }
 
-    /**
-     * 내 커뮤니티 활동 내역 조회 (목록만)
-     */
-    public Page<MyCommunityActivityResponse> getMyCommunityActivities(Long userId, Pageable pageable) {
-        return communityService.getMyCommunities(userId, pageable)
-            .map(communityResponse -> {
-                String thumbnailUrl = extractThumbnailUrl(communityResponse);
-                
-                return new MyCommunityActivityResponse(
-                    communityResponse.getId(),
-                    thumbnailUrl,
-                    communityResponse.getCategoryDisplayName(),
-                    communityResponse.getTitle(),
-                    communityResponse.getContent().length() > 100 
-                        ? communityResponse.getContent().substring(0, 100) + "..."
-                        : communityResponse.getContent(),
-                    communityResponse.getCreatedAt(),
-                    communityResponse.getCategory()
-                );
-            });
-    }
 
     /**
      * 썸네일 URL 추출
@@ -159,6 +136,36 @@ public class MyPageFacade {
     }
 
     /**
+     * 내가 작성한 소모임 목록 조회 (내 게시글 > 소모임 하위탭용)
+     */
+    public Page<MyGroupResponse> getMyCreatedGroups(Long userId, Pageable pageable) {
+        return groupService.getMyGroups(userId, "created", pageable);
+    }
+
+    /**
+     * 내가 작성한 커뮤니티 게시글 목록 조회 (내 게시글 > 커뮤니티 하위탭용)
+     */
+    public Page<MyCommunityActivityResponse> getMyCreatedCommunities(Long userId, Pageable pageable) {
+        return communityRepository.findByUserIdOrderByCreatedAtDesc(userId, pageable)
+            .map(community -> {
+                CommunityResponse communityResponse = CommunityResponse.from(community, null);
+                String thumbnailUrl = extractThumbnailUrl(communityResponse);
+                
+                return new MyCommunityActivityResponse(
+                    communityResponse.getId(),
+                    thumbnailUrl,
+                    communityResponse.getCategoryDisplayName(),
+                    communityResponse.getTitle(),
+                    communityResponse.getContent().length() > 100 
+                        ? communityResponse.getContent().substring(0, 100) + "..."
+                        : communityResponse.getContent(),
+                    communityResponse.getCreatedAt(),
+                    communityResponse.getCategory()
+                );
+            });
+    }
+
+    /**
      * 내가 작성한 리뷰 목록 조회 (내 게시글 > 리뷰 탭용)
      */
     public Page<MyReviewActivityResponse> getMyReviewActivities(Long userId, Pageable pageable) {
@@ -179,7 +186,6 @@ public class MyPageFacade {
     public Page<MyCommunityActivityResponse> getMyCommentedCommunities(Long userId, Pageable pageable) {
         return communityCommentRepository.findCommunitiesByUserComments(userId, pageable)
             .map(community -> {
-                // Community -> CommunityResponse 변환을 위해 CommunityService 사용
                 CommunityResponse communityResponse = CommunityResponse.from(community, null); // userProfileImage는 댓글 탭에서 필요 없음
                 String thumbnailUrl = extractThumbnailUrl(communityResponse);
                 
