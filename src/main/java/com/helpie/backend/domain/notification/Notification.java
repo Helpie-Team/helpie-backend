@@ -112,7 +112,7 @@ public class Notification {
         this.actorId = actorId;
         this.actorName = actorName;
         this.isRead = false;
-        this.createdAt = LocalDateTime.now(); // 수동으로 설정 (JPA Auditing 백업)
+        // @CreatedDate가 자동 설정하도록 제거
     }
 
     /**
