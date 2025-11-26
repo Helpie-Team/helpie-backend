@@ -7,9 +7,7 @@ import com.helpie.backend.dto.group.GroupResponse;
 import com.helpie.backend.dto.group.MyGroupResponse;
 import com.helpie.backend.dto.mypage.response.MyBookmarkResponse;
 import com.helpie.backend.dto.mypage.response.MyProfileResponse;
-import com.helpie.backend.dto.community.MyCommunityResponse;
 import com.helpie.backend.dto.mypage.response.MyCommunityActivityResponse;
-import com.helpie.backend.dto.review.MyReviewResponse;
 import com.helpie.backend.dto.review.MyReviewActivityResponse;
 import com.helpie.backend.repository.review.ReviewRepository;
 import com.helpie.backend.dto.survey.SurveyBasicInfoResponse;
@@ -25,6 +23,7 @@ import com.helpie.backend.service.user.UserService;
 import com.helpie.backend.service.community.CommunityService;
 import com.helpie.backend.domain.community.Community;
 import com.helpie.backend.repository.community.CommunityRepository;
+import com.helpie.backend.repository.community.CommunityCommentRepository;
 import com.helpie.backend.dto.community.CommunityResponse;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -49,6 +48,7 @@ public class MyPageFacade {
     private final BookmarkService bookmarkService;
     private final CommunityService communityService;
     private final CommunityRepository communityRepository;
+    private final CommunityCommentRepository communityCommentRepository;
     private final ReviewRepository reviewRepository;
 
     public MyProfileResponse getMyProfileInfo(Long userId) {
@@ -98,16 +98,10 @@ public class MyPageFacade {
     }
 
     /**
-     * 내 커뮤니티 정보 조회 (통계 + 활동 내역 통합)
+     * 내 커뮤니티 활동 내역 조회 (목록만)
      */
-    public MyCommunityResponse getMyCommunities(Long userId, String sort, Pageable pageable) {
-        // 통계 정보 계산
-        Integer likeCount = getCommunityLikesCount(userId);
-        Integer commentCount = getCommunityCommentsCount(userId);
-        Integer postCount = getCommunityPostCount(userId);
-        
-        // 활동 내역 조회
-        Page<MyCommunityActivityResponse> activities = communityService.getMyCommunities(userId, pageable)
+    public Page<MyCommunityActivityResponse> getMyCommunityActivities(Long userId, Pageable pageable) {
+        return communityService.getMyCommunities(userId, pageable)
             .map(communityResponse -> {
                 String thumbnailUrl = extractThumbnailUrl(communityResponse);
                 
@@ -123,8 +117,6 @@ public class MyPageFacade {
                     communityResponse.getCategory()
                 );
             });
-            
-        return MyCommunityResponse.of(likeCount, commentCount, postCount, activities);
     }
 
     /**
@@ -139,40 +131,12 @@ public class MyPageFacade {
         return null;
     }
 
-    /**
-     * 내가 받은 좋아요 수 계산
-     */
-    private Integer getCommunityLikesCount(Long userId) {
-        return communityRepository.countTotalLikesByUserId(userId);
-    }
 
     /**
-     * 내가 받은 댓글 수 계산
+     * 내 리뷰 활동 내역 조회 (목록만)
      */
-    private Integer getCommunityCommentsCount(Long userId) {
-        return communityRepository.countTotalCommentsByUserId(userId);
-    }
-
-    /**
-     * 내가 쓴 글 수 계산
-     */
-    private Integer getCommunityPostCount(Long userId) {
-        return communityRepository.countByUserId(userId);
-    }
-
-    /**
-     * 내 리뷰 정보 조회 (통계 + 활동 내역 통합)
-     */
-    public MyReviewResponse getMyReviews(Long userId, String sort, Pageable pageable) {
-        // 통계 정보 계산
-        Integer totalReviews = getReviewCount(userId);
-        Double averageRating = getAverageRating(userId);
-        Integer fiveStarCount = getReviewCountByRating(userId, 5);
-        Integer fourStarCount = getReviewCountByRating(userId, 4);
-        Integer threeStarCount = getReviewCountByRating(userId, 3);
-        
-        // 활동 내역 조회
-        Page<MyReviewActivityResponse> activities = reviewRepository.findByUser_IdOrderByCreatedAtDesc(userId, pageable)
+    public Page<MyReviewActivityResponse> getMyReviewActivities(Long userId, Pageable pageable) {
+        return reviewRepository.findByUser_IdOrderByCreatedAtDesc(userId, pageable)
             .map(review -> {
                 String thumbnailUrl = extractReviewThumbnailUrl(review);
                 String groupTitle = review.getGroup().getTitle();
@@ -181,8 +145,30 @@ public class MyPageFacade {
                 
                 return MyReviewActivityResponse.from(review, thumbnailUrl, groupTitle, reviewerName, meetingDate);
             });
-            
-        return MyReviewResponse.of(totalReviews, averageRating, fiveStarCount, fourStarCount, threeStarCount, activities);
+    }
+
+    /**
+     * 내가 댓글 단 커뮤니티 게시글 목록 조회
+     */
+    public Page<MyCommunityActivityResponse> getMyCommentedCommunities(Long userId, Pageable pageable) {
+        return communityCommentRepository.findCommunitiesByUserComments(userId, pageable)
+            .map(community -> {
+                // Community -> CommunityResponse 변환을 위해 CommunityService 사용
+                CommunityResponse communityResponse = CommunityResponse.from(community, null); // userProfileImage는 댓글 탭에서 필요 없음
+                String thumbnailUrl = extractThumbnailUrl(communityResponse);
+                
+                return new MyCommunityActivityResponse(
+                    communityResponse.getId(),
+                    thumbnailUrl,
+                    communityResponse.getCategoryDisplayName(),
+                    communityResponse.getTitle(),
+                    communityResponse.getContent().length() > 100 
+                        ? communityResponse.getContent().substring(0, 100) + "..."
+                        : communityResponse.getContent(),
+                    communityResponse.getCreatedAt(),
+                    communityResponse.getCategory()
+                );
+            });
     }
 
     /**
@@ -197,25 +183,4 @@ public class MyPageFacade {
         return null;
     }
 
-    /**
-     * 내가 작성한 총 리뷰 수 계산
-     */
-    private Integer getReviewCount(Long userId) {
-        return reviewRepository.countByUser_Id(userId);
-    }
-
-    /**
-     * 내가 작성한 리뷰의 평균 평점 계산
-     */
-    private Double getAverageRating(Long userId) {
-        Double average = reviewRepository.findAverageRatingByUserId(userId);
-        return average != null ? Math.round(average * 10) / 10.0 : 0.0; // 소수점 1자리 반올림
-    }
-
-    /**
-     * 특정 평점의 리뷰 수 계산
-     */
-    private Integer getReviewCountByRating(Long userId, Integer rating) {
-        return reviewRepository.countByUser_IdAndRate(userId, rating);
-    }
 }
