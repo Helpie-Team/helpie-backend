@@ -19,6 +19,7 @@ import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.web.PageableDefault;
@@ -412,8 +413,10 @@ public class MyPageController {
     ))
     public ResponseEntity<Page<MyCommunityActivityResponse>> getCommentInfo(
             @AuthenticationPrincipal UserVo userVo,
-            @PageableDefault(size = 20, sort = "createdAt", direction = Sort.Direction.DESC) Pageable pageable){
+            @PageableDefault(size = 20) Pageable pageable){
 
-        return ResponseEntity.ok(myPageFacade.getMyCommentedCommunities(userVo.getId(), pageable));
+        // Sort를 제거한 Pageable 생성 (네이티브 쿼리에서 ORDER BY가 고정되어 있음)
+        Pageable unsortedPageable = PageRequest.of(pageable.getPageNumber(), pageable.getPageSize());
+        return ResponseEntity.ok(myPageFacade.getMyCommentedCommunities(userVo.getId(), unsortedPageable));
     }
 }

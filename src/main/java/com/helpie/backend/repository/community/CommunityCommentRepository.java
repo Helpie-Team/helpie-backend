@@ -47,10 +47,10 @@ public interface CommunityCommentRepository extends JpaRepository<CommunityComme
     /**
      * 사용자가 댓글을 단 커뮤니티 게시글들 조회 (중복 제거, 최신순)
      */
-    @Query(value = "SELECT DISTINCT c.* FROM communities c WHERE c.id IN (SELECT DISTINCT cc.community_id FROM community_comments cc WHERE cc.user_id = :userId AND cc.is_deleted = false) ORDER BY c.created_at DESC", 
-           countQuery = "SELECT COUNT(DISTINCT c.id) FROM communities c WHERE c.id IN (SELECT DISTINCT cc.community_id FROM community_comments cc WHERE cc.user_id = :userId AND cc.is_deleted = false)",
+    @Query(value = "SELECT DISTINCT c.* FROM communities c WHERE c.id IN (SELECT DISTINCT cc.community_id FROM community_comments cc WHERE cc.user_id = ?1 AND cc.is_deleted = false) ORDER BY c.created_at DESC", 
+           countQuery = "SELECT COUNT(DISTINCT c.id) FROM communities c WHERE c.id IN (SELECT DISTINCT cc.community_id FROM community_comments cc WHERE cc.user_id = ?1 AND cc.is_deleted = false)",
            nativeQuery = true)
-    Page<Community> findCommunitiesByUserComments(@Param("userId") Long userId, Pageable pageable);
+    Page<Community> findCommunitiesByUserComments(Long userId, Pageable pageable);
     
     /**
      * 커뮤니티 게시글 삭제 시 관련 댓글들 논리적 삭제
