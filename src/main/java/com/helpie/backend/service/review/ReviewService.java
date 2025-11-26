@@ -90,4 +90,11 @@ public class ReviewService {
         return reviewCustomRepository.findAllReviews(pageable);
     }
 
+    /**
+     * 특정 그룹에 대한 사용자의 리뷰 작성 가능 여부 확인
+     */
+    public boolean canUserWriteReview(Long userId, Long groupId) {
+        return !reviewRepository.existsByGroup_IdAndUser_Id(groupId, userId);
+    }
+
 }
