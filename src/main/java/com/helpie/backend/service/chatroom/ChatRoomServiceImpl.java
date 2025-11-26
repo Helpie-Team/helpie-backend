@@ -85,21 +85,7 @@ public class ChatRoomServiceImpl implements ChatRoomService {
         // 입장 시스템 메시지 제거 (소모임 가입 시만 환영 메시지 표시)
         
         log.info("사용자 {}가 채팅방 {}에 입장했습니다", userId, chatRoomId);
-        
-        // 마지막 메시지 정보와 함께 응답 생성
-        List<ChatMessage> lastMessages = messageRepository.findLastMessagesByChatRoomIds(List.of(chatRoomId));
-        
-        if (!lastMessages.isEmpty()) {
-            ChatMessage lastMessage = lastMessages.get(0);
-            return ChatRoomResponse.fromWithLastMessage(
-                chatRoom,
-                lastMessage.getContent(),
-                lastMessage.getSentAt(),
-                lastMessage.getSenderName()
-            );
-        } else {
-            return ChatRoomResponse.from(chatRoom);
-        }
+        return ChatRoomResponse.from(chatRoom);
     }
     
     @Override

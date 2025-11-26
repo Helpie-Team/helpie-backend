@@ -64,11 +64,10 @@ public class ChatRoomController {
                      "- 진행중/모집완료/지난 모임 모두 입장 가능\n" +
                      "- 조용한 입장 (입장 알림 메시지 없음)\n" +
                      "- 참여자 수 업데이트\n\n" +
-                     "**응답 정보:**\n" +
-                     "- 채팅방 기본 정보와 **마지막 메시지 정보** 포함\n\n" +
                      "**참고:**\n" +
                      "- 소모임 최초 가입 시에만 환영 메시지가 표시됩니다\n" +
-                     "- 실제 실시간 채팅은 WebSocket `/ws/chat` 연결이 필요합니다"
+                     "- 실제 실시간 채팅은 WebSocket `/ws/chat` 연결이 필요합니다\n" +
+                     "- 마지막 메시지 확인은 채팅방 목록 조회 API를 사용하세요"
     )
     @ApiResponses({
         @ApiResponse(responseCode = "200", description = "채팅방 입장 성공",
@@ -86,10 +85,7 @@ public class ChatRoomController {
                             "groupTitle": "일본 디즈니랜드 소모임",
                             "profileImageUrl": "https://example.com/disney.jpg",
                             "location": "도쿄",
-                            "category": "TRAVEL",
-                            "lastMessage": "내일 몇 시에 만날까요?",
-                            "lastMessageTime": "2025-11-26T15:30:00",
-                            "lastMessageSender": "김민수"
+                            "category": "TRAVEL"
                         }
                         """))),
         @ApiResponse(responseCode = "403", description = "채팅방 접근 권한 없음"),
@@ -140,7 +136,8 @@ public class ChatRoomController {
                      "- **NEW: 마지막 메시지 정보 (내용, 시간, 발신자)**\n" +
                      "- 모바일 UI 구현에 필요한 모든 데이터 포함\n\n" +
                      "**UX 개선:**\n" +
-                     "- 이제 WebSocket 구독 없이도 채팅방 목록에서 마지막 메시지 확인 가능\n" +
+                     "- **WebSocket 구독 없이도 채팅방 목록에서 마지막 메시지 확인 가능**\n" +
+                     "- 채팅방 입장 전에 미리 마지막 메시지 상태 파악 가능\n" +
                      "- 효율적인 배치 쿼리로 성능 최적화\n" +
                      "- currentParticipants는 소모임 실제 가입 멤버 수를 정확히 표시"
     )
@@ -294,7 +291,8 @@ public class ChatRoomController {
                      "**참고:**\n" +
                      "- 이 API는 DB 저장용이며, 실시간 전송은 되지 않습니다\n" +
                      "- 실시간 채팅은 WebSocket `/app/chat/{chatRoomId}` 사용\n" +
-                     "- 소모임 멤버이고 채팅방에 입장한 상태여야 합니다"
+                     "- 소모임 멤버이고 채팅방에 입장한 상태여야 합니다\n" +
+                     "- 메시지 전송 후 마지막 메시지 확인은 채팅방 목록 조회로 가능"
     )
     @ApiResponses({
         @ApiResponse(responseCode = "200", description = "메시지 전송 성공",
