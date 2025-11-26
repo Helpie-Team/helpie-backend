@@ -55,6 +55,11 @@ public class CommunityServiceImpl implements CommunityService {
     @Override
     @Transactional
     public CommunityResponse createCommunity(Long userId, String username, CommunityCreateRequest request, List<MultipartFile> images) {
+        // ALL 카테고리로는 게시글 작성 불가
+        if (request.getCategory() == CommunityCategory.ALL) {
+            throw new IllegalArgumentException("전체(ALL) 카테고리로는 게시글을 작성할 수 없습니다. INFO_SHARE 또는 FREE_BOARD를 선택해주세요.");
+        }
+        
         // 커뮤니티 게시글 생성
         Community community = Community.builder()
             .userId(userId)
@@ -111,6 +116,11 @@ public class CommunityServiceImpl implements CommunityService {
     
     @Override
     public Page<CommunityResponse> getCommunitiesByCategory(CommunityCategory category, Pageable pageable) {
+        // ALL 카테고리인 경우 전체 조회로 리다이렉트
+        if (category == CommunityCategory.ALL) {
+            return getCommunities(pageable);
+        }
+        
         return communityRepository.findByCategoryOrderByCreatedAtDesc(category, pageable)
             .map(community -> {
                 String userProfileImage = userImageService.getUserImage(community.getUserId())
@@ -144,6 +154,11 @@ public class CommunityServiceImpl implements CommunityService {
     
     @Override
     public Page<CommunityResponse> searchCommunitiesByCategory(CommunityCategory category, String keyword, Pageable pageable) {
+        // ALL 카테고리인 경우 전체 검색으로 리다이렉트
+        if (category == CommunityCategory.ALL) {
+            return searchCommunities(keyword, pageable);
+        }
+        
         return communityRepository.findByCategoryAndTitleOrContentContaining(category, keyword, pageable)
             .map(community -> {
                 String userProfileImage = userImageService.getUserImage(community.getUserId())
@@ -162,6 +177,11 @@ public class CommunityServiceImpl implements CommunityService {
         // 작성자 확인
         if (!community.getUserId().equals(userId)) {
             throw new IllegalArgumentException("게시글을 수정할 권한이 없습니다");
+        }
+        
+        // ALL 카테고리로는 게시글 수정 불가
+        if (request.getCategory() == CommunityCategory.ALL) {
+            throw new IllegalArgumentException("전체(ALL) 카테고리로는 게시글을 수정할 수 없습니다. INFO_SHARE 또는 FREE_BOARD를 선택해주세요.");
         }
         
         // 게시글 수정

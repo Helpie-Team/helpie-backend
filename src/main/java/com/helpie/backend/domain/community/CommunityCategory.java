@@ -7,6 +7,7 @@ package com.helpie.backend.domain.community;
  * @since 2025-11-21(금)
  */
 public enum CommunityCategory {
+    ALL("전체"),
     INFO_SHARE("정보공유"),
     FREE_BOARD("자유게시판");
     

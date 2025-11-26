@@ -21,7 +21,7 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 public class CommunityUpdateRequest {
 
-    @Schema(description = "카테고리", example = "INFO_SHARE")
+    @Schema(description = "카테고리 (INFO_SHARE: 정보공유, FREE_BOARD: 자유게시판)", example = "INFO_SHARE", allowableValues = {"INFO_SHARE", "FREE_BOARD"})
     @NotNull(message = "카테고리는 필수입니다")
     private CommunityCategory category;
 

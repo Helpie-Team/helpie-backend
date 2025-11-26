@@ -107,12 +107,14 @@ public class CommunityController {
         summary = "커뮤니티 게시글 목록 조회",
         description = "전체 또는 카테고리별 게시글 목록을 조회합니다.\n\n" +
                      "**사용 예시:**\n" +
-                     "- 전체: `/api/v1/communities`\n" +
+                     "- 전체: `/api/v1/communities?category=ALL`\n" +
                      "- 정보공유: `/api/v1/communities?category=INFO_SHARE`\n" +
-                     "- 자유게시판: `/api/v1/communities?category=FREE_BOARD`"
+                     "- 자유게시판: `/api/v1/communities?category=FREE_BOARD`\n\n" +
+                     "**참고:** category 파라미터를 생략하면 자동으로 ALL(전체)로 처리됩니다."
     )
     public ResponseEntity<Page<CommunityResponse>> getCommunities(
-        @Parameter(description = "카테고리 (선택)") @RequestParam(required = false) CommunityCategory category,
+        @Parameter(description = "카테고리 (ALL: 전체, INFO_SHARE: 정보공유, FREE_BOARD: 자유게시판)", example = "ALL") 
+        @RequestParam(defaultValue = "ALL") CommunityCategory category,
         @Parameter(
             description = "페이징 정보 (기본: 10개, 최신순)",
             example = """
@@ -125,9 +127,9 @@ public class CommunityController {
         )
         @PageableDefault(size = 10, sort = "createdAt", direction = Sort.Direction.DESC) Pageable pageable
     ) {
-        Page<CommunityResponse> response = category != null 
-            ? communityService.getCommunitiesByCategory(category, pageable)
-            : communityService.getCommunities(pageable);
+        Page<CommunityResponse> response = (category == CommunityCategory.ALL)
+            ? communityService.getCommunities(pageable)
+            : communityService.getCommunitiesByCategory(category, pageable);
         return ResponseEntity.ok(response);
     }
     
@@ -158,12 +160,14 @@ public class CommunityController {
         summary = "게시글 검색",
         description = "제목 또는 내용으로 게시글을 검색합니다.\n\n" +
                      "**사용 예시:**\n" +
-                     "- 전체 검색: `/api/v1/communities/search?keyword=검색어`\n" +
-                     "- 카테고리별 검색: `/api/v1/communities/search?category=INFO_SHARE&keyword=검색어`"
+                     "- 전체 검색: `/api/v1/communities/search?keyword=검색어&category=ALL`\n" +
+                     "- 카테고리별 검색: `/api/v1/communities/search?category=INFO_SHARE&keyword=검색어`\n\n" +
+                     "**참고:** category 파라미터를 생략하면 자동으로 ALL(전체)로 처리됩니다."
     )
     public ResponseEntity<Page<CommunityResponse>> searchCommunities(
         @Parameter(description = "검색 키워드") @RequestParam String keyword,
-        @Parameter(description = "카테고리 (선택)") @RequestParam(required = false) CommunityCategory category,
+        @Parameter(description = "카테고리 (ALL: 전체, INFO_SHARE: 정보공유, FREE_BOARD: 자유게시판)", example = "ALL") 
+        @RequestParam(defaultValue = "ALL") CommunityCategory category,
         @Parameter(
             description = "페이징 정보 (기본: 10개, 최신순)",
             example = """
@@ -176,9 +180,9 @@ public class CommunityController {
         )
         @PageableDefault(size = 10, sort = "createdAt", direction = Sort.Direction.DESC) Pageable pageable
     ) {
-        Page<CommunityResponse> response = category != null
-            ? communityService.searchCommunitiesByCategory(category, keyword, pageable)
-            : communityService.searchCommunities(keyword, pageable);
+        Page<CommunityResponse> response = (category == CommunityCategory.ALL)
+            ? communityService.searchCommunities(keyword, pageable)
+            : communityService.searchCommunitiesByCategory(category, keyword, pageable);
         return ResponseEntity.ok(response);
     }
     

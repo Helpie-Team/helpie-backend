@@ -35,7 +35,7 @@ public class CommunityResponse {
     @Schema(description = "작성자 프로필 이미지 URL", example = "https://example.com/profile.jpg")
     private String userProfileImage;
 
-    @Schema(description = "카테고리", example = "INFO_SHARE")
+    @Schema(description = "카테고리 (ALL: 전체, INFO_SHARE: 정보공유, FREE_BOARD: 자유게시판)", example = "INFO_SHARE")
     private CommunityCategory category;
 
     @Schema(description = "카테고리 표시명", example = "정보공유")
