@@ -47,7 +47,7 @@ public interface CommunityCommentRepository extends JpaRepository<CommunityComme
     /**
      * 사용자가 댓글을 단 커뮤니티 게시글들 조회 (중복 제거, 최신순)
      */
-    @Query("SELECT c.community FROM CommunityComment c LEFT JOIN FETCH c.community.images WHERE c.userId = :userId AND c.isDeleted = false GROUP BY c.community.id ORDER BY c.community.createdAt DESC")
+    @Query("SELECT DISTINCT c.community FROM CommunityComment c WHERE c.userId = :userId AND c.isDeleted = false ORDER BY c.community.createdAt DESC")
     Page<Community> findCommunitiesByUserComments(@Param("userId") Long userId, Pageable pageable);
     
     /**
