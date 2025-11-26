@@ -131,6 +131,35 @@ public class CommunityServiceImpl implements CommunityService {
     }
     
     @Override
+    public Page<CommunityResponse> getCommunitiesWithLikeStatus(Long userId, Pageable pageable) {
+        return communityRepository.findAllByOrderByCreatedAtDesc(pageable)
+            .map(community -> {
+                String userProfileImage = userImageService.getUserImage(community.getUserId())
+                    .map(UserImage::getImageUrl)
+                    .orElse(null);
+                Boolean isLiked = communityLikeRepository.existsByCommunityIdAndUserId(community.getId(), userId);
+                return CommunityResponse.fromSummary(community, userProfileImage, isLiked);
+            });
+    }
+    
+    @Override
+    public Page<CommunityResponse> getCommunitiesByCategoryWithLikeStatus(Long userId, CommunityCategory category, Pageable pageable) {
+        // ALL 카테고리인 경우 전체 조회로 리다이렉트
+        if (category == CommunityCategory.ALL) {
+            return getCommunitiesWithLikeStatus(userId, pageable);
+        }
+        
+        return communityRepository.findByCategoryOrderByCreatedAtDesc(category, pageable)
+            .map(community -> {
+                String userProfileImage = userImageService.getUserImage(community.getUserId())
+                    .map(UserImage::getImageUrl)
+                    .orElse(null);
+                Boolean isLiked = communityLikeRepository.existsByCommunityIdAndUserId(community.getId(), userId);
+                return CommunityResponse.fromSummary(community, userProfileImage, isLiked);
+            });
+    }
+    
+    @Override
     public Page<CommunityResponse> getMyCommunities(Long userId, Pageable pageable) {
         return communityRepository.findByUserIdOrderByCreatedAtDesc(userId, pageable)
             .map(community -> {
@@ -165,6 +194,35 @@ public class CommunityServiceImpl implements CommunityService {
                     .map(UserImage::getImageUrl)
                     .orElse(null);
                 return CommunityResponse.fromSummary(community, userProfileImage);
+            });
+    }
+    
+    @Override
+    public Page<CommunityResponse> searchCommunitiesWithLikeStatus(Long userId, String keyword, Pageable pageable) {
+        return communityRepository.findByTitleOrContentContaining(keyword, pageable)
+            .map(community -> {
+                String userProfileImage = userImageService.getUserImage(community.getUserId())
+                    .map(UserImage::getImageUrl)
+                    .orElse(null);
+                Boolean isLiked = communityLikeRepository.existsByCommunityIdAndUserId(community.getId(), userId);
+                return CommunityResponse.fromSummary(community, userProfileImage, isLiked);
+            });
+    }
+    
+    @Override
+    public Page<CommunityResponse> searchCommunitiesByCategoryWithLikeStatus(Long userId, CommunityCategory category, String keyword, Pageable pageable) {
+        // ALL 카테고리인 경우 전체 검색으로 리다이렉트
+        if (category == CommunityCategory.ALL) {
+            return searchCommunitiesWithLikeStatus(userId, keyword, pageable);
+        }
+        
+        return communityRepository.findByCategoryAndTitleOrContentContaining(category, keyword, pageable)
+            .map(community -> {
+                String userProfileImage = userImageService.getUserImage(community.getUserId())
+                    .map(UserImage::getImageUrl)
+                    .orElse(null);
+                Boolean isLiked = communityLikeRepository.existsByCommunityIdAndUserId(community.getId(), userId);
+                return CommunityResponse.fromSummary(community, userProfileImage, isLiked);
             });
     }
     

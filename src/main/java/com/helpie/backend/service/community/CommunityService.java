@@ -36,9 +36,19 @@ public interface CommunityService {
     Page<CommunityResponse> getCommunities(Pageable pageable);
     
     /**
+     * 커뮤니티 게시글 목록 조회 (전체 + 좋아요 상태 포함)
+     */
+    Page<CommunityResponse> getCommunitiesWithLikeStatus(Long userId, Pageable pageable);
+    
+    /**
      * 커뮤니티 게시글 목록 조회 (카테고리별)
      */
     Page<CommunityResponse> getCommunitiesByCategory(CommunityCategory category, Pageable pageable);
+    
+    /**
+     * 커뮤니티 게시글 목록 조회 (카테고리별 + 좋아요 상태 포함)
+     */
+    Page<CommunityResponse> getCommunitiesByCategoryWithLikeStatus(Long userId, CommunityCategory category, Pageable pageable);
     
     /**
      * 내 게시글 조회
@@ -51,9 +61,19 @@ public interface CommunityService {
     Page<CommunityResponse> searchCommunities(String keyword, Pageable pageable);
     
     /**
+     * 게시글 검색 (제목 + 내용 + 좋아요 상태 포함)
+     */
+    Page<CommunityResponse> searchCommunitiesWithLikeStatus(Long userId, String keyword, Pageable pageable);
+    
+    /**
      * 카테고리별 게시글 검색
      */
     Page<CommunityResponse> searchCommunitiesByCategory(CommunityCategory category, String keyword, Pageable pageable);
+    
+    /**
+     * 카테고리별 게시글 검색 (좋아요 상태 포함)
+     */
+    Page<CommunityResponse> searchCommunitiesByCategoryWithLikeStatus(Long userId, CommunityCategory category, String keyword, Pageable pageable);
     
     /**
      * 게시글 수정

@@ -105,13 +105,71 @@ public class CommunityController {
     @GetMapping
     @Operation(
         summary = "커뮤니티 게시글 목록 조회",
-        description = "전체 또는 카테고리별 게시글 목록을 조회합니다.\n\n" +
+        description = "전체 또는 카테고리별 게시글 목록을 조회합니다. 로그인한 사용자에게는 좋아요 상태도 함께 제공됩니다.\n\n" +
                      "**사용 예시:**\n" +
                      "- 전체: `/api/v1/communities?category=ALL`\n" +
                      "- 정보공유: `/api/v1/communities?category=INFO_SHARE`\n" +
                      "- 자유게시판: `/api/v1/communities?category=FREE_BOARD`\n\n" +
-                     "**참고:** category 파라미터를 생략하면 자동으로 ALL(전체)로 처리됩니다."
+                     "**참고:** category 파라미터를 생략하면 자동으로 ALL(전체)로 처리됩니다.\n" +
+                     "**좋아요 상태:** 로그인한 사용자의 경우 각 게시글의 isLiked 필드가 포함됩니다."
     )
+    @ApiResponse(responseCode = "200", description = "성공", content = @Content(
+            schema = @Schema(implementation = Page.class),
+            examples = @io.swagger.v3.oas.annotations.media.ExampleObject(value = """
+                {
+                    "content": [
+                        {
+                            "id": 1,
+                            "userId": 123,
+                            "username": "홍길동",
+                            "userProfileImage": "https://example.com/profile.jpg",
+                            "category": "INFO_SHARE",
+                            "categoryDisplayName": "정보공유",
+                            "title": "도움이 되는 정보입니다",
+                            "content": "게시글 내용입니다...",
+                            "imageUrls": ["https://example.com/image1.jpg"],
+                            "viewCount": 42,
+                            "likesCount": 15,
+                            "commentsCount": 7,
+                            "isLiked": true,
+                            "createdAt": "2025-11-26T14:30:00",
+                            "updatedAt": "2025-11-26T14:30:00"
+                        },
+                        {
+                            "id": 2,
+                            "userId": 456,
+                            "username": "김철수",
+                            "userProfileImage": null,
+                            "category": "FREE_BOARD",
+                            "categoryDisplayName": "자유게시판",
+                            "title": "자유게시판 글입니다",
+                            "content": "자유롭게 작성한 글입니다...",
+                            "imageUrls": [],
+                            "viewCount": 20,
+                            "likesCount": 3,
+                            "commentsCount": 2,
+                            "isLiked": false,
+                            "createdAt": "2025-11-26T10:15:00",
+                            "updatedAt": "2025-11-26T10:15:00"
+                        }
+                    ],
+                    "pageable": {
+                        "pageNumber": 0,
+                        "pageSize": 10,
+                        "sort": {
+                            "sorted": true,
+                            "direction": "DESC",
+                            "orderBy": ["createdAt"]
+                        }
+                    },
+                    "totalElements": 2,
+                    "totalPages": 1,
+                    "last": true,
+                    "first": true,
+                    "numberOfElements": 2
+                }
+                """)
+    ))
     public ResponseEntity<Page<CommunityResponse>> getCommunities(
         @Parameter(description = "카테고리 (ALL: 전체, INFO_SHARE: 정보공유, FREE_BOARD: 자유게시판)", example = "ALL") 
         @RequestParam(defaultValue = "ALL") CommunityCategory category,
@@ -125,11 +183,23 @@ public class CommunityController {
                 }
                 """
         )
-        @PageableDefault(size = 10, sort = "createdAt", direction = Sort.Direction.DESC) Pageable pageable
+        @PageableDefault(size = 10, sort = "createdAt", direction = Sort.Direction.DESC) Pageable pageable,
+        @AuthenticationPrincipal UserVo userVo
     ) {
-        Page<CommunityResponse> response = (category == CommunityCategory.ALL)
-            ? communityService.getCommunities(pageable)
-            : communityService.getCommunitiesByCategory(category, pageable);
+        Page<CommunityResponse> response;
+        
+        if (userVo != null) {
+            // 로그인한 사용자 - 좋아요 상태 포함
+            response = (category == CommunityCategory.ALL)
+                ? communityService.getCommunitiesWithLikeStatus(userVo.getId(), pageable)
+                : communityService.getCommunitiesByCategoryWithLikeStatus(userVo.getId(), category, pageable);
+        } else {
+            // 비로그인 사용자 - 기존 방식
+            response = (category == CommunityCategory.ALL)
+                ? communityService.getCommunities(pageable)
+                : communityService.getCommunitiesByCategory(category, pageable);
+        }
+        
         return ResponseEntity.ok(response);
     }
     
@@ -158,12 +228,53 @@ public class CommunityController {
     @GetMapping("/search")
     @Operation(
         summary = "게시글 검색",
-        description = "제목 또는 내용으로 게시글을 검색합니다.\n\n" +
+        description = "제목 또는 내용으로 게시글을 검색합니다. 로그인한 사용자에게는 좋아요 상태도 함께 제공됩니다.\n\n" +
                      "**사용 예시:**\n" +
                      "- 전체 검색: `/api/v1/communities/search?keyword=검색어&category=ALL`\n" +
                      "- 카테고리별 검색: `/api/v1/communities/search?category=INFO_SHARE&keyword=검색어`\n\n" +
-                     "**참고:** category 파라미터를 생략하면 자동으로 ALL(전체)로 처리됩니다."
+                     "**참고:** category 파라미터를 생략하면 자동으로 ALL(전체)로 처리됩니다.\n" +
+                     "**좋아요 상태:** 로그인한 사용자의 경우 각 게시글의 isLiked 필드가 포함됩니다."
     )
+    @ApiResponse(responseCode = "200", description = "검색 성공", content = @Content(
+            schema = @Schema(implementation = Page.class),
+            examples = @io.swagger.v3.oas.annotations.media.ExampleObject(value = """
+                {
+                    "content": [
+                        {
+                            "id": 1,
+                            "userId": 123,
+                            "username": "홍길동",
+                            "userProfileImage": "https://example.com/profile.jpg",
+                            "category": "INFO_SHARE",
+                            "categoryDisplayName": "정보공유",
+                            "title": "검색된 게시글 제목",
+                            "content": "검색 키워드가 포함된 내용입니다...",
+                            "imageUrls": ["https://example.com/image1.jpg"],
+                            "viewCount": 25,
+                            "likesCount": 8,
+                            "commentsCount": 3,
+                            "isLiked": true,
+                            "createdAt": "2025-11-26T12:30:00",
+                            "updatedAt": "2025-11-26T12:30:00"
+                        }
+                    ],
+                    "pageable": {
+                        "pageNumber": 0,
+                        "pageSize": 10,
+                        "sort": {
+                            "sorted": true,
+                            "direction": "DESC",
+                            "orderBy": ["createdAt"]
+                        }
+                    },
+                    "totalElements": 1,
+                    "totalPages": 1,
+                    "last": true,
+                    "first": true,
+                    "numberOfElements": 1
+                }
+                """)
+    ))
     public ResponseEntity<Page<CommunityResponse>> searchCommunities(
         @Parameter(description = "검색 키워드") @RequestParam String keyword,
         @Parameter(description = "카테고리 (ALL: 전체, INFO_SHARE: 정보공유, FREE_BOARD: 자유게시판)", example = "ALL") 
@@ -178,11 +289,23 @@ public class CommunityController {
                 }
                 """
         )
-        @PageableDefault(size = 10, sort = "createdAt", direction = Sort.Direction.DESC) Pageable pageable
+        @PageableDefault(size = 10, sort = "createdAt", direction = Sort.Direction.DESC) Pageable pageable,
+        @AuthenticationPrincipal UserVo userVo
     ) {
-        Page<CommunityResponse> response = (category == CommunityCategory.ALL)
-            ? communityService.searchCommunities(keyword, pageable)
-            : communityService.searchCommunitiesByCategory(category, keyword, pageable);
+        Page<CommunityResponse> response;
+        
+        if (userVo != null) {
+            // 로그인한 사용자 - 좋아요 상태 포함
+            response = (category == CommunityCategory.ALL)
+                ? communityService.searchCommunitiesWithLikeStatus(userVo.getId(), keyword, pageable)
+                : communityService.searchCommunitiesByCategoryWithLikeStatus(userVo.getId(), category, keyword, pageable);
+        } else {
+            // 비로그인 사용자 - 기존 방식
+            response = (category == CommunityCategory.ALL)
+                ? communityService.searchCommunities(keyword, pageable)
+                : communityService.searchCommunitiesByCategory(category, keyword, pageable);
+        }
+        
         return ResponseEntity.ok(response);
     }
     

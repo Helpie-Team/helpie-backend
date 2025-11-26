@@ -59,6 +59,9 @@ public class CommunityResponse {
     @Schema(description = "댓글 수", example = "7")
     private Integer commentsCount;
 
+    @Schema(description = "현재 사용자의 좋아요 여부", example = "true")
+    private Boolean isLiked;
+
     @Schema(description = "작성일시", example = "2025-11-21T14:30:28")
     private LocalDateTime createdAt;
 
@@ -81,6 +84,29 @@ public class CommunityResponse {
             community.getViewCount(),
             community.getLikesCount(),
             community.getCommentsCount(),
+            null, // isLiked는 별도로 설정
+            community.getCreatedAt(),
+            community.getUpdatedAt()
+        );
+    }
+
+    public static CommunityResponse from(Community community, String userProfileImage, Boolean isLiked) {
+        return new CommunityResponse(
+            community.getId(),
+            community.getUserId(),
+            community.getUsername(),
+            userProfileImage,
+            community.getCategory(),
+            community.getCategory().getDisplayName(),
+            community.getTitle(),
+            community.getContent(),
+            community.getImages().stream()
+                .map(image -> image.getImageUrl())
+                .collect(Collectors.toList()),
+            community.getViewCount(),
+            community.getLikesCount(),
+            community.getCommentsCount(),
+            isLiked,
             community.getCreatedAt(),
             community.getUpdatedAt()
         );
@@ -102,6 +128,29 @@ public class CommunityResponse {
             community.getViewCount(),
             community.getLikesCount(),
             community.getCommentsCount(),
+            null, // isLiked는 별도로 설정
+            community.getCreatedAt(),
+            community.getUpdatedAt()
+        );
+    }
+
+    public static CommunityResponse fromSummary(Community community, String userProfileImage, Boolean isLiked) {
+        return new CommunityResponse(
+            community.getId(),
+            community.getUserId(),
+            community.getUsername(),
+            userProfileImage,
+            community.getCategory(),
+            community.getCategory().getDisplayName(),
+            community.getTitle(),
+            truncateContent(community.getContent(), 100),
+            community.getImages().stream()
+                .map(image -> image.getImageUrl())
+                .collect(Collectors.toList()),
+            community.getViewCount(),
+            community.getLikesCount(),
+            community.getCommentsCount(),
+            isLiked,
             community.getCreatedAt(),
             community.getUpdatedAt()
         );
