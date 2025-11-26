@@ -24,6 +24,7 @@ import com.helpie.backend.service.community.CommunityService;
 import com.helpie.backend.domain.community.Community;
 import com.helpie.backend.repository.community.CommunityRepository;
 import com.helpie.backend.repository.community.CommunityCommentRepository;
+import com.helpie.backend.repository.community.CommunityLikeRepository;
 import com.helpie.backend.dto.community.CommunityResponse;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -48,6 +49,7 @@ public class MyPageFacade {
     private final BookmarkService bookmarkService;
     private final CommunityService communityService;
     private final CommunityRepository communityRepository;
+    private final CommunityLikeRepository communityLikeRepository;
     private final CommunityCommentRepository communityCommentRepository;
     private final ReviewRepository reviewRepository;
 
@@ -133,7 +135,31 @@ public class MyPageFacade {
 
 
     /**
-     * 내 리뷰 활동 내역 조회 (목록만)
+     * 내가 좋아요 누른 커뮤니티 게시글 목록 조회
+     */
+    public Page<MyCommunityActivityResponse> getMyLikedCommunities(Long userId, Pageable pageable) {
+        return communityLikeRepository.findLikedCommunitiesByUserId(userId, pageable)
+            .map(community -> {
+                // Community -> CommunityResponse 변환
+                CommunityResponse communityResponse = CommunityResponse.from(community, null); // userProfileImage는 공감 탭에서 필요 없음
+                String thumbnailUrl = extractThumbnailUrl(communityResponse);
+                
+                return new MyCommunityActivityResponse(
+                    communityResponse.getId(),
+                    thumbnailUrl,
+                    communityResponse.getCategoryDisplayName(),
+                    communityResponse.getTitle(),
+                    communityResponse.getContent().length() > 100 
+                        ? communityResponse.getContent().substring(0, 100) + "..."
+                        : communityResponse.getContent(),
+                    communityResponse.getCreatedAt(),
+                    communityResponse.getCategory()
+                );
+            });
+    }
+
+    /**
+     * 내가 작성한 리뷰 목록 조회 (내 게시글 > 리뷰 탭용)
      */
     public Page<MyReviewActivityResponse> getMyReviewActivities(Long userId, Pageable pageable) {
         return reviewRepository.findByUser_IdOrderByCreatedAtDesc(userId, pageable)

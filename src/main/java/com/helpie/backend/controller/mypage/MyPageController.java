@@ -3,16 +3,12 @@ package com.helpie.backend.controller.mypage;
 import com.helpie.backend.domain.user.UserRole;
 import com.helpie.backend.domain.user.UserVo;
 import com.helpie.backend.dto.group.FindMyGroupsRequest;
-import com.helpie.backend.dto.group.GroupResponse;
 import com.helpie.backend.dto.group.MyGroupResponse;
 import com.helpie.backend.dto.mypage.response.MyBookmarkResponse;
 import com.helpie.backend.dto.mypage.response.MyProfileResponse;
 import com.helpie.backend.dto.mypage.response.MyCommunityActivityResponse;
 import com.helpie.backend.dto.review.MyReviewActivityResponse;
 import com.helpie.backend.facade.mypage.MyPageFacade;
-import com.helpie.backend.service.location.LocationService;
-import com.helpie.backend.service.survey.SurveyBasicInfoService;
-import com.helpie.backend.service.user.UserCommonService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Schema;
@@ -190,13 +186,13 @@ public class MyPageController {
         return ResponseEntity.ok(myPageFacade.getMyCommunityActivities(userVo.getId(), pageable));
     }
 
-    @GetMapping("/my-reviews")
+    @GetMapping("/my-bookmarks")
     @SecurityRequirement(name = "JWT Authentication")
     @Secured(UserRole.USER_TYPE)
     @Operation(
-        summary = "내가 작성한 리뷰 목록을 조회합니다.",
+        summary = "내가 좋아요 누른 커뮤니티 게시글 목록을 조회합니다.",
         description = "마이페이지 > 나의활동 > '공감 3' 탭<br>" +
-                     "내가 작성한 리뷰 목록을 최신순으로 조회합니다. (공감 = 리뷰 작성)"
+                     "내가 좋아요를 누른 커뮤니티 게시글 목록을 최신 좋아요순으로 조회합니다."
     )
     @ApiResponse(responseCode = "200", description = "성공", content = @Content(
             schema = @Schema(implementation = Page.class),
@@ -206,24 +202,20 @@ public class MyPageController {
                         {
                             "id": 1,
                             "thumbnailUrl": "https://example.com/image.jpg",
-                            "groupTitle": "헬스 동호회",
-                            "rating": 5,
-                            "reviewerName": "홍길동",
-                            "meetingDate": "2025-10-24T19:00:00",
-                            "contentPreview": "정말 좋은 모임이었습니다. 다들 친절하시고 운동도 열심히...",
-                            "createdAt": "2025-11-26T14:30:00",
-                            "isAnonymous": false
+                            "categoryDisplayName": "정보공유",
+                            "title": "내가 좋아요 누른 게시글",
+                            "contentPreview": "이 게시글에 좋아요를 눌렀습니다...",
+                            "createdAt": "2025-11-25T14:30:00",
+                            "category": "INFO_SHARE"
                         },
                         {
                             "id": 2,
                             "thumbnailUrl": null,
-                            "groupTitle": "독서 모임",
-                            "rating": 4,
-                            "reviewerName": "익명 1",
-                            "meetingDate": "2025-10-20T15:00:00",
-                            "contentPreview": "이미지는 없지만 좋은 모임이었어요...",
-                            "createdAt": "2025-11-25T12:00:00",
-                            "isAnonymous": true
+                            "categoryDisplayName": "자유게시판",
+                            "title": "또 다른 좋아요 누른 게시글",
+                            "contentPreview": "여기에도 좋아요를 눌렀네요...",
+                            "createdAt": "2025-11-24T09:15:00",
+                            "category": "FREE_BOARD"
                         }
                     ],
                     "pageable": {
@@ -243,7 +235,65 @@ public class MyPageController {
                 }
                 """)
     ))
-    public ResponseEntity<Page<MyReviewActivityResponse>> getReviewInfo(
+    public ResponseEntity<Page<MyCommunityActivityResponse>> getLikedCommunities(
+            @AuthenticationPrincipal UserVo userVo,
+            @PageableDefault(size = 20, sort = "createdAt", direction = Sort.Direction.DESC) Pageable pageable){
+
+        return ResponseEntity.ok(myPageFacade.getMyLikedCommunities(userVo.getId(), pageable));
+    }
+
+    @GetMapping("/my-reviews")
+    @SecurityRequirement(name = "JWT Authentication")
+    @Secured(UserRole.USER_TYPE)
+    @Operation(
+        summary = "내가 작성한 리뷰 목록을 조회합니다.",
+        description = "마이페이지 > 나의활동 > '내 게시글' > '리뷰' 하위탭<br>" +
+                     "내가 작성한 리뷰 목록을 최신순으로 조회합니다."
+    )
+    @ApiResponse(responseCode = "200", description = "성공", content = @Content(
+            schema = @Schema(implementation = Page.class),
+            examples = @ExampleObject(value = """
+                {
+                    "content": [
+                        {
+                            "id": 1,
+                            "thumbnailUrl": "https://example.com/review1.jpg",
+                            "groupTitle": "헬스 동호회",
+                            "reviewerName": "홍길동",
+                            "content": "정말 좋은 모임이었습니다. 운동도 열심히 하고...",
+                            "meetingDate": "2025-11-20T19:00:00",
+                            "createdAt": "2025-11-21T10:30:00",
+                            "rating": 5
+                        },
+                        {
+                            "id": 2,
+                            "thumbnailUrl": null,
+                            "groupTitle": "독서 클럽",
+                            "reviewerName": "익명사용자123",
+                            "content": "책에 대한 다양한 의견을 나눌 수 있어서 좋았어요.",
+                            "meetingDate": "2025-11-15T14:00:00",
+                            "createdAt": "2025-11-16T09:15:00",
+                            "rating": 4
+                        }
+                    ],
+                    "pageable": {
+                        "pageNumber": 0,
+                        "pageSize": 20,
+                        "sort": {
+                            "sorted": true,
+                            "direction": "DESC",
+                            "orderBy": ["createdAt"]
+                        }
+                    },
+                    "totalElements": 2,
+                    "totalPages": 1,
+                    "last": true,
+                    "first": true,
+                    "numberOfElements": 2
+                }
+                """)
+    ))
+    public ResponseEntity<Page<MyReviewActivityResponse>> getMyReviews(
             @AuthenticationPrincipal UserVo userVo,
             @PageableDefault(size = 20, sort = "createdAt", direction = Sort.Direction.DESC) Pageable pageable){
 

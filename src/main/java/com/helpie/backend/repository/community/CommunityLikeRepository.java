@@ -1,6 +1,9 @@
 package com.helpie.backend.repository.community;
 
+import com.helpie.backend.domain.community.Community;
 import com.helpie.backend.domain.community.CommunityLike;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
@@ -39,6 +42,12 @@ public interface CommunityLikeRepository extends JpaRepository<CommunityLike, Lo
      * 커뮤니티 게시글 삭제 시 관련 좋아요들 삭제
      */
     void deleteByCommunityId(Long communityId);
+    
+    /**
+     * 사용자가 좋아요 누른 커뮤니티 게시글들 조회 (최신 좋아요순)
+     */
+    @Query("SELECT l.community FROM CommunityLike l WHERE l.userId = :userId ORDER BY l.createdAt DESC")
+    Page<Community> findLikedCommunitiesByUserId(@Param("userId") Long userId, Pageable pageable);
     
     /**
      * 특정 사용자의 특정 게시글 좋아요 삭제
