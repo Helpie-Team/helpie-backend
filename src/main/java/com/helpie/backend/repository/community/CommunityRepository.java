@@ -89,4 +89,21 @@ public interface CommunityRepository extends JpaRepository<Community, Long> {
            "ORDER BY COUNT(l.id) DESC, c.createdAt DESC")
     List<Community> findTop5ByLikesCount(Pageable pageable);
     
+    /**
+     * 사용자가 작성한 게시글들이 받은 총 좋아요 수
+     */
+    @Query("SELECT COALESCE(COUNT(l.id), 0) FROM Community c LEFT JOIN c.likes l WHERE c.userId = :userId")
+    Integer countTotalLikesByUserId(@Param("userId") Long userId);
+    
+    /**
+     * 사용자가 작성한 게시글들이 받은 총 댓글 수  
+     */
+    @Query("SELECT COALESCE(COUNT(com.id), 0) FROM Community c LEFT JOIN c.comments com WHERE c.userId = :userId")
+    Integer countTotalCommentsByUserId(@Param("userId") Long userId);
+    
+    /**
+     * 사용자가 작성한 게시글 수
+     */
+    Integer countByUserId(Long userId);
+    
 }

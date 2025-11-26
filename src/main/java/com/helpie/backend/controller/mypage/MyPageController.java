@@ -7,6 +7,8 @@ import com.helpie.backend.dto.group.GroupResponse;
 import com.helpie.backend.dto.group.MyGroupResponse;
 import com.helpie.backend.dto.mypage.response.MyBookmarkResponse;
 import com.helpie.backend.dto.mypage.response.MyProfileResponse;
+import com.helpie.backend.dto.community.FindMyCommunitiesRequest;
+import com.helpie.backend.dto.community.MyCommunityResponse;
 import com.helpie.backend.facade.mypage.MyPageFacade;
 import com.helpie.backend.service.location.LocationService;
 import com.helpie.backend.service.survey.SurveyBasicInfoService;
@@ -125,5 +127,24 @@ public class MyPageController {
     ){
         myPageFacade.updateProfileUsername(userVo.getId(), username);
         return ResponseEntity.ok().build();
+    }
+
+    @GetMapping("/community-info")
+    @SecurityRequirement(name = "JWT Authentication")
+    @Secured(UserRole.USER_TYPE)
+    @Operation(
+        summary = "내 커뮤니티 정보를 조회합니다.",
+        description = "내 커뮤니티 활동 통계(좋아요, 댓글, 게시글 수)와 작성한 게시글 목록을 함께 조회합니다.<br>" +
+                     "소모임 정보 조회와 동일한 구조입니다."
+    )
+    @ApiResponse(responseCode = "200", content = @Content(
+            schema = @Schema(implementation = MyCommunityResponse.class)
+    ))
+    public ResponseEntity<MyCommunityResponse> getCommunityInfo(
+            @AuthenticationPrincipal UserVo userVo,
+            FindMyCommunitiesRequest request,
+            @PageableDefault(size = 20, sort = "createdAt", direction = Sort.Direction.DESC) Pageable pageable){
+
+        return ResponseEntity.ok(myPageFacade.getMyCommunities(userVo.getId(), request.sort(), pageable));
     }
 }
