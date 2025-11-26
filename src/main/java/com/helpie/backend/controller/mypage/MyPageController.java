@@ -250,9 +250,10 @@ public class MyPageController {
     @SecurityRequirement(name = "JWT Authentication")
     @Secured(UserRole.USER_TYPE)
     @Operation(
-        summary = "내가 작성한 소모임 목록을 조회합니다.",
+        summary = "내가 만든 소모임 목록을 조회합니다.",
         description = "마이페이지 > 나의활동 > '내 게시글' > '소모임' 하위탭<br>" +
-                     "내가 작성한 소모임 목록을 최신순으로 조회합니다."
+                     "내가 생성/작성한 소모임 목록을 최신순으로 조회합니다.<br>" +
+                     "⚠️ 내가 가입한 소모임이 아닌, 내가 만든(생성한) 소모임만 조회됩니다."
     )
     @ApiResponse(responseCode = "200", description = "성공", content = @Content(
             schema = @Schema(implementation = Page.class),
@@ -261,8 +262,8 @@ public class MyPageController {
                     "content": [
                         {
                             "groupId": 1,
-                            "title": "헬스 동호회",
-                            "description": "주 3회 운동 모임",
+                            "title": "[내가 만든] 헬스 동호회",
+                            "description": "내가 호스트로 운영하는 주 3회 운동 모임",
                             "cityName": "서울",
                             "currentMember": 8,
                             "maxMember": 15,
@@ -272,8 +273,8 @@ public class MyPageController {
                         },
                         {
                             "groupId": 2,
-                            "title": "독서 클럽",
-                            "description": "매주 토요일 독서 모임",
+                            "title": "[내가 만든] 독서 클럽",
+                            "description": "내가 개설한 매주 토요일 독서 모임",
                             "cityName": "부산",
                             "currentMember": 5,
                             "maxMember": 10,
