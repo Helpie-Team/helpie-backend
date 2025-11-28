@@ -82,7 +82,7 @@ public class GroupController {
         @AuthenticationPrincipal UserVo userVo,
         @RequestParam(defaultValue ="0") int page
     ){
-        Pageable pageable= PageRequest.of(page,5,Sort.by("createdAt").descending());
+        Pageable pageable= PageRequest.of(page,5);
         return ResponseEntity.ok(groupService.getGroupsByInterestV2(userVo.getId(),pageable));
     }
 
