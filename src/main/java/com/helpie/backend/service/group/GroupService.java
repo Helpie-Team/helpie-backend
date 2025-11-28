@@ -218,7 +218,7 @@ public class GroupService {
             return RecommendedResponse.locked("SURVEY_REQUIRED", pageable);
         }
 
-        Page<Group> groups=groupRepository.findByInterestFiltersV2(userId,pageable);
+        Page<Group> groups=groupRepository.findByInterestFiltersV2(pageable);
 
 
         Page<GroupResponse> responsePage = mapGroupsWithBookmarks(userId, groups);
