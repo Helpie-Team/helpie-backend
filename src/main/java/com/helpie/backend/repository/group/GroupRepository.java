@@ -44,11 +44,19 @@ public interface GroupRepository extends JpaRepository<Group, Long> {
     Page<Group> findAllByFilters(@Param("cities") List<City> cities, @Param("category") Category category, Pageable pageable);
 
 
-    @Query("""
-    SELECT g FROM Group g
-      WHERE g.status IN ('RECRUITING', 'RECRUITMENT_CLOSED')
-""")
-    Page<Group> findByInterestFiltersV2(Pageable pageable);
+    @Query(
+        value = """
+            SELECT *
+            FROM user_groups
+            WHERE status IN ('RECRUITING', 'RECRUITMENT_CLOSED')
+            ORDER BY RAND(:seed)
+            LIMIT 6
+            """,
+        nativeQuery = true
+    )
+
+    Page<Group> findByInterestFiltersV2(@Param("seed") long seed,Pageable pageable);
+
 
 
     @Query("""
