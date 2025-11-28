@@ -100,31 +100,8 @@ public class ChatWebSocketServiceImpl implements ChatWebSocketService {
     @Override
     @Transactional
     public void sendLeaveMessage(ChatMessageRequest request) {
-        // 채팅방 조회
-        ChatRoom chatRoom = chatRoomRepository.findById(request.getChatRoomId())
-            .orElseThrow(() -> new ChatRoomNotFoundException());
-        
-        // DB에 시스템 메시지 저장
-        ChatMessage systemMessage = new ChatMessage(
-            chatRoom,
-            request.getSenderName() + "님이 소모임을 나갔습니다.",
-            MessageType.SYSTEM_LEAVE
-        );
-        messageRepository.save(systemMessage);
-        
-        // 웹소켓으로 실시간 전송
-        ChatWebSocketMessage wsMessage = ChatWebSocketMessage.createLeaveMessage(
-            request.getChatRoomId(),
-            request.getSenderId(),
-            request.getSenderName()
-        );
-        
-        messagingTemplate.convertAndSend(
-            "/topic/chatroom/" + request.getChatRoomId(),
-            wsMessage
-        );
-        
-        log.info("퇴장 메시지 전송 완료 - 채팅방: {}, 사용자: {}", 
+        // 퇴장 메시지 전송 비활성화 (UX 개선: 페이지 전환 시 불필요한 알림 방지)
+        log.info("퇴장 메시지 전송 스킵 - 채팅방: {}, 사용자: {}", 
             request.getChatRoomId(), request.getSenderName());
     }
     

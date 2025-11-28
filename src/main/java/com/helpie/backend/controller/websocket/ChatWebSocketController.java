@@ -148,8 +148,9 @@ public class ChatWebSocketController {
     }
     
     /**
-     * 채팅방 퇴장
+     * 채팅방 퇴장 (조용한 퇴장)
      * 경로: /app/chat/{chatRoomId}/leave
+     * 퇴장 알림 메시지는 UX 개선을 위해 전송되지 않습니다
      */
     @MessageMapping("/chat/{chatRoomId}/leave")
     public void leaveChatRoom(
@@ -178,7 +179,7 @@ public class ChatWebSocketController {
             // 채팅방 ID 설정
             request.setChatRoomId(chatRoomId);
             
-            // 최적화된 퇴장 메시지 브로드캐스트
+            // 조용한 퇴장 처리 (메시지 브로드캐스트 없음)
             optimizedWebSocketService.sendOptimizedLeaveMessage(request);
             
             // 세션 매니저에서 사용자 세션 제거

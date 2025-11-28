@@ -141,20 +141,7 @@ public class WebSocketEventListener {
             log.info("🔴 WebSocket 연결 해제! SessionID: {}, 사용자: {}({})", 
                     sessionId, session.getUserName(), session.getUserId());
             
-            try {
-                // 자동 퇴장 메시지 전송
-                if (session.getChatRoomId() != null) {
-                    webSocketService.sendSystemMessage(
-                        session.getChatRoomId(), 
-                        session.getUserName() + "님이 연결을 종료했습니다."
-                    );
-                }
-                
-                log.info("💬 자동 퇴장 메시지 전송 완료 - 채팅방: {}", session.getChatRoomId());
-                
-            } catch (Exception e) {
-                log.error("❌ 웹소켓 연결 해제 처리 중 오류 발생 - 사용자: {}", session.getUserId(), e);
-            }
+            // 자동 퇴장 메시지 제거 (UX 개선: 페이지 전환 시 불필요한 알림 방지)
             
             // 세션 제거
             sessionManager.removeSession(sessionId);

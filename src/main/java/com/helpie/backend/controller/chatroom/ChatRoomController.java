@@ -103,7 +103,7 @@ public class ChatRoomController {
     @PostMapping("/{chatRoomId}/leave")
     @Secured(UserRole.USER_TYPE)
     @SecurityRequirement(name = "JWT Authentication")
-    @Operation(summary = "채팅방 퇴장", description = "채팅방에서 임시 퇴장합니다. 소모임 멤버 상태는 유지되며 언제든 재입장 가능합니다. 퇴장 시 '[사용자명]님이 채팅방을 나갔습니다.' 메시지가 전송됩니다.")
+    @Operation(summary = "채팅방 퇴장", description = "채팅방에서 임시 퇴장합니다. 소모임 멤버 상태는 유지되며 언제든 재입장 가능합니다. **UX 개선을 위해 퇴장 알림 메시지는 전송되지 않습니다.**")
     @ApiResponses({
         @ApiResponse(responseCode = "200", description = "채팅방 퇴장 성공"),
         @ApiResponse(responseCode = "403", description = "채팅방 접근 권한 없음"),

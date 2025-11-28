@@ -61,7 +61,7 @@ public class SwaggerConfig {
                                 "- **인증**: `Authorization: Bearer {JWT_TOKEN}` 헤더 필수\n" +
                                 "- **메시지 전송**: `/app/chat/{chatRoomId}`\n" +
                                 "- **입장 알림**: `/app/chat/{chatRoomId}/join`\n" +
-                                "- **퇴장 알림**: `/app/chat/{chatRoomId}/leave`\n" +
+                                "- **퇴장 알림**: `/app/chat/{chatRoomId}/leave` (알림 메시지 없음)\n" +
                                 "- **메시지 수신**: `/topic/chatroom/{chatRoomId}` 구독\n\n" +
                                 "### 성능 최적화 기능\n" +
                                 "- **메시지 배치 처리**: 최대 10개 메시지 배치 전송 (100ms 간격)\n" +
@@ -75,7 +75,7 @@ public class SwaggerConfig {
                                 "### 모바일 최적화\n" +
                                 "- 메시지 페이징 조회 (무한 스크롤 지원)\n" +
                                 "- 온라인 사용자 수 기반 전송 최적화\n" +
-                                "- 자동 입장/퇴장 시스템 메시지")
+                                "- 자동 입장 시스템 메시지 (퇴장 메시지는 UX 개선을 위해 비활성화)")
                         .version("v1.0.0")
                         .contact(new Contact()
                                 .name("Helpie Backend Team")

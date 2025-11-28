@@ -110,8 +110,7 @@ public class ChatRoomServiceImpl implements ChatRoomService {
         chatRoom.removeParticipant(userId);
         chatRoomRepository.save(chatRoom);
         
-        // 퇴장 시스템 메시지 전송 (웹소켓을 통해 실시간 전송)
-        webSocketService.sendSystemMessage(chatRoomId, userName + "님이 채팅방을 나갔습니다.");
+        // 퇴장 시스템 메시지 제거 (UX 개선: 페이지 전환 시 불필요한 알림 방지)
         
         log.info("사용자 {}가 채팅방 {}에서 퇴장했습니다", userId, chatRoomId);
     }
