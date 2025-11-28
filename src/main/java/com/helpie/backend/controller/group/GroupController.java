@@ -83,7 +83,7 @@ public class GroupController {
         @RequestParam(defaultValue ="0") int page
     ){
         Pageable pageable= PageRequest.of(page,5,Sort.by("createdAt").descending());
-        return ResponseEntity.ok(groupService.getGroupsByInterest(userVo.getId(),pageable));
+        return ResponseEntity.ok(groupService.getGroupsByInterestV2(userVo.getId(),pageable));
     }
 
     @GetMapping("/list")

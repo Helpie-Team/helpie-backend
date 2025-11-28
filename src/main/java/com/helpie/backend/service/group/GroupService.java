@@ -210,6 +210,21 @@ public class GroupService {
         return RecommendedResponse.ok(responsePage);
     }
 
+
+    public RecommendedResponse getGroupsByInterestV2(Long userId, Pageable pageable) {
+        Optional<SurveyBasicInfo> surveyInfo = surveyBasicInfoRepository.findByUserId(userId);
+
+        if (surveyInfo.isEmpty()) {
+            return RecommendedResponse.locked("SURVEY_REQUIRED", pageable);
+        }
+
+        Page<Group> groups=groupRepository.findByInterestFiltersV2(pageable);
+
+
+        Page<GroupResponse> responsePage = mapGroupsWithBookmarks(userId, groups);
+        return RecommendedResponse.ok(responsePage);
+    }
+
     /**
       상태별 나의 소모임 조회
      // TODO: 지난 모임에 대한 isActive false 처리 필요
