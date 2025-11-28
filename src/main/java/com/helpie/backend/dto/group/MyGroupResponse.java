@@ -31,7 +31,7 @@ public record MyGroupResponse(
         @Schema(description = "모임 날짜")
         LocalDateTime meetingDate,
         
-        @Schema(description = "썸네일 URL", example = "https://example.com/thumbnail.jpg")
+        @Schema(description = "썸네일 URL (없으면 null)", example = "https://example.com/thumbnail.jpg")
         String thumbnailUrl
 ) {
 }

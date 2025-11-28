@@ -40,4 +40,14 @@ public class UserImageService {
     public Optional<UserImage> getUserImage(Long userId) {
         return userImageRepository.findByUserId(userId);
     }
+    
+    /**
+     * 사용자의 프로필 이미지 URL 조회
+     * 이미지가 없는 경우 null 반환
+     */
+    public String getUserImageUrl(Long userId) {
+        return userImageRepository.findByUserId(userId)
+            .map(UserImage::getImageUrl)
+            .orElse(null);
+    }
 }

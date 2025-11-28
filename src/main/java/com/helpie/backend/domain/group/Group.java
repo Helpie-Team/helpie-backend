@@ -144,8 +144,8 @@ public class Group {
     }
 
     public String getThumbnail() {
-        if (images == null || images.isEmpty()) return "NO_IMAGE";
+        if (images == null || images.isEmpty()) return null;
         GroupImage firstImage = images.get(0);
-        return firstImage != null ? firstImage.getImageUrl() : "NO_IMAGE";
+        return firstImage != null ? firstImage.getImageUrl() : null;
     }
 }

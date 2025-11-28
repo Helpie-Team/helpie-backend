@@ -31,7 +31,15 @@ public class GroupCustomRepositoryImpl extends QuerydslRepositorySupport impleme
     @Override
     public Page<MyGroupResponse> findMyGroups(Long userId, String status, Pageable pageable) {
         BooleanBuilder builder = new BooleanBuilder();
-        builder.and(groupMemberQ.userId.eq(userId));
+        
+        if (status.equals("created")) {
+            // 내가 만든 소모임만 조회
+            builder.and(groupQ.createdBy.eq(userId));
+        } else {
+            // 내가 가입한 소모임 조회
+            builder.and(groupMemberQ.userId.eq(userId));
+        }
+        
         if (status.equals("UPCOMING")) {
             builder.and(groupMemberQ.isActive.isTrue())
                     .and(groupMemberQ.leftAt.isNull())
@@ -46,16 +54,31 @@ public class GroupCustomRepositoryImpl extends QuerydslRepositorySupport impleme
         }
 
         // Group 엔티티 전체를 가져와서 썸네일 정보 포함 (N+1 문제 해결)
-        JPQLQuery<Group> query = from(groupMemberQ)
-                .join(groupMemberQ.group, groupQ)
-                .leftJoin(groupQ.city).fetchJoin()
-                .leftJoin(groupQ.city.country).fetchJoin()
-                .leftJoin(groupQ.images).fetchJoin()
-                .where(builder)
-                .select(groupQ)
-                .orderBy(groupQ.meetingDate.desc())
-                .offset(pageable.getOffset())
-                .limit(pageable.getPageSize());
+        JPQLQuery<Group> query;
+        if (status.equals("created")) {
+            // 내가 만든 소모임은 Group에서 직접 조회
+            query = from(groupQ)
+                    .leftJoin(groupQ.city).fetchJoin()
+                    .leftJoin(groupQ.city.country).fetchJoin()
+                    .leftJoin(groupQ.images).fetchJoin()
+                    .where(builder)
+                    .select(groupQ)
+                    .orderBy(groupQ.meetingDate.desc())
+                    .offset(pageable.getOffset())
+                    .limit(pageable.getPageSize());
+        } else {
+            // 가입한 소모임은 GroupMember를 통해 조회
+            query = from(groupMemberQ)
+                    .join(groupMemberQ.group, groupQ)
+                    .leftJoin(groupQ.city).fetchJoin()
+                    .leftJoin(groupQ.city.country).fetchJoin()
+                    .leftJoin(groupQ.images).fetchJoin()
+                    .where(builder)
+                    .select(groupQ)
+                    .orderBy(groupQ.meetingDate.desc())
+                    .offset(pageable.getOffset())
+                    .limit(pageable.getPageSize());
+        }
 
         List<Group> groups = query.fetch();
         
@@ -74,11 +97,19 @@ public class GroupCustomRepositoryImpl extends QuerydslRepositorySupport impleme
                 ))
                 .collect(Collectors.toList());
 
-        Long total = from(groupMemberQ)
-                .join(groupMemberQ.group, groupQ)
-                .where(builder)
-                .select(groupMemberQ.count())
-                .fetchOne();
+        Long total;
+        if (status.equals("created")) {
+            total = from(groupQ)
+                    .where(builder)
+                    .select(groupQ.count())
+                    .fetchOne();
+        } else {
+            total = from(groupMemberQ)
+                    .join(groupMemberQ.group, groupQ)
+                    .where(builder)
+                    .select(groupMemberQ.count())
+                    .fetchOne();
+        }
 
         return new PageImpl<>(content, pageable, total != null ? total : 0);
     }

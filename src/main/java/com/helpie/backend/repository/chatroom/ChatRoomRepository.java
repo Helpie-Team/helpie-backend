@@ -27,11 +27,12 @@ public interface ChatRoomRepository extends JpaRepository<ChatRoom, Long> {
     List<ChatRoom> findByIsActive(Boolean isActive);
     
     /**
-     * 사용자가 참여 가능한 채팅방 목록을 조회합니다. (소모임 멤버인 채팅방)
+     * 사용자가 접근 가능한 채팅방 목록을 조회합니다. (지난 모임 포함)
+     * 소모임에서 탈퇴하지 않은 멤버만 접근 가능
      */
     @Query("SELECT cr FROM ChatRoom cr " +
            "JOIN cr.group g " +
            "JOIN g.members gm " +
-           "WHERE gm.userId = :userId AND gm.isActive = true AND cr.isActive = true")
+           "WHERE gm.userId = :userId AND gm.leftAt IS NULL AND cr.isActive = true")
     List<ChatRoom> findAccessibleChatRoomsByUserId(@Param("userId") Long userId);
 }

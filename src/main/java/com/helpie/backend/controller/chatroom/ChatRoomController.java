@@ -9,6 +9,7 @@ import com.helpie.backend.service.chatroom.ChatRoomService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.media.Content;
+import io.swagger.v3.oas.annotations.media.ExampleObject;
 import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
@@ -35,6 +36,10 @@ import java.util.List;
  * @since 2025-10-25(토)
  */
 @Tag(name = "ChatRoom", description = "최적화된 채팅방 관리 API - 소모임 기반 실시간 채팅\n\n" +
+        "**채팅 참여 조건:**\n" +
+        "- 소모임 멤버만 채팅방 참여 가능\n" +
+        "- 진행중/모집완료/지난 모임 모두 채팅 가능\n" +
+        "- 지난 모임도 계속 채팅 소통 허용\n\n" +
         "**성능 최적화 기능:**\n" +
         "- 메시지 배치 처리 (최대 10개, 100ms 간격)\n" +
         "- GZIP 압축 (500바이트 이상 메시지)\n" +
@@ -53,17 +58,36 @@ public class ChatRoomController {
     @SecurityRequirement(name = "JWT Authentication")
     @Operation(
         summary = "채팅방 입장", 
-        description = "소모임 멤버가 채팅방에 입장합니다.\n\n" +
+        description = "소모임 멤버가 채팅방에 조용히 입장합니다.\n\n" +
                      "**주요 기능:**\n" +
                      "- 소모임 멤버 권한 확인\n" +
-                     "- 입장 시 시스템 메시지 자동 전송\n" +
-                     "- 실시간 WebSocket을 통한 알림\n\n" +
-                     "**참고:** 실제 실시간 채팅은 WebSocket `/ws/chat` 연결이 필요합니다."
+                     "- 진행중/모집완료/지난 모임 모두 입장 가능\n" +
+                     "- 조용한 입장 (입장 알림 메시지 없음)\n" +
+                     "- 참여자 수 업데이트\n\n" +
+                     "**참고:**\n" +
+                     "- 소모임 최초 가입 시에만 환영 메시지가 표시됩니다\n" +
+                     "- 실제 실시간 채팅은 WebSocket `/ws/chat` 연결이 필요합니다\n" +
+                     "- 마지막 메시지 확인은 채팅방 목록 조회 API를 사용하세요"
     )
     @ApiResponses({
         @ApiResponse(responseCode = "200", description = "채팅방 입장 성공",
                     content = @Content(mediaType = "application/json",
-                    schema = @Schema(implementation = ChatRoomResponse.class))),
+                    schema = @Schema(implementation = ChatRoomResponse.class),
+                    examples = @ExampleObject(value = """
+                        {
+                            "id": 1,
+                            "groupId": 101,
+                            "title": "일본 디즈니랜드 소모임 채팅방",
+                            "currentParticipants": 4,
+                            "totalMembers": 4,
+                            "isActive": true,
+                            "createdAt": "2025-11-20T10:00:00",
+                            "groupTitle": "일본 디즈니랜드 소모임",
+                            "profileImageUrl": "https://example.com/disney.jpg",
+                            "location": "도쿄",
+                            "category": "TRAVEL"
+                        }
+                        """))),
         @ApiResponse(responseCode = "403", description = "채팅방 접근 권한 없음"),
         @ApiResponse(responseCode = "404", description = "채팅방을 찾을 수 없음")
     })
@@ -79,7 +103,7 @@ public class ChatRoomController {
     @PostMapping("/{chatRoomId}/leave")
     @Secured(UserRole.USER_TYPE)
     @SecurityRequirement(name = "JWT Authentication")
-    @Operation(summary = "채팅방 퇴장", description = "채팅방에서 퇴장합니다. 퇴장 시 시스템 메시지가 자동 전송됩니다.")
+    @Operation(summary = "채팅방 퇴장", description = "채팅방에서 임시 퇴장합니다. 소모임 멤버 상태는 유지되며 언제든 재입장 가능합니다. **UX 개선을 위해 퇴장 알림 메시지는 전송되지 않습니다.**")
     @ApiResponses({
         @ApiResponse(responseCode = "200", description = "채팅방 퇴장 성공"),
         @ApiResponse(responseCode = "403", description = "채팅방 접근 권한 없음"),
@@ -102,8 +126,79 @@ public class ChatRoomController {
         description = "사용자가 접근 가능한 채팅방 목록을 조회합니다.\n\n" +
                      "**조회 기준:**\n" +
                      "- 사용자가 소모임 멤버인 채팅방만 조회\n" +
-                     "- 현재 참여자 수 / 총 소모임 멤버 수 표시\n" +
-                     "- 활성 상태인 채팅방만 포함"
+                     "- **지난 모임(COMPLETED) 채팅방도 포함** - 지속적 소통 지원\n" +
+                     "- 소모임에서 탈퇴한 멤버는 접근 불가\n" +
+                     "- 현재 참여자 수는 소모임 실제 가입 멤버 수로 표시\n" +
+                     "- 활성 상태인 채팅방만 포함\n\n" +
+                     "**응답 정보:**\n" +
+                     "- 채팅방 기본 정보 (ID, 제목, 참여자 수 등)\n" +
+                     "- 소모임 정보 (제목, 대표 이미지, 지역, 카테고리)\n" +
+                     "- **NEW: 마지막 메시지 정보 (내용, 시간, 발신자)**\n" +
+                     "- 모바일 UI 구현에 필요한 모든 데이터 포함\n\n" +
+                     "**UX 개선:**\n" +
+                     "- **WebSocket 구독 없이도 채팅방 목록에서 마지막 메시지 확인 가능**\n" +
+                     "- 채팅방 입장 전에 미리 마지막 메시지 상태 파악 가능\n" +
+                     "- 효율적인 배치 쿼리로 성능 최적화\n" +
+                     "- currentParticipants는 소모임 실제 가입 멤버 수를 정확히 표시"
+    )
+    @ApiResponse(
+        responseCode = "200", 
+        description = "성공",
+        content = @Content(
+            schema = @Schema(implementation = ChatRoomResponse.class),
+            examples = @ExampleObject(value = """
+                [
+                    {
+                        "id": 1,
+                        "groupId": 101,
+                        "title": "일본 디즈니랜드 소모임 채팅방",
+                        "currentParticipants": 4,
+                        "totalMembers": 4,
+                        "isActive": true,
+                        "createdAt": "2025-11-20T10:00:00",
+                        "groupTitle": "일본 디즈니랜드 소모임",
+                        "profileImageUrl": "https://example.com/disney.jpg",
+                        "location": "도쿄",
+                        "category": "TRAVEL",
+                        "lastMessage": "내일 몇 시에 만날까요?",
+                        "lastMessageTime": "2025-11-26T15:30:00",
+                        "lastMessageSender": "김민수"
+                    },
+                    {
+                        "id": 2,
+                        "groupId": 102,
+                        "title": "헬스 동호회 채팅방",
+                        "currentParticipants": 8,
+                        "totalMembers": 10,
+                        "isActive": true,
+                        "createdAt": "2025-11-18T15:30:00",
+                        "groupTitle": "헬스 동호회",
+                        "profileImageUrl": "https://example.com/fitness.jpg",
+                        "location": "서울",
+                        "category": "SPORTS",
+                        "lastMessage": "오늘 운동 정말 힘들었네요 ㅠㅠ",
+                        "lastMessageTime": "2025-11-26T14:22:15",
+                        "lastMessageSender": "박지훈"
+                    },
+                    {
+                        "id": 3,
+                        "groupId": 103,
+                        "title": "[지난 모임] 제주도 여행 채팅방",
+                        "currentParticipants": 6,
+                        "totalMembers": 6,
+                        "isActive": true,
+                        "createdAt": "2025-11-15T12:00:00",
+                        "groupTitle": "제주도 여행 소모임",
+                        "profileImageUrl": "https://example.com/jeju.jpg",
+                        "location": "제주",
+                        "category": "TRAVEL",
+                        "lastMessage": "사진 정말 잘 나왔어요! 감사합니다",
+                        "lastMessageTime": "2025-11-25T20:45:32",
+                        "lastMessageSender": "이수진"
+                    }
+                ]
+                """)
+        )
     )
     public ResponseEntity<List<ChatRoomResponse>> getAccessibleChatRooms(
         @AuthenticationPrincipal UserVo userVo
@@ -115,7 +210,40 @@ public class ChatRoomController {
     @GetMapping("/{chatRoomId}")
     @Secured(UserRole.USER_TYPE)
     @SecurityRequirement(name = "JWT Authentication")
-    @Operation(summary = "채팅방 상세 조회", description = "채팅방의 상세 정보를 조회합니다.")
+    @Operation(
+        summary = "채팅방 상세 조회", 
+        description = "채팅방의 상세 정보를 조회합니다.\\n\\n" +
+                     "**응답 정보:**\\n" +
+                     "- 채팅방 기본 정보 (ID, 제목, 참여자 수 등)\\n" +
+                     "- 소모임 정보 (제목, 대표 이미지, 지역, 카테고리)\\n" +
+                     "- **마지막 메시지 정보 (내용, 시간, 발신자)**\\n\\n" +
+                     "**참고:** 이 API도 마지막 메시지를 함께 반환하여 일관성을 유지합니다."
+    )
+    @ApiResponse(
+        responseCode = "200", 
+        description = "성공",
+        content = @Content(
+            schema = @Schema(implementation = ChatRoomResponse.class),
+            examples = @ExampleObject(value = """
+                {
+                    "id": 1,
+                    "groupId": 101,
+                    "title": "일본 디즈니랜드 소모임 채팅방",
+                    "currentParticipants": 4,
+                    "totalMembers": 4,
+                    "isActive": true,
+                    "createdAt": "2025-11-20T10:00:00",
+                    "groupTitle": "일본 디즈니랜드 소모임",
+                    "profileImageUrl": "https://example.com/disney.jpg",
+                    "location": "도쿄",
+                    "category": "TRAVEL",
+                    "lastMessage": "내일 몇 시에 만날까요?",
+                    "lastMessageTime": "2025-11-26T15:30:00",
+                    "lastMessageSender": "김민수"
+                }
+                """)
+        )
+    )
     public ResponseEntity<ChatRoomResponse> getChatRoomDetail(
         @AuthenticationPrincipal UserVo userVo,
         @Parameter(description = "채팅방 ID") @PathVariable Long chatRoomId
@@ -163,7 +291,8 @@ public class ChatRoomController {
                      "**참고:**\n" +
                      "- 이 API는 DB 저장용이며, 실시간 전송은 되지 않습니다\n" +
                      "- 실시간 채팅은 WebSocket `/app/chat/{chatRoomId}` 사용\n" +
-                     "- 소모임 멤버이고 채팅방에 입장한 상태여야 합니다"
+                     "- 소모임 멤버이고 채팅방에 입장한 상태여야 합니다\n" +
+                     "- 메시지 전송 후 마지막 메시지 확인은 채팅방 목록 조회로 가능"
     )
     @ApiResponses({
         @ApiResponse(responseCode = "200", description = "메시지 전송 성공",

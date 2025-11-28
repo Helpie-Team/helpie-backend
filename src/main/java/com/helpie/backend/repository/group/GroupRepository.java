@@ -58,6 +58,7 @@ public interface GroupRepository extends JpaRepository<Group, Long> {
     Page<Group> findByInterestFiltersV2(@Param("seed") long seed,Pageable pageable);
 
 
+
     @Query("""
     SELECT g FROM Group g
       WHERE g.status IN ('RECRUITING', 'RECRUITMENT_CLOSED')

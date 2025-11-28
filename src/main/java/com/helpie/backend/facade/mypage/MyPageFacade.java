@@ -7,6 +7,9 @@ import com.helpie.backend.dto.group.GroupResponse;
 import com.helpie.backend.dto.group.MyGroupResponse;
 import com.helpie.backend.dto.mypage.response.MyBookmarkResponse;
 import com.helpie.backend.dto.mypage.response.MyProfileResponse;
+import com.helpie.backend.dto.mypage.response.MyCommunityActivityResponse;
+import com.helpie.backend.dto.review.MyReviewActivityResponse;
+import com.helpie.backend.repository.review.ReviewRepository;
 import com.helpie.backend.dto.survey.SurveyBasicInfoResponse;
 import com.helpie.backend.exception.BusinessException;
 import com.helpie.backend.service.file.FileService;
@@ -17,8 +20,14 @@ import com.helpie.backend.service.survey.SurveyBasicInfoService;
 import com.helpie.backend.service.user.UserCommonService;
 import com.helpie.backend.service.user.UserImageService;
 import com.helpie.backend.service.user.UserService;
+import com.helpie.backend.domain.community.Community;
+import com.helpie.backend.repository.community.CommunityRepository;
+import com.helpie.backend.repository.community.CommunityCommentRepository;
+import com.helpie.backend.repository.community.CommunityLikeRepository;
+import com.helpie.backend.dto.community.CommunityResponse;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import java.time.LocalDateTime;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
@@ -37,6 +46,10 @@ public class MyPageFacade {
     private final UserImageService userImageService;
     private final UserService userService;
     private final BookmarkService bookmarkService;
+    private final CommunityRepository communityRepository;
+    private final CommunityLikeRepository communityLikeRepository;
+    private final CommunityCommentRepository communityCommentRepository;
+    private final ReviewRepository reviewRepository;
 
     public MyProfileResponse getMyProfileInfo(Long userId) {
         final var user = userCommonService.findById(userId);
@@ -83,4 +96,123 @@ public class MyPageFacade {
     public void updateProfileUsername(Long userId, String username) {
         userService.updateUsername(userId, username);
     }
+
+
+    /**
+     * 썸네일 URL 추출
+     */
+    private String extractThumbnailUrl(CommunityResponse communityResponse) {
+        // CommunityResponse에서 첫 번째 이미지를 썸네일로 사용
+        if (communityResponse.getImageUrls() != null && !communityResponse.getImageUrls().isEmpty()) {
+            return communityResponse.getImageUrls().get(0);
+        }
+        // 이미지가 없으면 null 반환
+        return null;
+    }
+
+
+    /**
+     * 내가 좋아요 누른 커뮤니티 게시글 목록 조회
+     */
+    public Page<MyCommunityActivityResponse> getMyLikedCommunities(Long userId, Pageable pageable) {
+        return communityLikeRepository.findLikedCommunitiesByUserId(userId, pageable)
+            .map(community -> {
+                // Community -> CommunityResponse 변환
+                CommunityResponse communityResponse = CommunityResponse.from(community, null); // userProfileImage는 공감 탭에서 필요 없음
+                String thumbnailUrl = extractThumbnailUrl(communityResponse);
+                
+                return new MyCommunityActivityResponse(
+                    communityResponse.getId(),
+                    thumbnailUrl,
+                    communityResponse.getCategoryDisplayName(),
+                    communityResponse.getTitle(),
+                    communityResponse.getContent().length() > 100 
+                        ? communityResponse.getContent().substring(0, 100) + "..."
+                        : communityResponse.getContent(),
+                    communityResponse.getCreatedAt(),
+                    communityResponse.getCategory()
+                );
+            });
+    }
+
+    /**
+     * 내가 작성한 소모임 목록 조회 (내 게시글 > 소모임 하위탭용)
+     */
+    public Page<MyGroupResponse> getMyCreatedGroups(Long userId, Pageable pageable) {
+        return groupService.getMyGroups(userId, "created", pageable);
+    }
+
+    /**
+     * 내가 작성한 커뮤니티 게시글 목록 조회 (내 게시글 > 커뮤니티 하위탭용)
+     */
+    public Page<MyCommunityActivityResponse> getMyCreatedCommunities(Long userId, Pageable pageable) {
+        return communityRepository.findByUserIdOrderByCreatedAtDesc(userId, pageable)
+            .map(community -> {
+                CommunityResponse communityResponse = CommunityResponse.from(community, null);
+                String thumbnailUrl = extractThumbnailUrl(communityResponse);
+                
+                return new MyCommunityActivityResponse(
+                    communityResponse.getId(),
+                    thumbnailUrl,
+                    communityResponse.getCategoryDisplayName(),
+                    communityResponse.getTitle(),
+                    communityResponse.getContent().length() > 100 
+                        ? communityResponse.getContent().substring(0, 100) + "..."
+                        : communityResponse.getContent(),
+                    communityResponse.getCreatedAt(),
+                    communityResponse.getCategory()
+                );
+            });
+    }
+
+    /**
+     * 내가 작성한 리뷰 목록 조회 (내 게시글 > 리뷰 탭용)
+     */
+    public Page<MyReviewActivityResponse> getMyReviewActivities(Long userId, Pageable pageable) {
+        return reviewRepository.findByUser_IdOrderByCreatedAtDesc(userId, pageable)
+            .map(review -> {
+                String thumbnailUrl = extractReviewThumbnailUrl(review);
+                String groupTitle = review.getGroup().getTitle();
+                String reviewerName = review.getAnonymityYn() ? review.getAnonymousName() : review.getUser().getUsername();
+                LocalDateTime meetingDate = review.getGroup().getMeetingDate();
+                
+                return MyReviewActivityResponse.from(review, thumbnailUrl, groupTitle, reviewerName, meetingDate);
+            });
+    }
+
+    /**
+     * 내가 댓글 단 커뮤니티 게시글 목록 조회
+     */
+    public Page<MyCommunityActivityResponse> getMyCommentedCommunities(Long userId, Pageable pageable) {
+        return communityCommentRepository.findCommunitiesByUserComments(userId, pageable)
+            .map(community -> {
+                CommunityResponse communityResponse = CommunityResponse.from(community, null); // userProfileImage는 댓글 탭에서 필요 없음
+                String thumbnailUrl = extractThumbnailUrl(communityResponse);
+                
+                return new MyCommunityActivityResponse(
+                    communityResponse.getId(),
+                    thumbnailUrl,
+                    communityResponse.getCategoryDisplayName(),
+                    communityResponse.getTitle(),
+                    communityResponse.getContent().length() > 100 
+                        ? communityResponse.getContent().substring(0, 100) + "..."
+                        : communityResponse.getContent(),
+                    communityResponse.getCreatedAt(),
+                    communityResponse.getCategory()
+                );
+            });
+    }
+
+    /**
+     * 리뷰 썸네일 URL 추출
+     */
+    private String extractReviewThumbnailUrl(com.helpie.backend.domain.review.Review review) {
+        // 리뷰 이미지에서 첫 번째 이미지를 썸네일로 사용
+        if (review.getImages() != null && !review.getImages().isEmpty()) {
+            return review.getImages().get(0).getImageUrl();
+        }
+        // 이미지가 없으면 null 반환
+        return null;
+    }
+
 }

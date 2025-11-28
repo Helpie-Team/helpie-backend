@@ -18,6 +18,8 @@ import com.helpie.backend.exception.chatroom.ChatRoomNotFoundException;
 import com.helpie.backend.exception.chatroom.ChatRoomAccessDeniedException;
 import com.helpie.backend.exception.chatroom.ChatRoomNotJoinedException;
 import com.helpie.backend.service.websocket.ChatWebSocketService;
+import com.helpie.backend.service.user.UserImageService;
+import com.helpie.backend.domain.user.UserImage;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
@@ -47,6 +49,7 @@ public class ChatRoomServiceImpl implements ChatRoomService {
     private final ChatMessageRepository messageRepository;
     private final GroupMemberRepository groupMemberRepository;
     private final ChatWebSocketService webSocketService;
+    private final UserImageService userImageService;
     
     @Override
     @Transactional
@@ -79,8 +82,7 @@ public class ChatRoomServiceImpl implements ChatRoomService {
         chatRoom.addParticipant(userId);
         chatRoomRepository.save(chatRoom);
         
-        // 입장 시스템 메시지 전송 (웹소켓을 통해 실시간 전송)
-        webSocketService.sendSystemMessage(chatRoomId, userName + "님이 참가하셨습니다.");
+        // 입장 시스템 메시지 제거 (소모임 가입 시만 환영 메시지 표시)
         
         log.info("사용자 {}가 채팅방 {}에 입장했습니다", userId, chatRoomId);
         return ChatRoomResponse.from(chatRoom);
@@ -108,8 +110,7 @@ public class ChatRoomServiceImpl implements ChatRoomService {
         chatRoom.removeParticipant(userId);
         chatRoomRepository.save(chatRoom);
         
-        // 퇴장 시스템 메시지 전송 (웹소켓을 통해 실시간 전송)
-        webSocketService.sendSystemMessage(chatRoomId, userName + "님이 소모임을 나갔습니다.");
+        // 퇴장 시스템 메시지 제거 (UX 개선: 페이지 전환 시 불필요한 알림 방지)
         
         log.info("사용자 {}가 채팅방 {}에서 퇴장했습니다", userId, chatRoomId);
     }
@@ -118,8 +119,40 @@ public class ChatRoomServiceImpl implements ChatRoomService {
     public List<ChatRoomResponse> getAccessibleChatRooms(Long userId) {
         List<ChatRoom> accessibleChatRooms = chatRoomRepository.findAccessibleChatRoomsByUserId(userId);
         
+        if (accessibleChatRooms.isEmpty()) {
+            return List.of();
+        }
+        
+        // 채팅방 ID 목록 추출
+        List<Long> chatRoomIds = accessibleChatRooms.stream()
+            .map(ChatRoom::getId)
+            .collect(Collectors.toList());
+        
+        // 마지막 메시지들 일괄 조회
+        List<ChatMessage> lastMessages = messageRepository.findLastMessagesByChatRoomIds(chatRoomIds);
+        
+        // 채팅방 ID별 마지막 메시지 매핑
+        java.util.Map<Long, ChatMessage> lastMessageMap = lastMessages.stream()
+            .collect(Collectors.toMap(
+                message -> message.getChatRoom().getId(),
+                message -> message
+            ));
+        
+        // 마지막 메시지 정보와 함께 응답 생성
         return accessibleChatRooms.stream()
-            .map(ChatRoomResponse::from)
+            .map(chatRoom -> {
+                ChatMessage lastMessage = lastMessageMap.get(chatRoom.getId());
+                if (lastMessage != null) {
+                    return ChatRoomResponse.fromWithLastMessage(
+                        chatRoom,
+                        lastMessage.getContent(),
+                        lastMessage.getSentAt(),
+                        lastMessage.getSenderName()
+                    );
+                } else {
+                    return ChatRoomResponse.from(chatRoom);
+                }
+            })
             .collect(Collectors.toList());
     }
     
@@ -131,7 +164,20 @@ public class ChatRoomServiceImpl implements ChatRoomService {
         // 소모임 멤버인지 확인
         validateGroupMembership(chatRoom.getGroup().getId(), userId);
         
-        return ChatRoomResponse.from(chatRoom);
+        // 마지막 메시지 조회
+        List<ChatMessage> lastMessages = messageRepository.findLastMessagesByChatRoomIds(List.of(chatRoomId));
+        
+        if (!lastMessages.isEmpty()) {
+            ChatMessage lastMessage = lastMessages.get(0);
+            return ChatRoomResponse.fromWithLastMessage(
+                chatRoom,
+                lastMessage.getContent(),
+                lastMessage.getSentAt(),
+                lastMessage.getSenderName()
+            );
+        } else {
+            return ChatRoomResponse.from(chatRoom);
+        }
     }
     
     @Override
@@ -144,7 +190,13 @@ public class ChatRoomServiceImpl implements ChatRoomService {
         
         return messageRepository
             .findByChatRoomIdAndIsDeletedFalseOrderBySentAtDesc(chatRoomId, pageable)
-            .map(ChatMessageResponse::from);
+            .map(message -> {
+                // 발신자 프로필 이미지 조회
+                String profileImage = userImageService.getUserImage(message.getSenderId())
+                    .map(UserImage::getImageUrl)
+                    .orElse(null);
+                return ChatMessageResponse.from(message, profileImage);
+            });
     }
     
     @Override
@@ -174,8 +226,13 @@ public class ChatRoomServiceImpl implements ChatRoomService {
         );
         ChatMessage savedMessage = messageRepository.save(message);
         
+        // 발신자 프로필 이미지 조회
+        String profileImage = userImageService.getUserImage(request.getUserId())
+            .map(UserImage::getImageUrl)
+            .orElse(null);
+        
         log.info("사용자 {}가 채팅방 {}에 메시지를 전송했습니다", request.getUserId(), chatRoomId);
-        return ChatMessageResponse.from(savedMessage);
+        return ChatMessageResponse.from(savedMessage, profileImage);
     }
     
     @Override
@@ -224,13 +281,14 @@ public class ChatRoomServiceImpl implements ChatRoomService {
     }
 
     /**
-     * 소모임 멤버인지 확인합니다.
+     * 소모임 멤버인지 확인합니다. (지난 모임 포함, 탈퇴하지 않은 멤버만)
      */
     private void validateGroupMembership(Long groupId, Long userId) {
         GroupMember groupMember = groupMemberRepository.findByGroupIdAndUserId(groupId, userId)
             .orElseThrow(() -> new ChatRoomAccessDeniedException());
         
-        if (!groupMember.getIsActive()) {
+        // 소모임에서 탈퇴한 경우만 차단 (지난 모임은 허용)
+        if (groupMember.getLeftAt() != null) {
             throw new ChatRoomAccessDeniedException();
         }
     }
@@ -243,9 +301,9 @@ public class ChatRoomServiceImpl implements ChatRoomService {
         Group group = chatRoom.getGroup();
         GroupStatus status = group.getStatus();
         
-        // RECRUITING 또는 RECRUITMENT_CLOSED 상태일 때만 채팅 가능
-        // COMPLETED 상태가 되면 채팅 차단
-        return status == GroupStatus.RECRUITING || status == GroupStatus.RECRUITMENT_CLOSED;
+        // 모든 상태에서 채팅 가능 (지난 모임도 채팅 허용)
+        // RECRUITING, RECRUITMENT_CLOSED, COMPLETED 모두 채팅 가능
+        return status == GroupStatus.RECRUITING || status == GroupStatus.RECRUITMENT_CLOSED || status == GroupStatus.COMPLETED;
     }
     
 }

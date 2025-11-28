@@ -33,6 +33,9 @@ public class ChatWebSocketMessage {
     @Schema(description = "발신자 이름", example = "홍길동")
     private String senderName;
     
+    @Schema(description = "발신자 프로필 이미지 URL", example = "https://example.com/profile.jpg")
+    private String senderProfileImage;
+    
     @Schema(description = "메시지 내용", example = "안녕하세요!")
     private String content;
     
@@ -40,12 +43,26 @@ public class ChatWebSocketMessage {
     private LocalDateTime timestamp;
     
     // 채팅 메시지용 생성자
+    public static ChatWebSocketMessage createChatMessage(Long chatRoomId, Long senderId, String senderName, String senderProfileImage, String content) {
+        return new ChatWebSocketMessage(
+            WebSocketMessageType.CHAT,
+            chatRoomId,
+            senderId,
+            senderName,
+            senderProfileImage,
+            content,
+            LocalDateTime.now()
+        );
+    }
+    
+    // 채팅 메시지용 생성자 (프로필 이미지 없이 - 기존 호환성)
     public static ChatWebSocketMessage createChatMessage(Long chatRoomId, Long senderId, String senderName, String content) {
         return new ChatWebSocketMessage(
             WebSocketMessageType.CHAT,
             chatRoomId,
             senderId,
             senderName,
+            null,
             content,
             LocalDateTime.now()
         );
@@ -58,6 +75,7 @@ public class ChatWebSocketMessage {
             chatRoomId,
             null,
             "시스템",
+            null,
             content,
             LocalDateTime.now()
         );
@@ -70,6 +88,7 @@ public class ChatWebSocketMessage {
             chatRoomId,
             userId,
             userName,
+            null,
             userName + "님이 참가하셨습니다.",
             LocalDateTime.now()
         );
@@ -82,7 +101,8 @@ public class ChatWebSocketMessage {
             chatRoomId,
             userId,
             userName,
-            userName + "님이 소모임을 나갔습니다.",
+            null,
+            userName + "님이 채팅방을 나갔습니다.",
             LocalDateTime.now()
         );
     }
