@@ -1,9 +1,10 @@
-package com.helpie.backend.utils;
+package com.helpie.backend.common.utils;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-import com.helpie.backend.fixtures.OsivPatternFixtures;
+import com.helpie.backend.common.fixtures.OsivPatternFixtures;
 
+import com.helpie.backend.utils.OsivExcludeMatcher;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;

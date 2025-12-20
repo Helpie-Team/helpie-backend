@@ -1,4 +1,4 @@
-package com.helpie.backend.fixtures;
+package com.helpie.backend.common.fixtures;
 
 import java.util.List;
 
