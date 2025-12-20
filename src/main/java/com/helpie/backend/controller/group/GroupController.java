@@ -11,12 +11,13 @@ import com.helpie.backend.dto.group.GroupResponse;
 import com.helpie.backend.dto.group.JoinStateResponse;
 import com.helpie.backend.dto.group.RecommendedResponse;
 import com.helpie.backend.service.group.BookmarkService;
+import com.helpie.backend.service.group.GroupFacade;
 import com.helpie.backend.service.group.GroupService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
-import java.util.List;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 
 import org.springframework.data.domain.Page;
@@ -28,13 +29,12 @@ import org.springframework.security.access.annotation.Secured;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.RequestPart;
 import org.springframework.web.bind.annotation.RestController;
-import org.springframework.web.multipart.MultipartFile;
 
 @RestController
 @RequiredArgsConstructor
@@ -43,6 +43,7 @@ import org.springframework.web.multipart.MultipartFile;
 public class GroupController {
 
     private final GroupService groupService;
+    private final GroupFacade groupFacade;
     private final BookmarkService bookmarkService;
 
     @PostMapping(value = "/create",consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
@@ -65,11 +66,10 @@ public class GroupController {
                            """)
     public ResponseEntity<GroupCreateResponse> createGroup(
         @AuthenticationPrincipal UserVo userVo,
-        @Parameter(description = "소모임 생성 정보 (cityId는 도시 ID)") @RequestPart("payload") GroupCreateRequest request,
-        @Parameter(description = "사진")@RequestPart(value = "images", required = false) List<MultipartFile> images
-    ) {
+        @ModelAttribute @Valid GroupCreateRequest request
 
-        GroupCreateResponse response = groupService.createGroup(userVo.getId(),request, images);
+    ) {
+        GroupCreateResponse response = groupFacade.createGroup(userVo.getId(),request);
 
         return ResponseEntity.ok(response);
     }
