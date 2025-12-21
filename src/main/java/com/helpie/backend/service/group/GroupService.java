@@ -21,8 +21,7 @@ import com.helpie.backend.repository.location.CityRepository;
 import com.helpie.backend.repository.location.CountryRepository;
 import com.helpie.backend.repository.survey.SurveyBasicInfoRepository;
 import com.helpie.backend.service.chatroom.ChatRoomService;
-import com.helpie.backend.service.file.FileService;
-import java.util.ArrayList;
+
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
@@ -33,7 +32,6 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.web.multipart.MultipartFile;
 
 @Slf4j
 @Service
@@ -46,72 +44,29 @@ public class GroupService {
     private final CityRepository cityRepository;
     private final CountryRepository countryRepository;
     private final ChatRoomService chatRoomService;
-    private final FileService fileService;
     private final GroupCustomRepository groupCustomRepository;
     private final BookmarkRepository bookmarkRepository;
     private final ChatRoomRepository chatRoomRepository;
 
+
     @Transactional
-    public GroupCreateResponse createGroup(Long userId, GroupCreateRequest req, List<MultipartFile> images) {
-        log.debug("소모임 생성 시작 - userId: {}, title: {}", userId, req.title());
+    public GroupCreateResponse createGroup(Long userId, GroupCreateRequest request,List<String> urls,City city) {
+        Group group = groupRepository.save(request.toEntity(city, userId));
+        group.addMember(userId);
 
-        // 1. 도시 조회
-        City city = cityRepository.findById(req.cityId())
-            .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 도시입니다: " + req.cityId()));
-
-        Group group=Group.builder()
-            .title(req.title())
-            .description(req.description())
-            .city(city)
-            .category(req.category())
-            .interests(req.interests())
-            .maxMembers(req.maxMember())
-            .meetingDate(req.meetingDate())
-            .createdBy(userId)
-            .build();
-
-        Group savedGroup = groupRepository.save(group);
-        log.info("소모임 생성 완료 - groupId: {}", savedGroup.getId());
-        savedGroup.addMember(userId);
-
-        //TODO: 비동기처리
-        List<String> urls;
-        try {
-            urls = fileService.uploadFiles(images);
-                for (String url : urls) {
-                    GroupImage image = new GroupImage(savedGroup, url);
-                    savedGroup.addImage(image);
-                }
-
-        } catch (RuntimeException e) {
-            log.warn("이미지를 업로드하지 않았습니다");
-            urls = new ArrayList<>();
+        if (!urls.isEmpty()) {
+            for (String url : urls) {
+                GroupImage image = new GroupImage(group, url);
+                group.addImage(image);
+            }
         }
 
-        // 2. 소모임 멤버 추가
-        GroupMember groupMember = new GroupMember(savedGroup, userId);
-        groupMemberRepository.save(groupMember);
-        log.info("소모임 멤버 추가 완료 - groupId: {}, userId: {}", savedGroup.getId(), userId);
+        groupMemberRepository.save(new GroupMember(group, userId));
 
-        // 3. 채팅방 자동 생성 및 생성자 입장 (ChatRoomService에 위임)
-        String welcomeMessage = String.format("🎉 %s 소모임이 시작되었습니다! 즐거운 모임 되세요!", savedGroup.getTitle());
-        Long chatRoomId = chatRoomService.createChatRoomAndJoin(savedGroup, userId, null, welcomeMessage);
+        String welcomeMessage = String.format("🎉 %s 소모임이 시작되었습니다! 즐거운 모임 되세요!", group.getTitle());
+        Long chatRoomId = chatRoomService.createChatRoomAndJoin(group, userId, null, welcomeMessage);
 
-
-        log.info("소모임 생성 및 채팅방 자동 설정 완료 - groupId: {}, chatRoomId: {}",
-            savedGroup.getId(), chatRoomId);
-
-        return new GroupCreateResponse(
-            savedGroup.getId(),
-            savedGroup.getTitle(),
-            savedGroup.getDescription(),
-            savedGroup.getMaxMembers(),
-            savedGroup.getCity().getName(),
-            savedGroup.getInterests(),
-            urls,
-            savedGroup.getMeetingDate(),
-            chatRoomId
-        );
+        return GroupCreateResponse.from(group,urls,chatRoomId);
     }
 
     /**

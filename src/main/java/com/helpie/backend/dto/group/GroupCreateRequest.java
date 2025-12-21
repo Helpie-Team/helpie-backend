@@ -1,12 +1,19 @@
 package com.helpie.backend.dto.group;
 
 import com.helpie.backend.domain.group.Category;
+import com.helpie.backend.domain.group.Group;
+import com.helpie.backend.domain.location.City;
 import com.helpie.backend.domain.survey.Interest;
 import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.media.Schema.RequiredMode;
 
+import jakarta.validation.constraints.Size;
 import java.time.LocalDateTime;
+import java.util.Collections;
+import java.util.List;
+import java.util.Objects;
 import java.util.Set;
+import org.springframework.web.multipart.MultipartFile;
 
 @Schema(description = "소모임 생성 요청",
         example = """
@@ -36,7 +43,29 @@ public record GroupCreateRequest(
             example = "2025-12-01T19:00:00", requiredMode = RequiredMode.REQUIRED)
     LocalDateTime meetingDate,
     @Schema(requiredMode = RequiredMode.REQUIRED)
-    Integer maxMember
+    Integer maxMember,
+    @Size(max=3,message = "이미지는 최대 3개까지 첨부할 수 있습니다.")
+    List<MultipartFile> images
 ) {
 
+    @Override
+    public List<MultipartFile> images() {
+        if (Objects.isNull(images)) {
+            return Collections.emptyList();
+        }
+        return images;
+    }
+
+    public Group toEntity(City city, Long userId) {
+        return Group.builder()
+            .title(title)
+            .description(description)
+            .city(city)
+            .category(category)
+            .interests(interests)
+            .maxMembers(maxMember)
+            .meetingDate(meetingDate)
+            .createdBy(userId)
+            .build();
+    }
 }
