@@ -9,6 +9,11 @@ import java.util.Set;
 import org.springframework.test.web.servlet.request.RequestPostProcessor;
 
 public class GroupFixtures {
+    public static final LocalDateTime FIRST_CREATED_AT = LocalDateTime.of(2020, 1, 1, 0, 0);
+    public static final LocalDateTime SECOND_CREATED_AT = LocalDateTime.of(2021, 1, 1, 0, 0);
+    public static final LocalDateTime THIRD_CREATED_AT = LocalDateTime.of(2022, 1, 1, 0, 0);
+    public static final LocalDateTime CURSOR_CREATED_AT = LocalDateTime.of(2023, 1, 1, 0, 0);
+
 
     public static GroupCreateResponse CREATE_RESPONSE= new GroupCreateResponse(
             1L,

@@ -51,4 +51,6 @@ public interface CityRepository extends JpaRepository<City, Long> {
      */
     @Query("SELECT COUNT(c) FROM City c WHERE c.country.id = :countryId")
     Long countByCountryId(@Param("countryId") Long countryId);
+
+    Optional<City> findByCodeAndCountry(String code, Country country);
 }
