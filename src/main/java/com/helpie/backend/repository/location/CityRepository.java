@@ -53,4 +53,6 @@ public interface CityRepository extends JpaRepository<City, Long> {
     Long countByCountryId(@Param("countryId") Long countryId);
 
     Optional<City> findByCodeAndCountry(String code, Country country);
+
+    List<City> findAllByCountry(Country country);
 }

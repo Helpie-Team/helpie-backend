@@ -14,7 +14,6 @@ import com.helpie.backend.exception.ErrorCode;
 import com.helpie.backend.exception.GroupException;
 import com.helpie.backend.repository.chatroom.ChatRoomRepository;
 import com.helpie.backend.repository.group.BookmarkRepository;
-import com.helpie.backend.repository.group.GroupCustomRepository;
 import com.helpie.backend.repository.group.GroupMemberRepository;
 import com.helpie.backend.repository.group.GroupRepository;
 import com.helpie.backend.repository.location.CityRepository;
@@ -44,7 +43,6 @@ public class GroupService {
     private final CityRepository cityRepository;
     private final CountryRepository countryRepository;
     private final ChatRoomService chatRoomService;
-    private final GroupCustomRepository groupCustomRepository;
     private final BookmarkRepository bookmarkRepository;
     private final ChatRoomRepository chatRoomRepository;
 
@@ -124,26 +122,50 @@ public class GroupService {
         return GroupResponse.from(group);
     }
 
-    /**
-     * 국가,카테고리별 소모임 조회
-     */
-    public Page<GroupResponse> getGroupByCountry(Long userId, String code, Category category, Pageable pageable) {
-        List<City> cities = countryRepository.findByCode(code)
-            .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 국가 코드입니다."))
-            .getCities();
+    public CursorResponse<GroupResponse> getAllGroups(Long userId,CursorRequest request) {
+        List<Group> fetched=groupRepository.findPage(cityRepository.findAll(), request.getCategory(), request.getCursorCreatedAt(), request.getCursorId(), request.getSize() + 1);
+        boolean hasNext = fetched.size() > request.getSize();
+        List<Group> page = hasNext ? fetched.subList(0, request.getSize()) : fetched;
 
-        Page<Group> groups = groupRepository.findAllByFilters(cities, category, pageable);
+        List<GroupResponse> content = mapGroupsWithBookmarksV2(userId, page);
 
-        return mapGroupsWithBookmarks(userId, groups);
+        CursorResponse.NextCursor nextCursor = null;
+        if (hasNext && !page.isEmpty()) {
+            Group last = page.get(page.size() - 1);
+            nextCursor = new CursorResponse.NextCursor(
+                last.getCreatedAt(),
+                last.getId()
+            );
+        }
+
+        return new CursorResponse<>(content, hasNext, nextCursor);
     }
 
-    /**
-     * 전체 국가 조회
-     */
-    public Page<GroupResponse> getAllGroups(Long userId,Category category, Pageable pageable) {
-        Page<Group> groups = groupRepository.findAllByFilters(cityRepository.findAll(), category, pageable);
+    public CursorResponse<GroupResponse> getGroupsByCountry(Long userId,CursorRequest request) {
+        Country country = countryRepository.findByCode(request.getCountry())
+            .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 국가 코드입니다."));
 
-        return mapGroupsWithBookmarks(userId, groups);
+        List<City> cities = cityRepository.findAllByCountry(country);
+
+        List<Group> fetched = groupRepository.findPage(
+            cities, request.getCategory(), request.getCursorCreatedAt(), request.getCursorId(), request.getSize() + 1
+        );
+
+        boolean hasNext = fetched.size() > request.getSize();
+        List<Group> page = hasNext ? fetched.subList(0, request.getSize()) : fetched;
+
+        List<GroupResponse> content = mapGroupsWithBookmarksV2(userId, page);
+
+        CursorResponse.NextCursor nextCursor = null;
+        if (hasNext && !page.isEmpty()) {
+            Group last = page.get(page.size() - 1);
+            nextCursor = new CursorResponse.NextCursor(
+                last.getCreatedAt(),
+                last.getId()
+            );
+        }
+
+        return new CursorResponse<>(content, hasNext, nextCursor);
     }
 
     /**
@@ -185,9 +207,28 @@ public class GroupService {
      // TODO: 지난 모임에 대한 isActive false 처리 필요
      */
     public Page<MyGroupResponse> getMyGroups(Long userId, String status, Pageable pageable) {
-        return groupCustomRepository.findMyGroups(userId, status, pageable);
+        return groupRepository.findMyGroups(userId, status, pageable);
     }
 
+    private List<GroupResponse> mapGroupsWithBookmarksV2(Long userId, List<Group> groups) {
+        if (groups.isEmpty()) {
+            return List.of();
+        }
+
+        List<Long> groupIds = groups.stream()
+            .map(Group::getId)
+            .toList();
+
+        Set<Long> bookmarkedIds = bookmarkRepository
+            .findAllByUserIdAndGroupIdIn(userId, groupIds)
+            .stream()
+            .map(Bookmark::getGroupId)
+            .collect(Collectors.toUnmodifiableSet());
+
+        return groups.stream()
+            .map(group -> GroupResponse.from(group, bookmarkedIds.contains(group.getId())))
+            .toList();
+    }
 
     private Page<GroupResponse> mapGroupsWithBookmarks(Long userId, Page<Group> groups) {
         List<Long> groupIds = groups.stream()
