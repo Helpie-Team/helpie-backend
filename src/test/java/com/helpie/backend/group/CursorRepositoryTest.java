@@ -8,7 +8,6 @@ import com.helpie.backend.common.fixtures.GroupFixtures;
 import com.helpie.backend.config.QueryDslConfig;
 import com.helpie.backend.domain.group.Category;
 import com.helpie.backend.domain.group.Group;
-import com.helpie.backend.repository.group.impl.GroupCustomRepositoryImpl;
 
 import java.util.List;
 import org.junit.jupiter.api.DisplayName;
@@ -23,8 +22,6 @@ import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabas
 @AutoConfigureTestDatabase(replace = AutoConfigureTestDatabase.Replace.NONE)
 @Import(value= {TestFixtureBuilder.class, BuilderSupporter.class, QueryDslConfig.class})
 public class CursorRepositoryTest {
-    @Autowired
-    GroupCustomRepositoryImpl groupCustomRepository;
 
     @Autowired
     TestFixtureBuilder builder;
@@ -41,7 +38,7 @@ public class CursorRepositoryTest {
         Group g2 = builder.buildGroup(GroupFixtures.SECOND_CREATED_AT);
         Group g3 = builder.buildGroup(GroupFixtures.THIRD_CREATED_AT);
 
-        List<Group> result = groupCustomRepository.findPage(
+        List<Group> result = builderSupporter.groupRepository().findPage(
             List.of(builder.buildCity()),
             Category.HOBBY,
             null,
@@ -91,7 +88,7 @@ public class CursorRepositoryTest {
 
         Long cursorId = g3.getId();
 
-        List<Group> result = groupCustomRepository.findPage(
+        List<Group> result = builderSupporter.groupRepository().findPage(
             List.of(builder.buildCity()),
             Category.HOBBY,
             GroupFixtures.CURSOR_CREATED_AT,
