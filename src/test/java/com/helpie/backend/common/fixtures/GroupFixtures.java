@@ -1,6 +1,8 @@
 package com.helpie.backend.common.fixtures;
 
+import com.helpie.backend.domain.group.Category;
 import com.helpie.backend.domain.survey.Interest;
+import com.helpie.backend.dto.group.CursorRequest;
 import com.helpie.backend.dto.group.GroupCreateResponse;
 
 import java.time.LocalDateTime;
@@ -14,17 +16,27 @@ public class GroupFixtures {
     public static final LocalDateTime THIRD_CREATED_AT = LocalDateTime.of(2022, 1, 1, 0, 0);
     public static final LocalDateTime CURSOR_CREATED_AT = LocalDateTime.of(2023, 1, 1, 0, 0);
 
+    public static CursorRequest cursorRequest(Long cursorId, LocalDateTime createdAt, Integer size) {
+        return new CursorRequest(
+            CountryFixtures.CODE,
+            Category.HOBBY,
+            createdAt,
+            cursorId,
+            size
+        );
+    }
 
-    public static GroupCreateResponse CREATE_RESPONSE= new GroupCreateResponse(
-            1L,
-            "title",
-            "description",
-            10,
-            "서울",
-            Set.of(Interest.WALKING),
-            List.of(),
-            LocalDateTime.of(2026, 1, 1, 10, 0),
-            100L
+
+    public static GroupCreateResponse CREATE_RESPONSE = new GroupCreateResponse(
+        1L,
+        "title",
+        "description",
+        10,
+        "서울",
+        Set.of(Interest.WALKING),
+        List.of(),
+        LocalDateTime.of(2026, 1, 1, 10, 0),
+        100L
     );
 
     public static RequestPostProcessor validParams() {
