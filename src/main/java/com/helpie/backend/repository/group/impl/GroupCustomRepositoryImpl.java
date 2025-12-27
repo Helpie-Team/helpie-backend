@@ -1,19 +1,21 @@
 package com.helpie.backend.repository.group.impl;
 
+import com.helpie.backend.domain.group.Category;
 import com.helpie.backend.domain.group.Group;
-import com.helpie.backend.domain.group.GroupMember;
 import com.helpie.backend.domain.group.GroupStatus;
 import com.helpie.backend.domain.group.QGroup;
 import com.helpie.backend.domain.group.QGroupMember;
+import com.helpie.backend.domain.location.City;
 import com.helpie.backend.dto.group.MyGroupResponse;
 import com.helpie.backend.repository.group.GroupCustomRepository;
 import com.querydsl.core.BooleanBuilder;
-import com.querydsl.core.types.Projections;
+import com.querydsl.core.types.dsl.BooleanExpression;
 import com.querydsl.jpa.JPQLQuery;
+import com.querydsl.jpa.impl.JPAQueryFactory;
+import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
-import org.springframework.data.jpa.repository.support.QuerydslRepositorySupport;
 import org.springframework.stereotype.Repository;
 
 import java.time.LocalDate;
@@ -22,9 +24,10 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 @Repository
-public class GroupCustomRepositoryImpl extends QuerydslRepositorySupport implements GroupCustomRepository {
-    public GroupCustomRepositoryImpl() {super(GroupMember.class);}
+@RequiredArgsConstructor
+public class GroupCustomRepositoryImpl implements GroupCustomRepository {
 
+    private final JPAQueryFactory queryFactory;
     private final QGroup groupQ = QGroup.group;
     private final QGroupMember groupMemberQ = QGroupMember.groupMember;
 
@@ -57,7 +60,7 @@ public class GroupCustomRepositoryImpl extends QuerydslRepositorySupport impleme
         JPQLQuery<Group> query;
         if (status.equals("created")) {
             // 내가 만든 소모임은 Group에서 직접 조회
-            query = from(groupQ)
+            query =queryFactory.selectFrom(groupQ)
                     .leftJoin(groupQ.city).fetchJoin()
                     .leftJoin(groupQ.city.country).fetchJoin()
                     .leftJoin(groupQ.images).fetchJoin()
@@ -68,7 +71,7 @@ public class GroupCustomRepositoryImpl extends QuerydslRepositorySupport impleme
                     .limit(pageable.getPageSize());
         } else {
             // 가입한 소모임은 GroupMember를 통해 조회
-            query = from(groupMemberQ)
+            query = queryFactory.selectFrom(groupQ)
                     .join(groupMemberQ.group, groupQ)
                     .leftJoin(groupQ.city).fetchJoin()
                     .leftJoin(groupQ.city.country).fetchJoin()
@@ -99,12 +102,12 @@ public class GroupCustomRepositoryImpl extends QuerydslRepositorySupport impleme
 
         Long total;
         if (status.equals("created")) {
-            total = from(groupQ)
+            total = queryFactory.selectFrom(groupQ)
                     .where(builder)
                     .select(groupQ.count())
                     .fetchOne();
         } else {
-            total = from(groupMemberQ)
+            total = queryFactory.selectFrom(groupQ)
                     .join(groupMemberQ.group, groupQ)
                     .where(builder)
                     .select(groupMemberQ.count())
@@ -113,4 +116,35 @@ public class GroupCustomRepositoryImpl extends QuerydslRepositorySupport impleme
 
         return new PageImpl<>(content, pageable, total != null ? total : 0);
     }
+
+    public List<Group> findPage(List<City> cities, Category category, LocalDateTime cursorCreatedAt, Long cursorId, int size) {
+
+        return queryFactory
+            .selectFrom(groupQ)
+            .leftJoin(groupQ.images).fetchJoin()
+            .where(
+                filterGroups(groupQ,cities,category),
+                cursorCondition(groupQ,cursorCreatedAt,cursorId)
+            )
+            .orderBy(groupQ.createdAt.desc(), groupQ.id.desc())
+            .limit(size)
+            .fetch();
+    }
+
+    private BooleanExpression filterGroups(QGroup g, List<City> cities, Category category) {
+        return g.city.in(cities)
+            .and(g.category.eq(category))
+            .and(g.status.in(GroupStatus.RECRUITING, GroupStatus.RECRUITMENT_CLOSED));
+    }
+
+    private BooleanExpression cursorCondition(QGroup g, LocalDateTime cursorCreatedAt, Long cursorId) {
+        if (cursorCreatedAt == null || cursorId == null) return null;
+
+        return g.createdAt.lt(cursorCreatedAt)
+            .or(g.createdAt.eq(cursorCreatedAt).and(g.id.lt(cursorId)));
+    }
+
+
+
+
 }

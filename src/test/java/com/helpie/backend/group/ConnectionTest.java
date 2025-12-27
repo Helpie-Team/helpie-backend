@@ -1,4 +1,4 @@
-package com.helpie.backend.controller;
+package com.helpie.backend.group;
 
 import com.helpie.backend.common.fixtures.AuthFixtures;
 import com.helpie.backend.common.fixtures.GroupFixtures;

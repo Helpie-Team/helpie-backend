@@ -20,7 +20,7 @@ import org.springframework.data.repository.query.Param;
  * @author 전우선
  * @since 2025-10-25(토)
  */
-public interface GroupRepository extends JpaRepository<Group, Long> {
+public interface GroupRepository extends JpaRepository<Group, Long>,GroupCustomRepository {
     
     /**
      * 나라별, 상태별 소모임 목록을 조회합니다.

@@ -1,9 +1,10 @@
 package com.helpie.backend.controller.group;
 
-import com.helpie.backend.domain.group.Category;
 import com.helpie.backend.domain.user.UserRole;
 import com.helpie.backend.domain.user.UserVo;
 import com.helpie.backend.dto.group.BookmarkResponse;
+import com.helpie.backend.dto.group.CursorRequest;
+import com.helpie.backend.dto.group.CursorResponse;
 import com.helpie.backend.dto.group.GroupCreateRequest;
 import com.helpie.backend.dto.group.GroupCreateResponse;
 import com.helpie.backend.dto.group.JoinResponse;
@@ -90,19 +91,15 @@ public class GroupController {
     @Secured(UserRole.USER_TYPE)
     @SecurityRequirement(name = "JWT Authentication")
     @Operation(summary = "국가,카테고리별 소모임 조회", description = "국가, 카테고리별로 소모임을 조회합니다")
-    public ResponseEntity<Page<GroupResponse>> getGroupByCountry(
+    public ResponseEntity<CursorResponse<GroupResponse>> getGroupByCountry(
         @AuthenticationPrincipal UserVo userVo,
-        @Parameter(description = "나라") @RequestParam String country,
-        @Parameter(description = "소모임 카테고리") @RequestParam Category category,
-        @RequestParam(defaultValue ="0") int page
+        @Valid @ModelAttribute CursorRequest request
 
     ){
-        Pageable pageable= PageRequest.of(page,12,Sort.by("createdAt").descending());
-
-        if (country.equals("ALL")){
-            return ResponseEntity.ok(groupService.getAllGroups(userVo.getId(),category,pageable));
+        if (request.getCountry().equals("ALL")){
+            return ResponseEntity.ok(groupService.getAllGroups(userVo.getId(),request));
         }
-        return ResponseEntity.ok(groupService.getGroupByCountry(userVo.getId(),country,category,pageable));
+        return ResponseEntity.ok(groupService.getGroupsByCountry(userVo.getId(),request));
     }
 
     @PostMapping("/mark/{groupId}")
