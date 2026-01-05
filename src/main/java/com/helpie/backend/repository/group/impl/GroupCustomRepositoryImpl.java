@@ -3,13 +3,21 @@ package com.helpie.backend.repository.group.impl;
 import com.helpie.backend.domain.group.Category;
 import com.helpie.backend.domain.group.Group;
 import com.helpie.backend.domain.group.GroupStatus;
+import com.helpie.backend.domain.group.QBookmark;
 import com.helpie.backend.domain.group.QGroup;
+import com.helpie.backend.domain.group.QGroupImage;
 import com.helpie.backend.domain.group.QGroupMember;
 import com.helpie.backend.domain.location.City;
+import com.helpie.backend.dto.group.CursorRequest;
+import com.helpie.backend.dto.group.GroupResponse;
 import com.helpie.backend.dto.group.MyGroupResponse;
 import com.helpie.backend.repository.group.GroupCustomRepository;
 import com.querydsl.core.BooleanBuilder;
+import com.querydsl.core.types.Expression;
+import com.querydsl.core.types.Projections;
 import com.querydsl.core.types.dsl.BooleanExpression;
+import com.querydsl.core.types.dsl.Expressions;
+import com.querydsl.jpa.JPAExpressions;
 import com.querydsl.jpa.JPQLQuery;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import lombok.RequiredArgsConstructor;
@@ -30,6 +38,8 @@ public class GroupCustomRepositoryImpl implements GroupCustomRepository {
     private final JPAQueryFactory queryFactory;
     private final QGroup groupQ = QGroup.group;
     private final QGroupMember groupMemberQ = QGroupMember.groupMember;
+    private final QGroupImage img = QGroupImage.groupImage;
+    private final QBookmark bookmark = QBookmark.bookmark;
 
     @Override
     public Page<MyGroupResponse> findMyGroups(Long userId, String status, Pageable pageable) {
@@ -117,19 +127,61 @@ public class GroupCustomRepositoryImpl implements GroupCustomRepository {
         return new PageImpl<>(content, pageable, total != null ? total : 0);
     }
 
-    public List<Group> findPage(List<City> cities, Category category, LocalDateTime cursorCreatedAt, Long cursorId, int size) {
-
+    public List<Long> findPageIds(List<City> cities, CursorRequest request) {
         return queryFactory
-            .selectFrom(groupQ)
-            .leftJoin(groupQ.images).fetchJoin()
+            .select(groupQ.id)
+            .from(groupQ)
             .where(
-                filterGroups(groupQ,cities,category),
-                cursorCondition(groupQ,cursorCreatedAt,cursorId)
+                filterGroups(groupQ, cities, request.getCategory()),
+                cursorCondition(groupQ, request.getCursorCreatedAt(), request.getCursorId())
             )
             .orderBy(groupQ.createdAt.desc(), groupQ.id.desc())
-            .limit(size)
+            .limit(request.getSize()+1)
             .fetch();
     }
+
+    public List<GroupResponse> findGroupsWithImagesByIds(List<Long> groupIds,Long userId) {
+        return queryFactory
+            .select(Projections.constructor(
+                        GroupResponse.class,
+                        groupQ.id,
+                        groupQ.title,
+                        groupQ.description,
+                        groupQ.city.name,
+                        groupQ.category,
+                        groupQ.maxMembers,
+                        getFirstImage(),
+                        Expressions.constant(false),
+                        Expressions.constant(3),
+                        groupQ.status,
+                        groupQ.meetingDate,
+                        getBookmarkYn(userId),
+                        groupQ.createdAt))
+            .from(groupQ)
+            .where(groupQ.id.in(groupIds))
+            .orderBy(groupQ.createdAt.desc(), groupQ.id.desc())
+            .fetch();
+    }
+
+    private Expression<Boolean> getBookmarkYn(Long userId) {
+        return JPAExpressions
+            .select(bookmark.bookmarkYn)
+            .from(bookmark)
+            .where(bookmark.groupId.eq(groupQ.id)
+                .and(bookmark.userId.eq(userId)))
+            .exists();
+    }
+
+
+    private Expression<String> getFirstImage() {
+        return JPAExpressions
+            .select(img.imageUrl)
+            .from(img)
+            .where(img.group.id.eq(groupQ.id))
+            .orderBy(img.id.asc())
+            .limit(1);
+    }
+
 
     private BooleanExpression filterGroups(QGroup g, List<City> cities, Category category) {
         return g.city.in(cities)
