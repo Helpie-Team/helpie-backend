@@ -46,6 +46,7 @@ public class GroupResponse {
     private GroupStatus status;
     private LocalDateTime meetingDate;
     private Boolean isMarked;
+    private LocalDateTime createdAt;
     private static final String DEFAULT_THUMBNAIL_URL="https://kr.object.ncloudstorage.com/helpie-bucket/uploads/2025/11/10/62d39fbe-b94c-4b79-a606-84e80754f9fc.png";
 
     public static GroupResponse from(Group group) {
