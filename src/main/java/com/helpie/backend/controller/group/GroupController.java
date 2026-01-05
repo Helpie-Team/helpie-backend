@@ -96,10 +96,7 @@ public class GroupController {
         @Valid @ModelAttribute CursorRequest request
 
     ){
-        if (request.getCountry().equals("ALL")){
-            return ResponseEntity.ok(groupService.getAllGroups(userVo.getId(),request));
-        }
-        return ResponseEntity.ok(groupService.getGroupsByCountry(userVo.getId(),request));
+        return ResponseEntity.ok(groupService.getGroups(userVo.getId(),request));
     }
 
     @PostMapping("/mark/{groupId}")
