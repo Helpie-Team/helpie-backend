@@ -20,6 +20,7 @@ import com.querydsl.core.types.dsl.Expressions;
 import com.querydsl.jpa.JPAExpressions;
 import com.querydsl.jpa.JPQLQuery;
 import com.querydsl.jpa.impl.JPAQueryFactory;
+
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
@@ -177,9 +178,15 @@ public class GroupCustomRepositoryImpl implements GroupCustomRepository {
         return JPAExpressions
             .select(img.imageUrl)
             .from(img)
-            .where(img.group.id.eq(groupQ.id))
-            .orderBy(img.id.asc())
-            .limit(1);
+            .where(
+                img.id.eq(
+                    JPAExpressions
+                        .select(img.id.min())
+                        .from(img)
+                        .where(img.group.id.eq(groupQ.id))
+                )
+            );
+
     }
 
 
