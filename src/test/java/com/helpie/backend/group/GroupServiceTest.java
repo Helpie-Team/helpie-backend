@@ -51,7 +51,7 @@ class GroupServiceTest {
         int size = groups.size() - 1;
 
         CursorRequest request = GroupFixtures.cursorRequest(null, null, size);
-        var firstResponse = groupService.getGroupsByCountry(
+        var firstResponse = groupService.getGroups(
             AuthFixtures.user().getId(),
             request
         );
@@ -62,7 +62,7 @@ class GroupServiceTest {
         var nextCreatedAt = firstResponse.nextCursor().createdAt();
 
         CursorRequest nextRequest = GroupFixtures.cursorRequest(nextCursorId, nextCreatedAt, size);
-        var secondResponse = groupService.getGroupsByCountry(
+        var secondResponse = groupService.getGroups(
             AuthFixtures.user().getId(),
             nextRequest
         );
@@ -80,12 +80,14 @@ class GroupServiceTest {
     void last_page_hasNext_false() {
         // given
         Integer size = groups.size();
-        Long cursorId = groups.get(0).getId();
-        LocalDateTime createdAt = groups.get(0).getCreatedAt();
+        Group last=groups.get(size-1);
+        Long cursorId = last.getId();
+        LocalDateTime createdAt = last.getCreatedAt();
+        Long userId= AuthFixtures.user().getId();
 
         CursorRequest request = GroupFixtures.cursorRequest(cursorId, createdAt, size);
-        var response = groupService.getGroupsByCountry(
-            AuthFixtures.user().getId(),
+        var response = groupService.getGroups(
+            userId,
             request
         );
 
@@ -93,6 +95,5 @@ class GroupServiceTest {
         assertThat(response.hasNext()).isFalse();
 
     }
-
 
 }

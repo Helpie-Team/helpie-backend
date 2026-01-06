@@ -122,50 +122,34 @@ public class GroupService {
         return GroupResponse.from(group);
     }
 
-    public CursorResponse<GroupResponse> getAllGroups(Long userId,CursorRequest request) {
-        List<Group> fetched=groupRepository.findPage(cityRepository.findAll(), request.getCategory(), request.getCursorCreatedAt(), request.getCursorId(), request.getSize() + 1);
-        boolean hasNext = fetched.size() > request.getSize();
-        List<Group> page = hasNext ? fetched.subList(0, request.getSize()) : fetched;
+    public CursorResponse<GroupResponse> getGroups(Long userId,CursorRequest request) {
+        List<City> cities= validateCountry(request.getCountry());
+        List<Long> fetchedIds = groupRepository.findPageIds(cities,request);
 
-        List<GroupResponse> content = mapGroupsWithBookmarksV2(userId, page);
+        boolean hasNext = fetchedIds.size() > request.getSize();
+        List<Long> pageIds = hasNext ? fetchedIds.subList(0, request.getSize()) : fetchedIds;
+        List<GroupResponse> content=groupRepository.findGroupsWithImagesByIds(pageIds,userId);
 
-        CursorResponse.NextCursor nextCursor = null;
-        if (hasNext && !page.isEmpty()) {
-            Group last = page.get(page.size() - 1);
-            nextCursor = new CursorResponse.NextCursor(
-                last.getCreatedAt(),
-                last.getId()
-            );
+        if (!hasNext){
+            return new CursorResponse<>(content, hasNext, null);
         }
+
+        GroupResponse last = content.get(content.size() - 1);
+        CursorResponse.NextCursor  nextCursor = new CursorResponse.NextCursor(last.getCreatedAt(), last.getId());
 
         return new CursorResponse<>(content, hasNext, nextCursor);
     }
 
-    public CursorResponse<GroupResponse> getGroupsByCountry(Long userId,CursorRequest request) {
-        Country country = countryRepository.findByCode(request.getCountry())
-            .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 국가 코드입니다."));
-
-        List<City> cities = cityRepository.findAllByCountry(country);
-
-        List<Group> fetched = groupRepository.findPage(
-            cities, request.getCategory(), request.getCursorCreatedAt(), request.getCursorId(), request.getSize() + 1
-        );
-
-        boolean hasNext = fetched.size() > request.getSize();
-        List<Group> page = hasNext ? fetched.subList(0, request.getSize()) : fetched;
-
-        List<GroupResponse> content = mapGroupsWithBookmarksV2(userId, page);
-
-        CursorResponse.NextCursor nextCursor = null;
-        if (hasNext && !page.isEmpty()) {
-            Group last = page.get(page.size() - 1);
-            nextCursor = new CursorResponse.NextCursor(
-                last.getCreatedAt(),
-                last.getId()
-            );
+    private List<City> validateCountry(String countryCode) {
+        if (countryCode.equals("ALL")){
+            return cityRepository.findAll();
         }
 
-        return new CursorResponse<>(content, hasNext, nextCursor);
+        Country country = countryRepository.findByCode(countryCode)
+                .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 국가 코드입니다."));
+
+        return cityRepository.findAllByCountry(country);
+
     }
 
     /**
@@ -208,26 +192,6 @@ public class GroupService {
      */
     public Page<MyGroupResponse> getMyGroups(Long userId, String status, Pageable pageable) {
         return groupRepository.findMyGroups(userId, status, pageable);
-    }
-
-    private List<GroupResponse> mapGroupsWithBookmarksV2(Long userId, List<Group> groups) {
-        if (groups.isEmpty()) {
-            return List.of();
-        }
-
-        List<Long> groupIds = groups.stream()
-            .map(Group::getId)
-            .toList();
-
-        Set<Long> bookmarkedIds = bookmarkRepository
-            .findAllByUserIdAndGroupIdIn(userId, groupIds)
-            .stream()
-            .map(Bookmark::getGroupId)
-            .collect(Collectors.toUnmodifiableSet());
-
-        return groups.stream()
-            .map(group -> GroupResponse.from(group, bookmarkedIds.contains(group.getId())))
-            .toList();
     }
 
     private Page<GroupResponse> mapGroupsWithBookmarks(Long userId, Page<Group> groups) {
