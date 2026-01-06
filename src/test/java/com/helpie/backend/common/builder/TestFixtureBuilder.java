@@ -4,6 +4,7 @@ import com.helpie.backend.common.fixtures.CityFixtures;
 import com.helpie.backend.common.fixtures.CountryFixtures;
 import com.helpie.backend.domain.group.Category;
 import com.helpie.backend.domain.group.Group;
+import com.helpie.backend.domain.group.GroupImage;
 import com.helpie.backend.domain.location.City;
 import com.helpie.backend.domain.location.Country;
 import com.helpie.backend.repository.location.CityRepository;
@@ -48,6 +49,12 @@ public class TestFixtureBuilder {
         return repository.findByCode(CountryFixtures.CODE)
             .orElseGet(() -> repository.save(CountryFixtures.COUNTRY()));
 
+    }
+
+    public GroupImage buildGroupImage(Group group,String imageUrl){
+        GroupImage image=new GroupImage(group,imageUrl);
+
+        return bs.groupImageRepository().save(image);
     }
 
 }

@@ -1,4 +1,4 @@
-package com.helpie.backend.group;
+package com.helpie.backend.group.respository;
 
 import static org.assertj.core.api.Assertions.assertThat;
 

@@ -1,5 +1,6 @@
 package com.helpie.backend.common.builder;
 
+import com.helpie.backend.repository.group.GroupImageRepository;
 import com.helpie.backend.repository.group.GroupRepository;
 import com.helpie.backend.repository.location.CityRepository;
 import com.helpie.backend.repository.location.CountryRepository;
@@ -18,6 +19,9 @@ public class BuilderSupporter {
     @Autowired
     private CountryRepository countryRepository;
 
+    @Autowired
+    private GroupImageRepository groupImageRepository;
+
     public CityRepository cityRepository() {
         return cityRepository;
     }
@@ -28,6 +32,10 @@ public class BuilderSupporter {
 
     public CountryRepository countryRepository() {
         return countryRepository;
+    }
+
+    public GroupImageRepository groupImageRepository() {
+        return groupImageRepository;
     }
 
 }
